@@ -1,0 +1,191 @@
+%\documentclass[11pt]{article}
+\documentclass[11pt,usenames,dvipsnames]{article} %added color definition
+\usepackage{cite}
+
+%%% PAGE DIMENSIONS
+\usepackage{geometry} % to change the page dimensions
+\geometry{a4paper, margin=3cm} % or letterpaper (US) or a5paper or....
+% \geometry{margin=2in} % for example, change the margins to 2 inches all round
+% \geometry{landscape} % set up the page for landscape
+%   read geometry.pdf for detailed page layout information
+
+\usepackage{graphicx} % support the \includegraphics command and options
+
+\usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
+
+%%% PACKAGES
+\usepackage{booktabs} % for much better looking tables
+\usepackage{array} % for better arrays (eg matrices) in maths
+\usepackage{paralist} % very flexible & customisable lists (eg. enumerate/itemize, etc.)
+\usepackage{verbatim} % adds environment for commenting out blocks of text & for better verbatim
+%\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float. CGW: incompatible with subcaption
+% These packages are all incorporated in the memoir class to one degree or another...
+\usepackage{cite} %CGW use bibtex to cite sources
+\usepackage{xcolor} %CGW change text color
+%\usepackage{subfigure} %CGW creates subfigures.  incompatible with subcaption
+\usepackage{caption} %CGW
+\usepackage{subcaption} %CGW include subfigures
+\usepackage{amsmath} %CGW: equations
+\usepackage[utf8]{inputenc} %CGW: list of tables
+\usepackage{appendix} %CGW: appendices formatting
+\usepackage{tabularx} %CGW: automatic line break
+\usepackage{float} %CGW force placement of figure
+\usepackage{colortbl} %CGW cell colors in excel2latex conversion
+\usepackage{rotating} %CGW text rotation in excel2latex conversion
+\usepackage{longtable} %CGW multipage table
+\usepackage{multirow} %CGW multirow for excel2latex
+\usepackage{rotating} %CGW rotated text for excel2latex
+
+%%% HEADERS & FOOTERS
+\usepackage{fancyhdr} % This should be set AFTER setting up the page geometry
+\pagestyle{fancy} % options: empty , plain , fancy
+\renewcommand{\headrulewidth}{0pt} % customise the layout...
+\lhead{}\chead{}\rhead{}
+\lfoot{}\cfoot{}\rfoot{\thepage}
+
+%%% SECTION TITLE APPEARANCE
+\usepackage{sectsty}
+\allsectionsfont{\sffamily\mdseries\upshape} % (See the fntguide.pdf for font help)
+% (This matches ConTeXt defaults)
+
+%%% ToC (table of contents) APPEARANCE
+\usepackage[nottoc,notlof,notlot]{tocbibind} % Put the bibliography in the ToC
+\usepackage[titles,subfigure]{tocloft} % Alter the style of the Table of Contents
+\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}
+\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} % No bold
+
+%%% List of Figures setup 
+%%% https://tex.stackexchange.com/questions/475767/list-of-tables-and-list-of-figures-error-when-using-caption
+\captionsetup[subfigure]{list=true}
+\usepackage[subfigure]{tocloft} %http://mirrors.ibiblio.org/CTAN/macros/latex/contrib/tocloft/tocloft.pdf
+\newcounter{lofdepth}
+\setcounter{lofdepth}{3}
+%\cftpagenumbersoff{subfigure}
+
+%List of Tables setup
+\newcounter{lotdepth}
+\setcounter{lotdepth}{2}
+
+%%% Hyperlinks
+\usepackage{hyperref}
+\hypersetup{
+	colorlinks=true,
+	linkcolor=blue,
+	filecolor=magenta,
+	urlcolor=ForestGreen,
+}
+
+%%% Variables
+\title{%
+	An open source spatial news web app development project \\
+	\large Masters in GIS\&S Thesis Proposal\\
+}
+
+\author{Callie Wentling\\
+	\small Advisor: Professor Marco Painho, Ph.D}
+\date{} % Activate to display a given date or no date (if empty), otherwise the current date is printed 
+
+\begin{document}
+%\pagenumbering{roman} %Use for longer front matter (title page, abstract, longer table of contents, thanks, etc.)
+
+\maketitle
+\thispagestyle{empty} %Removes page number from this page
+%{\color{red}
+%	To do:
+%	\begin{itemize}
+%%		\item Remove bullet points from relevant terms
+%%		\item Hyperlink
+%%		\item Add remaining appendices
+%%		\item Create reference document for figures, tables, etc.
+%%		\item Rewrite Grant sessions that don't apply to the NOVA proposal
+%%		\item Check the proposal format for NOVA
+%%		\item Check the goals for the HOW TO WRITE A THESIS proposal (google drive)
+%%		\item Create reference section on Mendeley and import into doc
+%%		\item Visualize mendeley references in doc
+%%		\item recover literature review structure in to document and cite relevent references
+%%		\item Write
+%		\item Specifications
+%	\end{itemize}
+%}
+
+\vspace*{\fill}
+\section*{Project summary}
+\input{chapters/summary.tex}
+
+\newpage
+\thispagestyle{empty} %Removes page number from this page
+{\small
+\tableofcontents
+}
+
+%\newpage
+{\small
+\listoffigures
+}
+
+%\newpage
+{\small
+\listoftables
+}
+
+\newpage
+\pagenumbering{arabic}
+\section{Framework}  \label{sec:framework}
+%{\color{red} Enquadramento: 2 páginas}
+\input{chapters/problem_statement.tex}
+
+\section{Hypothesis} \label{sec:hypothesis}
+%{\color{red} Hipóteses de trabalho: 1 páginas}
+\input{chapters/hypothesis.tex}
+
+\section{Objectives} \label{sec:objectives}
+%{\color{red} Objetivos: 1 página}
+\input{chapters/goals.tex}
+
+\section{Methodology} \label{sec:methodology}
+%{\color{red} Metodologia: 2 páginas}
+\input{chapters/methods.tex}
+
+\section{Preliminary Organization} \label{sec:organization}
+%{\color{red} Esboço de organização do TPE (índice)}
+{\footnotesize
+	\input{chapters/bib_structure.tex}
+}
+
+%\section{Project timeline of milestone deliverables}  \label{sec:timeline}
+%%{\color{red} Cronograma}
+%\input{chapters/milestones.tex}
+
+\newpage
+%{\color{red} Bibliografia inicial}
+\nocite{*}
+{\footnotesize
+\bibliographystyle{unsrt}
+\bibliography{D:/active/general/Bibtex/thesis} \label{sec:bibliography}
+}
+
+\newpage
+\section*{Appendix}  \label{sec:appendices}
+\begin{appendices}
+	\input{chapters/appendix.tex}
+\end{appendices}
+
+%%% SUMMARY
+
+%\newpage
+%\section*{Quick Description}
+%The project is a set of tools that allow journalists/government/officials to georeference and timestamp their articles/documentation so that they can be spatially, temporally, and thematically searched by a variety of users. The hope is that this will bring additional context to local’s about their community via a familiar interface (a lá AirBnB, googlemaps, etc.), as well as more nuanced monitoring tools via spatial dashboards. Basically, it’s a geoportal that enables users better searchability to access already publicly available resources through querying tools that have already become the status quo in other industries.
+%
+%
+%\newpage
+%\section*{Applications}\label{sec:applications}
+%Beyond the direct use of the tools being developed, there are opportunities to leverage the system as a geoportal, extracting information for more specific applications with geospatial new element. The toolset is intended to provide free and open access to the data contained within, with APIs providing means for other applications to incorporate the data for their own purposes. Several examples are illustrated below:
+%
+%\begin{enumerate}
+%	\item Lisbon, PT: A website to inform citizens on the distribution of COVID within the city limits. A development team obtains i) locations of hospitals and nursing homes, locations of vital businesses (markets, pharmacies, gas stations, etc.), and boundaries of freguesias from Lisboa Aberta (open data portal managed by CML); ii) news stories related to covid (results from the toolset filtered to Lisbon Municipality boundary and 'COVID' tags); and iii) aggregation (by freguesia) of active COVID cases as well as identified hotspot areas from the Ministry of Health.  Users are able to monitor their locations of interest (home, work, play, family, and friends) in terms of relative cases compared to the rest of the city and adjust their behavior in those areas accordingly.  Trips to vital services can be planned more effectively. City officials may also identify areas of poor coverage for vital services and temporarily support those areas with access to walkable points of pickup for food an other necessities.
+%	\item Campolide, Lisboa, PT: An environmental task force for the freguesia Campolide seeks to better understand the ecological situation in their community.  Their team incorporates i) news stories within the Campolide boundary filtered to the 'ECO' tag, all mentions of keywords 'JARDIM', 'ESPACO VERDE', 'ECOSYSTEMA', 'QUALIDADE DA VIDA', and temporal range of the last year (17 Nov 2019 to 16 Nov 2020); ii) location of green spaces within the freguesia from Lisboa Aberta; iii) pollution and trash data from other sources; iv) citizen interview results. The task force can then perform the necessary statistical analysis to determine areas requiring intervention, or identify those areas to highlight in upcoming reports on successful green spaces within the community, or to learn about new grassroots initiatives to support.
+%	\item Berlin, Germany: A research team is searching for statistics on the effect of the Spanish flu in Lisbon, Portugal.  They are not well-versed with the study area nor with the portuguese language.  They use the toolset to segretate their own study areas (not adhering to current or previous administrative boundaries of freguesias) within the city limits by drawing polygons over the reigon and setting a temporal content filter to January 1918 to December 1920, with tags 'DOENTE' and 'GRIPE ESPANHOLA', and filter this again to publish dates of each pre-2020 and 2020.  They incorporate this into their own study methods.  They are able to visualize the distribution of results of each query on a map, adding to their understanding of the coverage of each topic.
+%\end{enumerate}
+
+
+\end{document}

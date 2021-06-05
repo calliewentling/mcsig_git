@@ -1,0 +1,125 @@
+The goal of this project is to explore if there is a value to plotting the spatial distribution of news story contents, as well as provide users a portal through which to interact with the data to extract the desired information.  The project will use a study area of new story data from a selection of applicable public and private news media sources in Lisbon, Portugal during the month of October 2020. By building a tool specific to Lisbon, the project seeks to accommodate the culture and the business processes of the local community, providing a platform that is useful and valuable to users (whether they be citiizens, local officials, researchers, or publishers).\\
+
+It is expected that the association of specific place (potentially non-conforming to existing administrative boundaries or defined points of interest) to traditional news articles will provide an added dimension of understanding to communities at a local level. Users will find additional insights from the ability to view or filter spatial attributes, especially in conjunction with thematic and temporal attributes. This type of data preparation, though it is initially cumbersome to establish and requires adjustment of publishers' processes to maintain, will provide a powerful foundation from which future economic (improved publisher products elevating their offering and attracting/maintaining a customer base), societal (illumination of local trends requiring intervention, improved community engagement of readers with their surroundings, or improved city resources), and academic (improved research functionality) benefits may stem.  If this type of functionality and improved user experience are well-implemented by a handful of productive news services, it will force a shift of the industry standard towards integration of spatial attributes and spatially related products.
+
+-{\color{purple} Both a tool and the beginning of a database that can be used and applied in the Lisbon area.}{\color{orange} Focus of both “producing a geo-annotation software platform, but included a proof-of-concept effort to build a manually geo-annotated corpus along the way.”\cite{Karimzadeh2019}}\\
+-{\color{purple}Integration of visualiztion into existing products is an important part of relevance and commercial value propositions\cite{Meeks2019}}\\
+-{\color{purple}of the drivers of geoportal advances (scientific geospatial projects and applications, intenrational organization, governmental agenceis and commercial purposes), governmental agencies and commercial purpose are most applicable to this project\cite{Jiang2020}}\\
+
+\subsection{Products}
+\begin{enumerate}
+	\item A spatial database of incidents that supports the association of spatial, temporal, and thematic attributes. See Appendix \ref{appendix:organization}/Figure \ref{fig:data_model}: data model.
+	\item A POC Input tool for publishers that allows users to define the place(s) (via search for existing administrative boundaries and points of interest [POIs] through existing gazetteers or definition of new polygons or points via drawing) as well as time of occurrence of incidents. It shall also, of course, preserve or potentially improve upon the association of traditional thematic attributes and keyword search. See Appendix \ref{appendix:organization}/Figure \ref{fig:input_ui}: \textit{Input} layout.
+	\item A POC Context map (visualization of an incident on a local map) for integration into each article page. See Appendix \ref{appendix:organization}/Figure \ref{fig:context_ui}: \textit{Context} layout.
+	\item A POC Search tool for researchers that allows users to filter by spatial (one or multiple defined places or via drawn definition of the study area), temporal, and or thematic attributes. The results should be displayable via both map and list views, as well as support CSV export functionality. See Appendix \ref{appendix:organization}/Figure \ref{fig:search_ui}: \textit{Search} layout.
+%	\item A POC Dashboard tool for monitors (publisher, city officials, etc.) to monitor the spatial/temporal development of incidents according to their settings. 
+\end{enumerate}
+-{\color{orange}“To lead industry change, trailblazers: 1. Tell their story of a better future for the industry. 2. Show the way with their innovative circular offer that sets a new standard. 3. Freelly share their insights to inspire informed followership. 4. Initiate collaboration to further develop and spread their type of solution. 5. Influence public policy to propel circular solutions”\cite{WEF2021}}\\
+-{\color{orange}“Trailblazers operate in local innovation ecosystems. Four elements of ecosystem support show promise to increase chances of trailblazers achieving systemic impact. 1. Platforms for storytelling that help them gain much-needed credibility. 2. Knowledgeable investors who provide them with patient capital. 3. Consultative policy-makers who enable trailblazers to accelerate the circular transition in an inclusive way. 4. A high degree of connectivity throughout value chains to find the right ambassadors, like-minded customers and innovation partners”\cite{WEF2021}}\\
+
+
+\subsection{Distinction from previous work}
+-{\color{purple}Unlike many of the example provided in the literature, this effort seeks to extract a variety of articles instead of tweets.  Tweets or other specific data types include structured organizations an data APIs. Instead, this method seeks to develop a novel structure standard for distinguishing attributes of a particular event \cite{Snyder2019}}\\
+- {\color{purple}The movement to incorporate citizens as sensors is powerful, but we have jumped over public and commercial sources of information that can not only contribute but contextualize citizen feeling towards a place. Public and private data sources of events are being underutilized -- the content exists but needs to be georeferenced in order to be better accommodated by citizens, public management, or private enterprises. Citizen knowledge of a place is drawn from both anecdotal experience as well as learned (read) information from 3rd person sources (news papers, reports, etc.)}\\
+-{\color{orange}“we will investigate human-in-the-loop methods to improve the geolocation prediction. For instance, it might be possible for users to explicitly provide city labels or non-geotagged tweet, or correct predicted city labels.”\cite{Snyder2019}}{\color{purple}this project expands upon this concept}\\
+
+\subsection{Public participation}
+-{\color{purple}The tool is a PPGIS system in that those assigning spatial definitions will not be trained GIS users and will be assigning place based both on more objective place definitions (addresses or existing boundaries) as well as less-conforming definitions (areas in which something happens that does not conform -- sub areas of boundaries or custom boundaries of multiple places).\cite{Brown2012}}\\
+-{\color{purple}  The tool would contribute to public participation by providing additional insights to citizens about the areas that affect them -- where they live, work, and play.} \cite{Evans-Cowley2010}\\
+-{\color{purple} Return to the concept that the tools is a local government hosted tool that facilitates better understanding of place within the community.  It aggregates and georeferences the city’s own public information onto a navigable map, but can invite and accommodate commercial information (online publications) as well as private citizens micro-blogs (less structured and potentially long form versions of “Na Minha Rua”) to gain further citizen feeling or commentary about their physical surroundings.} \cite{Evans-Cowley2010}\\
+-{\color{purple} Much like facebook and other informative platforms, the tool would provide a platform for dissemination of knowledge and providing geo-referenced articles from which further information development is required for various purposes, and additional tools are required for further action.} \cite{Evans-Cowley2010}\\
+-{\color{orange} “using social media and mobile technologies as tools to increase two-way interaction between citizens and (local) governments will not reduce the workload of professionals.”} \cite{Kleinhans2015} {\color{purple} additional workflow to manage information and incorporate ideas from citizens.} \cite{Kleinhans2015}\\
+{\color{purple}Spatial data agreement only applies to drawing inferences (statistical analysis to derive information) from the system, considering journalists/publication and officials/public institutions as ‘public participators’\cite{Brown2012}}\\
+
+\subsection{Nuanced ``place''}
+-{\color{orange}Geographical cue words. “‘City of X’, ‘just outside of X’, ‘X-based’, and ‘X Ocean’” \cite{Lieberman2010}}{\color{purple}These often do not accurately describe the location of a news story.  “Just outside of X” is particular area near X, but likely not a buffer of the place (more likely an area to one side), X Ocean shouldn’t necessarily associate a point to the center of the entire body of water, but is rather relative based on the context of the story/place (an area of ocean off the coast of a particular place, for example). In these cases, there isn’t an appropriate automatic method to distil this from textual description.\cite{Lieberman2010}}\\
+-{\color{purple} Where something is happening may be best associated with existing gazetteers of information. These are expected to be point data (addresses, POIs, etc.) or polygons (administrative boundaries). These can be left as-is (incorporating both types of data). The tool should allow the publisher the flexibility to define a point or polygon (more likely) location based on the “exact” occurrence of instance. Any data analysis from there can be transformed on the fly as necessary.\cite{Brown2012}}\\
+-{\color{orange}“ A map, relied upon for accuracy in terms of direction and location, is a definitive symbol of capital “T” truth. As such, geographic boundaries, both physically and politically constructed, powerfully separate and shape the identity of those bounded by being located or represented on a map.” Validating incorporation of custom place definition\cite{McQueenBaker2019}}\\
+-{\color{purple}Having the ability for contributors to decide which is more convenient with quick assignment tools may be critical for user buy-in}{\color{orange} “we suggest tha polygon methods appear better suited for structured interviews, group-administered surveys, or workshops that provide face-to-face support for completion, whereas points may be a better choice for self-administered surveys.”\cite{Brown2012}}\\
+-{\color{orange}“Further complicating matters, new articles often use nearby landmarks to indicate the location, in lieu of using the official names.”\cite{Lee2019}} {\color{purple} Though for my purposes this is better, the sub-specific is helpful in sub-city level definitions. Of course, this does lead to challenges in places being defined by near-by POIs when they occur within, encompassing, or nearby (not exactly to the extent of the POI itself).\cite{Lee2019}}\\
+
+\subsection{User experience}
+-{\color{purple} Aim to create a tool that is easy to navigate and understand without prior GIS knowledge. Similar level as standard applications such as AirBnB, Uber, Glovo, etc.  Additional API and dashboards options for more advanced users.} \cite{Evans-Cowley2010}
+-{\color{purple}  The tools can be used offline to demonstrate to non-digital citizens the distribution of issues during planning meetings.} \cite{Evans-Cowley2010}\\
+-{\color{orange}“Asking participants to provide personal information (e.g. age, zip code, gender) as a part of their registration process may discourage their participation, but such inquiries can provide valuable information for planners in understanding the extent to which the online community represents community demographics.”}\cite{Afzalan2017} {\color{purple} The information on the tool is open and free.  Users need only create a profile if they wish to save searches or create dashboards, export info, etc.  What information should be requested from users to do so?}\cite{Afzalan2017}\\
+-{\color{purple} The tool must be easy enough for non GIS trained people to define place easily and efficiently with the given tools. Leverage well-utilized UIs and tools (google maps or similar) to ease the usability and increase precision\cite{Brown2012}}\\
+-{\color{purple}Value of geoloaction in platforms to user experience via hyperlocalization and centering platform services to the literal user \cite{Leszczynski2019}}\\
+
+\subsection{GUI}
+-{\color{purple}determining spatial patterns from news sources supports GEOINT and therefore the application and dashboard views for decision makers.\cite{Imani2019}}\\
+-{\color{orange}Hovering on a story indicator yields a bubble of story content and attributes\cite{Teitler2008}}\\
+-{\color{orange}Layout: documentView, CandidateListView, and FootprintView\cite{Cai2016}}\\
+-{\color{red}Include textual tag in reference map, include different map symbols for each tag\cite{Karimzadeh2019}}\\
+
+\subsection{Knowledge facilitation}
+-{\color{purple}The tool is meant to support insights within or about a community from mapping events/instances drawn from the contents of news stories.\cite{McQueenBaker2019}}\\
+-{\color{purple}Geographic information Science (GISc) can be enhanced by the location of incident reports (news articles).  Beyond colloquial data (social media), geolocation of official reports can contribute to both how an event is felt within and outside of a community. The differences between styles of reporting can be evaluated from place to place, as well as the relative importance given to a place by various communities.\cite{Datta2018}}\\
+-{\color{purple}Use reporting of news (both the reporting of an event as well as the time and place of the contents) with continuous sensor data (such as physical sensors or VGI) to see impacts and trends. Ex: reporting of an election’s impact on societal activity or environmental accelerometer data pre-coverage of an earthquake}\cite{Bhattacharya2018}\\
+-{\color{purple} the tool should support situational awareness via dynamic dashboards \cite{Varanda2020}}\\
+-{\color{orange}Geopolitics and immigration: “subjects that 2020 has pulled into sharp focus” Importance of and interest in geopolitics for everyday users \cite{Granger2020a}}\\
+-{\color{orange}“The geoportals can facilitate researchers, government officers, and ordinary users in helping them to find the data they needed, with basic searching services equipped in the geoportal.\cite{Jian2020}}{\color{purple}General theoretical support for geoportals supporting multiple types of users, so as in the publication geoportal tool.\cite{Jiang2020}}\\%
+-{\color{orange}“They build alliances with scale-up peers, multinationals, organizations within their value chain and throughout industries; and they collaborate with academia and non-profits. These collaborations help them combine resources for technology advancement, develop new industry standards and increase distribution and market access.”}\\
+
+
+\subsection{Features}
+-{\color{purple} The system should ultimately have filters that equate to verified contributors (those who have been trained to use/the tool is a part of their process), such as commercial or government organizations.  Individuals or smaller users can also contribute to the map, but may be filtered from these views as “recreational contributors” (or similar) that can allow viewers/researchers/readers the ability to remove individual blog or potential garbage from cluttering the view (in addition to searching for specific sources, or checking/unchecking sources from a list to customize the contributors).\cite{Brown2012}}\\
+-{\color{purple} Instead of the spread method of balanced marker modes, I prefer the clustering of ALL stories with a number indicating how many can be found in an area that is resolved by zooming in. \cite{Teitler2008}}\\ %To avoid geographically clustered visualization of uneven news coverage “Marker selection is therefore a tradeoff between story significance and spread. “To achieve a balance in marker mode, NewsStand divides the viewing window into a regular grid, and requires that each grid square contains no more than a maximum number of markers. The markers to display are selected in decreasing order of story significance and story age. This approach ensures a good spread of top stories across the entire map.
+-{\color{orange}“‘Focus’ tag… users can assign it to indicate that a particular toponym is the focal place of a story, i.e., a place that a document is ‘about’. A document might name many places in its textual content, but might primarily tell a story about only one or a few of them.”\cite{Karimzadeh2019}}\\
+
+\subsection{Evolving gazetteer}
+-{\color{purple}Evolving spatial lexicon: Any particular article may not be fully specified. Just as events don’t necessarily associate exactly to administrative spatial boundaries, they won’t necessarily all initiate at the beginning of or within the study timeframe.  Just as a reader’s lexicon develops over time, so should the associated gazetteer.  Manual specification allows the user the opportunity to name/address and define these flowing areas as their and general understanding of an event’s location changes over time. A military base may change and move over time, the same named thing within a city could come to mean different locations at different times. The flexibility to adjust on the fly is critical to the success of this type of initiative.\cite{Lieberman2010}}\\
+
+\subsection{Application of results}
+The project results will be licensed as free and open source such that these can be accessible and leveraged by other individuals or organizations for further development or related projects. Wherever possible, the project will leverage existing open source tools, platforms, and data. Thus far, all sources of data are already publically available, which mitigates concerns of distribution of proprietary materials.
+-{\color{purple} The tool can support the aggregation of public, private, and citizens knowledge to be used for more nuanced applications.
+Foundation for future development and sophistication of tools in an increasingly spatialized data context.} \cite{Afzalan2017}\\
+-{\color{purple}he tool is not an SDI but could contribute to a local SDI, like the one described in this paper, to support “geomatics for sustainable societies”.} \cite{Bhattacharya2018}\\
+-{\color{purple}Results should be sharable via GeoRSS. Format for distributing search results, easy search and linkin to other open projects.}\cite{Xing2015}\\
+-{\color{purple} Results should also be shareable via downloadable CSV, shapefile, etc.}\\
+-{\color{purple}Extract: value in research and monitoring to be able to save datasets (or better yet support integration in other platforms)\cite{Shneiderman1996}}\\
+
+\subsection{Structure}
+-{\color{purple}The tool should support only enough information per article to validate interest of the party (they can be read from the article sources themselves… this is not a blog hosting site), the rest should be left for nuanced filtering and discovery.\cite{Jiang2020}}\\
+-{\color{purple}Even in blog type scenarios… the tool should leverage existing blogsites to host individual content, adding only a plugin for a location element.  The tool does not host blog, only summaries and attribute data that links to the original source. The content is included within the spatial database only as an attribute such that it can be searched for keywords}\cite{Afzalan2017}\\
+-{\color{purple} This tool is not intended to be an automatic extraction, yet rather a beginning of an industry pivot towards including spatial definition such that it does not need to be extracted in the future.  Those describing the content should have the ability to identify precisely the location (point or area) of interest at the point of publication (leaning on existing addresses, boundaries, or points of interest as appropriate, if custom defined areas aren’t necessary).}\cite{Bhattacharya2018}\\
+-{\color{purple}The tool may leverage different coordination methods (top down and bottom up).  Historical data should be mapped via broker coordination, whereas anything included via the input portal (white labeled on no) can be considered “federated” coordination.  Focus on the broker to improve sustainability and open application of the tool. \cite{Jiang2020}}\\
+-{\color{purple}Expected use of 1D, 2D, Temporal, Multi-dimensional, tree (related articles) data types\cite{Shneiderman1996}}\\
+
+\subsection{Languages}
+The Web App should support the definition of use in English and Portuguese (leveraging a platform for expansion to other languages via internationalization and localization techniques) for all elements of the user interface, usch as lproejct description, instructions, filters, units, etc. All data incorporated from external sources (such as news article contents, publisher tags, gazetteer names, etc.) may remain in their original forms/languages. If possible, alternate forms will be supported if provisioned by the original source. The langauge opptions of English and Portuguese should support the international use and cross investigation of a wider user base.
+-{\color{purple}Allow users to select several languages (English and Portuguese)\cite{Shneiderman2020}}\\
+
+\subsection{Sustainability}
+The project is a foundation for future development in the geospatial and temporal distribution of news story contents.  The proof of concept should demonstrate the value of such filtering and may be built upon in one or more of the following ways: 
+\begin{enumerate}
+	\item as a free tool; 
+	\item as the base of a new online news journal product;
+	\item incorporated into existing online databases to incorporate the temporal spatial dimension into and enhance their own thematic tools; or 
+	\item to be incorporated into municipalities as a public participation platform / community empowerment tool to better understand incidents that are spatially relevant. 
+\end{enumerate}
+
+This last option is especially interesting if future planned events and city data are layered in. It is also the direction of most interest to me and future efforts may involve collaboration with one or more cities to design a public participation tool. Additional functionality may include additional languages, additional study areas, development of a smart phone application, an option for automatic localization (such as for geo-tagging news stories or proximal searching), incorporation of historical datasets, incorporation of future events, additional data visualization options, APIs for integration with other applications, white-labeling options for commercial applications, etc.
+
+At minimum, its documentation and codebase will be available under an open license from which anyone may develop in the future.
+
+\subsection{Impact}
+\begin{enumerate}
+%	\item 1+ news publication organizations
+	\item 1 webapp, freely and openly accessible, available in English and Portuguese languages
+	\item 1 webapp development code, open licensed for further or related future development by any individual or organization.
+\end{enumerate}
+
+\subsection{Concerns}
+-{\color{purple}What kind of potential themes may emerge (accurately or otherwise) of places in Lisbon? How should these be dealt with? This project doesn’t have any visibility, yet it is meant to identify trends -- both actual (because such events are happening in  a particular pattern) and contrived (only events of a certain type are being covered in certain places by journalists).\cite{McQueenBaker2019}}\\
+
+{\color{red} 
+*Incorporate verbage from section 1.3 to 2 of proposal\\
+*Organize from here\\
+}
+
+
+
+
+%%%%%% References %%%%%%%%%
+
+

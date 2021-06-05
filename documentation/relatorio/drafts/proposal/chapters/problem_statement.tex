@@ -1,0 +1,41 @@
+The ongoing COVID pandemic has highlighted the value of the visualization of information on a map, not only for specialists to monitor and predict viral outbreaks, but to arm the public with empowering information as well. Of course, the value of geographic information systems (GIS) goes beyond public health services and is already nestled into our everyday activities in the form of daily tasks such as navigation and service selection. Applications like Google Maps, AirBnB, and UberEats allow non-technical users to visualize and filter the distribution of various services through spatial (SA), temporal (TA), and thematic attributes (ThA). For example, a user on AirBnB may filter all apartments with high speed wifi (ThAs) available in the Estrela neighborhood and within walking distance to a market (SAs) from Aug 1 to Aug 7, 2020 (TA).
+
+Yet, though this type of manipulation is commonplace in the products of many industries, it is glaringly absent from that of news media.  When reading about an incident occurring in an unfamiliar place, readers will often need to look up the location. They may have trouble relating the spatial significance of an incident to neighboring occurrences or historical events in the same spot. Many articles define place via textual descriptions, but these can be easily overlooked if searched by keyword, especially if different names or alternate designations are employed by the searcher.  This is a problem for researchers who may want to define a study area that does not conform to traditional administrative boundaries or existing points of interest, but also for the casual user or city official.  The former might, while perusing headlines, miss an article of interest relating to a place along their commute home from work. The latter could be an elected official who seeks to monitor an issue (such as gentrification or homelessness) but is unable to visualize the subtle distribution of such events throughout his or her district. In these cases, as well as a host of others, there is obvious disconnect between the existence of data and its usability.  As such, there is operational as well as academic value in better understanding the spatial distribution of events within a community, such that additional informative insights can be drawn.  
+
+This project seeks to develop a set of functional tools that supports the creation and management of a spatial database of news stories, a publishing interface (associating place and adding records to the database), a user interface (list and map format search, filter, and visualization of results from the database), as well as a story visualization plugin (a map displaying the distribution of a story in a contextual map per story page).  See Section \ref{sec:objectives} for more details. This proof of concept (POC) functionality should demonstrate the value of new spatial products in news media, and provide a basis from which meaningful projects may be developed for mass media applications in the future.
+
+\textit{Note: The project proposed here is not one of automatic place extraction from existing news stories. See Appendix \ref{appendix:existing_projects} for more details.}
+
+
+\subsection{Study area}
+
+The project will use a  study area (news story data from at least one section of a publication for a defined time interval) of Lisbon, Portugal (such as “Local” in Público for Q3 of 2020) %and one in the USA (such as “Colorado News” from The Denver Post for the same time period). 
+ In the case that opportunities to include additional study areas such as other cities, sections of publications, or additional sources of incident data (such as information from other newspapers or municipalities) arise, these may be accommodated as well, time allowing. By building a tool specific to Lisbon, the project seeks to accommodate the culture and business processes of the local community, providing a platform that is useful and valuable to users (whether citizens, local officials, researchers, or publishers). 
+
+\subsection{Languages}
+
+The Web App should support the definition of use in English and Portuguese (leveraging a platform for expansion to other languages) for all elements of the user interface (such as project description, instructions, filters, units, etc.). All data incorporated from external sources (such as news article contents, publisher tags, gazetteer names, etc.) may remain in their original forms/languages (though alternate forms will be supported if provisioned by the original source). The language options of English and Portuguese should support the international use and cross-investigation of a wider user base.
+
+\subsection{Access to results}
+
+The project results will be licensed as free and open source such that these can be accessible and leveraged by other individuals or organizations for further development or related projects. Wherever possible, the project will leverage existing open source tools, platforms, and data. However, agreements with data providers may require restriction from public access of their proprietary data. 
+
+\subsection{Sustainability}
+The project is a foundation for future development in the geospatial and temporal distribution of news story contents.  The proof of concept should demonstrate the value of such filtering and may be built upon in one or more of the following ways: 
+\begin{enumerate}
+	\item as a free tool; 
+	\item as the base of a new online news journal product;
+	\item incorporated into existing online databases to incorporate the temporal spatial dimension into and enhance their own thematic tools; or 
+	\item to be incorporated into municipalities as a public participation platform / community empowerment tool to better understand incidents that are spatially relevant. 
+\end{enumerate}
+
+This last option is especially interesting if future planned events and city data are layered in. It is also the direction of most interest to me and future efforts may involve collaboration with one or more cities to design a public participation tool. Additional functionality may include additional languages, additional study areas, development of a smart phone application, an option for automatic localization (such as for geo-tagging news stories or proximal searching), incorporation of historical datasets, incorporation of future events, additional data visualization options, APIs for integration with other applications, white-labeling options for commercial applications, etc.
+
+At minimum, its documentation and codebase will be available under an open license from which anyone may develop in the future.
+
+\subsection{Impact}
+\begin{enumerate}
+%	\item 1+ news publication organizations
+	\item 1 webapp, freely and openly accessible, available in English and Portuguese languages
+	\item 1 webapp development code, open licensed for further or related future development by any individual or organization.
+\end{enumerate}

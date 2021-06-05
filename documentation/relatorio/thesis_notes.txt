@@ -1,0 +1,18 @@
+Dec 16
+- Literature review to Painho to engage Hugo as programming advisor
+- Introduction
+- Methodology
+- Incorporate proposal presentation pictures into draft
+
+
+%%% NOTES
+
+%\newpage
+%\section*{Applications}\label{sec:applications}
+%Beyond the direct use of the tools being developed, there are opportunities to leverage the system as a geoportal, extracting information for more specific applications with geospatial new element. The toolset is intended to provide free and open access to the data contained within, with APIs providing means for other applications to incorporate the data for their own purposes. Several examples are illustrated below:
+%
+%\begin{enumerate}
+%	\item Lisbon, PT: A website to inform citizens on the distribution of COVID within the city limits. A development team obtains i) locations of hospitals and nursing homes, locations of vital businesses (markets, pharmacies, gas stations, etc.), and boundaries of freguesias from Lisboa Aberta (open data portal managed by CML); ii) news stories related to covid (results from the toolset filtered to Lisbon Municipality boundary and 'COVID' tags); and iii) aggregation (by freguesia) of active COVID cases as well as identified hotspot areas from the Ministry of Health.  Users are able to monitor their locations of interest (home, work, play, family, and friends) in terms of relative cases compared to the rest of the city and adjust their behavior in those areas accordingly.  Trips to vital services can be planned more effectively. City officials may also identify areas of poor coverage for vital services and temporarily support those areas with access to walkable points of pickup for food an other necessities.
+%	\item Campolide, Lisboa, PT: An environmental task force for the freguesia Campolide seeks to better understand the ecological situation in their community.  Their team incorporates i) news stories within the Campolide boundary filtered to the 'ECO' tag, all mentions of keywords 'JARDIM', 'ESPACO VERDE', 'ECOSYSTEMA', 'QUALIDADE DA VIDA', and temporal range of the last year (17 Nov 2019 to 16 Nov 2020); ii) location of green spaces within the freguesia from Lisboa Aberta; iii) pollution and trash data from other sources; iv) citizen interview results. The task force can then perform the necessary statistical analysis to determine areas requiring intervention, or identify those areas to highlight in upcoming reports on successful green spaces within the community, or to learn about new grassroots initiatives to support.
+%	\item Berlin, Germany: A research team is searching for statistics on the effect of the Spanish flu in Lisbon, Portugal.  They are not well-versed with the study area nor with the portuguese language.  They use the toolset to segretate their own study areas (not adhering to current or previous administrative boundaries of freguesias) within the city limits by drawing polygons over the reigon and setting a temporal content filter to January 1918 to December 1920, with tags 'DOENTE' and 'GRIPE ESPANHOLA', and filter this again to publish dates of each pre-2020 and 2020.  They incorporate this into their own study methods.  They are able to visualize the distribution of results of each query on a map, adding to their understanding of the coverage of each topic.
+%\end{enumerate}
