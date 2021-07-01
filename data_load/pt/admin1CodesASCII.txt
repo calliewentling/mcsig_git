@@ -1945,7 +1945,6 @@ MA.09	Souss-Massa	Souss-Massa	11281882
 MA.10	Guelmim-Oued Noun	Guelmim-Oued Noun	11281884
 MA.11	Laâyoune-Sakia El Hamra	Laayoune-Sakia El Hamra	11281885
 MA.12	Dakhla-Oued Ed-Dahab	Dakhla-Oued Ed-Dahab	11281886
-MA.00		Dakhla-OuedEd-Dahab	12238223
 MC.00	Municipality of Monaco	Municipality of Monaco	3319178
 MD.73	Raionul Edineţ	Raionul Edinet	617077
 MD.92	Ungheni	Ungheni	617181

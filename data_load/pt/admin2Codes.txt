@@ -27113,7 +27113,7 @@ NI.06.7010	Municipio de Diriomo	Municipio de Diriomo	3620167
 NI.02.7520	Municipio de Diriamba	Municipio de Diriamba	3620169
 NI.06.7005	Municipio de Diriá	Municipio de Diria	3620171
 NI.13.0530	Municipio de Dipilto	Municipio de Dipilto	3620176
-NI.18.9335	Municipality of the Corn Islands	Municipality of the Corn Islands	3620265
+NI.18.9335	Corn Islands	Corn Islands	3620265
 NI.03.3055	Municipio de Corinto	Municipio de Corinto	3620267
 NI.05.2510	Municipio de Condega	Municipio de Condega	3620297
 NI.04.6505	Municipio de Comalapa	Municipio de Comalapa	3620317
@@ -27129,7 +27129,7 @@ NI.15.8050	Municipio de Cárdenas	Municipio de Cardenas	3620478
 NI.01.5015	Municipio de Camoapa	Municipio de Camoapa	3620543
 NI.15.8020	Municipio de Buenos Aires	Municipio de Buenos Aires	3620596
 NI.01.5010	Municipio de Boaco	Municipio de Boaco	3620672
-NI.18.9340	Municipality of Bluefields	Municipality of Bluefields	3620678
+NI.18.9340	Bluefields	Bluefields	3620678
 NI.15.8010	Municipio de Belén	Municipio de Belen	3620731
 NI.15.8030	Municipio de Altagracia	Municipio de Altagracia	3620929
 NI.04.6535	Municipio de Acoyapa	Municipio de Acoyapa	3620977
@@ -27150,8 +27150,8 @@ NI.18.9312	Desembocadura de Río Grande	Desembocadura de Rio Grande	9161306
 NI.18.9320	Municipality of El Rama	Municipality of El Rama	9165985
 NI.17.9120	Municipality of Bonanza	Municipality of Bonanza	9166062
 NI.17.9127	Mulukuku	Mulukuku	9166065
-NI.18.9330	Municipality of Kukra Hill	Municipality of Kukra Hill	9166071
-NI.18.9315	Municipality of Pearl Lagoon	Municipality of Pearl Lagoon	9166072
+NI.18.9330	Kukra Hill	Kukra Hill	9166071
+NI.18.9315	Pearl Lagoon	Pearl Lagoon	9166072
 NI.14.8510	El Almendro	El Almendro	9166157
 NI.14.8525	El Castillo	El Castillo	9166159
 NI.18.9345	Nueva Guinea	Nueva Guinea	9612993
