@@ -1,2 +1,0 @@
-Ext.namespace('Ext.theme.is')['{pkgName}'] = true;
-Ext.theme.name = '{pkgName}';
