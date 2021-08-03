@@ -1,0 +1,14 @@
+# install4j response file for Sencha Cmd 7.4.0.39
+addToPath$Integer=0
+parentDir=C\:\\mcsig_git\\Sencha\\Cmd
+sys.adminRights$Boolean=false
+sys.component.148$Boolean=true
+sys.component.157$Boolean=true
+sys.component.26$Boolean=true
+sys.component.27$Boolean=true
+sys.component.90$Boolean=true
+sys.component.91$Boolean=true
+sys.component.92$Boolean=true
+sys.component.94$Boolean=true
+sys.installationDir=C\:\\mcsig_git\\Sencha\\Cmd\\7.4.0.39
+sys.languageId=en

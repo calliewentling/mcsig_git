@@ -1,0 +1,9 @@
+app.name={name}
+
+app.classpath=$\u007Bapp.dir}/app.js,$\u007Bapp.dir}/app
+
+# this property specifies a comma separated list of paths containing
+# resources to copy to the build directory
+app.resource.paths=$\u007Bapp.dir}/resources
+
+app.build.dir=$\u007Bworkspace.build.dir}/$\u007Bapp.name}

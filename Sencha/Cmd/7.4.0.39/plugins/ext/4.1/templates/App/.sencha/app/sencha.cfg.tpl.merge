@@ -1,0 +1,11 @@
+app.name={name}
+app.framework={frameworkKey}
+app.classpath=$\u007Bapp.dir}/app,$\u007Bapp.dir}/app.js
+
+# this property specifies a comma separated list of paths containing
+# resources to copy to the build directory
+app.resource.paths=
+
+#==============================================================================
+# Custom Properties - Place customizations below this line to avoid merge
+# conflicts with newer versions

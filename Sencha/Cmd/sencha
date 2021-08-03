@@ -1,0 +1,167 @@
+#!/bin/bash
+
+CURDIR=${PWD}
+
+TARGET=$(readlink $0)
+TARGET=${TARGET:=$BASH_SOURCE[0]}
+
+BASEDIR="$( cd "$( dirname "$TARGET" )" && pwd )"
+ME=`basename "$TARGET"`
+
+#------------------------------------------------------------------------------
+# Utility functions and such
+
+function die () {
+    echo $1
+    exit 1
+}
+
+function warn () {
+    echo $1
+}
+
+# Reads property $2 from properties file $1 and echos the value. To call this method do:
+#
+#     V=$(getProp filename property)
+#
+function getProp () {
+    # ignore lines with '#' as the first non-space character (comments)
+    # grep for the property we want
+    # get the last match just in case
+    # strip the "property=" part but leave any '=' characters in the value
+
+    echo `sed '/^[[:space:]]*\#/d' $1 | grep $2  | tail -n 1 | cut -d "=" -f2- | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'`
+}
+
+function compareVersions () {
+    if [[ $1 == $2 ]]
+    then
+        return 0
+    fi
+
+    local IFS=.
+    local i ver1=($1) ver2=($2)
+    # fill empty fields in ver1 with zeros
+
+    for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
+    do
+        ver1[i]=0
+    done
+
+    for ((i=0; i<${#ver1[@]}; i++))
+    do
+        if [[ -z ${ver2[i]} ]]
+        then
+            # fill empty fields in ver2 with zeros
+            ver2[i]=0
+        fi
+
+        if ((10#${ver1[i]} > 10#${ver2[i]}))
+        then
+            return 1
+        fi
+        if ((10#${ver1[i]} < 10#${ver2[i]}))
+        then
+            return 2
+        fi
+    done
+
+    return 0
+}
+
+function getNewestVersion () {
+    local MAX=0
+    local V=.
+
+    for V in `find $1 -maxdepth 1 -type d -regex '.*/[0-9][^/]*$' -exec basename '{}' \;`; do
+        compareVersions $MAX $V
+        if [[ $? == 2 ]]; then
+            MAX=$V
+        fi
+    done
+
+    echo $MAX
+}
+
+function doSwitch () {
+    if [ -f $1 ]; then
+        sed -i.bak 's,^\(version\.full=\).*,\1'$2',' $1
+    else
+        echo "version.full=$2" > $1
+        chmod +x $1
+    fi
+    echo -e "\033[1mSencha Cmd "$2"\033[0m"
+    echo " "
+    echo -e "Successfully switched to version "$2"."
+    echo -e "Run 'sencha help' to see the available commands on this version."
+}
+#------------------------------------------------------------------------------
+# Main Script
+
+
+if [[ $ME == "sencha-switch" ]]
+then 
+   die "This command cannot be run on this directory"
+fi
+
+VERSIONFILE="$BASEDIR"/version.properties
+
+if [ -f $VERSIONFILE ]; then
+    VER=$(getProp $VERSIONFILE version.full)
+
+    if [[ ! -f $BASEDIR/$VER/sencha.cfg ]]; then
+        echo Cannot use configured version $VER
+        VER=$(getNewestVersion $BASEDIR)
+    fi
+else
+    VER=$(getNewestVersion $BASEDIR)
+fi
+    
+
+if [ "$1" == "switch" ]; then
+    MAXVER=$(getNewestVersion $BASEDIR)
+    
+    if [[ "$2" == "" ]]; then
+        doSwitch $VERSIONFILE $MAXVER
+    else
+        if [[ "$2" == "-l" || "$2" == "--l" || "$2" == "-list" || "$2" == "--list" ]]; then
+            echo -e "\033[1mSencha Cmd "$VER"\033[0m"
+            echo "Looking for versions at: "$BASEDIR
+            echo " "
+            echo -e "\033[1mCurrent version\033[0m"
+            echo "   "$VER
+            echo " "
+            echo -e "\033[1mNewest version installed\033[0m"
+            echo "   "$MAXVER
+            echo " "
+            echo -e "\033[1mLocally available versions\033[0m"
+            for V in `find $BASEDIR -maxdepth 1 -type d -regex '.*/[0-9][^/]*$' -exec basename '{}' \;`; do
+                echo "   "$V
+            done
+        else
+            if [[ -f $BASEDIR/$2/sencha.cfg ]]; then
+                doSwitch $VERSIONFILE $2
+            else
+                die "Not a valid Sencha Cmd version: $2"
+            fi
+        fi
+    fi
+else
+    if [[ -f $BASEDIR/$VER/sencha.cfg ]]; then
+        $BASEDIR/$VER/sencha "$@"
+
+        ecode=$?
+        # test for the redirect code
+        if [ $ecode == 42 ]
+        then
+            redirect=$(getProp $CURDIR/sencha.redirect redirect)
+            rm sencha.redirect
+            $redirect/sencha "$@"
+            exit $?
+        else
+            exit $ecode
+        fi
+    else
+        die "Cannot find usable Sencha Cmd version in $BASEDIR"
+    fi
+fi
