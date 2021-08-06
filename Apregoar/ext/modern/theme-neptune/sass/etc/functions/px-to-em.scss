@@ -1,4 +1,4 @@
-require('px-to-em');
+@import 'px-to-em.js';
 
 @function px-to-em($px, $divisor) {
     @return pxToEmHelper($px, $divisor, em);

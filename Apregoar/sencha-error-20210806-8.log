@@ -1,0 +1,557 @@
+Sencha Cmd 7.4.0.39 - Crash report
+================================================
+An error occurred while executing the following command: app refresh
+
+Diagnostic information:
+=======================
+                         app.archivePath : archive/${build.id}                               
+                      app.bootstrap.base : C:\mcsig_git\Apregoar                             
+                       app.bootstrap.css : bootstrap.css                                     
+                  app.bootstrap.manifest : ${build.id}.json                                  
+               app.bootstrap.microloader : bootstrap.js                                      
+             app.builds.classic.requires : GeoExt                                            
+           app.builds.classic.requires.0 : GeoExt                                            
+      app.builds.classic.requires.length : 1                                                 
+   app.builds.classic.sass.generated.src : classic/sass/save                                 
+   app.builds.classic.sass.generated.var : classic/sass/save.scss                            
+                app.builds.classic.theme : theme-crisp                                       
+              app.builds.classic.toolkit : classic                                           
+              app.builds.modern.requires : GeoExt                                            
+            app.builds.modern.requires.0 : GeoExt                                            
+       app.builds.modern.requires.length : 1                                                 
+    app.builds.modern.sass.generated.src : modern/sass/save                                  
+    app.builds.modern.sass.generated.var : modern/sass/save.scss                             
+                 app.builds.modern.theme : theme-material                                    
+               app.builds.modern.toolkit : modern                                            
+                        app.cache.deltas : ${build.id}/deltas                                
+                        app.cache.enable : false                                             
+                   app.classic.js.0.path : C:\mcsig_git\Apregoar\ext/build/ext-all-rtl-debug.js
+                   app.classic.js.length : 1                                                 
+                           app.classpath : app,${toolkit.name}/src,./lib/geoext/src          
+                         app.classpath.0 : app                                               
+                         app.classpath.1 : ${toolkit.name}/src                               
+                         app.classpath.2 : ./lib/geoext/src                                  
+                    app.classpath.length : 3                                                 
+                         app.cmd.version : 7.4.0.39                                          
+                          app.compressor : null                                              
+                          app.config.dir : C:\mcsig_git\Apregoar\.sencha\app                 
+                app.cordova.cache.enable : false                                             
+                   app.cordova.config.id : com.domain.Apregoar                               
+                 app.cordova.config.name : Apregoar                                          
+                 app.cordova.config.path : C:\mcsig_git\Apregoar/cordova                     
+               app.cordova.config.target :                                                   
+              app.cordova.config.verbose : false                                             
+                   app.cordova.js.0.path : cordova.js                                        
+               app.cordova.js.0.priority : 1000                                              
+                 app.cordova.js.0.remote : true                                              
+                   app.cordova.js.length : 1                                                 
+                 app.cordova.microloader : C:\mcsig_git\Apregoar\.sencha\app/Microloader.js  
+      app.cordova.output.appCache.enable : false                                             
+                 app.cordova.output.base : C:\mcsig_git\Apregoar/cordova/www                 
+             app.cordova.output.manifest : ${build.id}.json                                  
+                 app.cordova.output.page : index.html                                        
+             app.development.watch.delay : 250                                               
+                                 app.dir : C:\mcsig_git\Apregoar                             
+              app.fashion.inliner.enable : false                                             
+                           app.framework : ext                                               
+                   app.framework.version : 6.2.0.981                                         
+                                  app.id : 04036c16-f750-4320-becb-0bf78326a7d0              
+                       app.indexHtmlPath : index.html                                        
+                        app.loader.cache : false                                             
+                   app.loader.cacheParam : _dc                                               
+                    app.modern.js.0.path : C:\mcsig_git\Apregoar\ext/build/ext-modern-all-debug.js
+                    app.modern.js.length : 1                                                 
+                                app.name : Apregoar                                          
+                           app.namespace : Apregoar                                          
+              app.output.appCache.enable : false                                             
+                         app.output.base : C:\mcsig_git\Apregoar/build/${build.environment}/Apregoar
+                           app.output.js : ${build.id}/app.js                                
+                     app.output.manifest : ${build.id}.json                                  
+           app.output.microloader.enable : true                                              
+                         app.output.page : index.html                                        
+               app.output.resources.path : ${build.id}/resources                             
+             app.output.resources.shared : resources                                         
+                           app.overrides : overrides,${toolkit.name}/overrides               
+                         app.overrides.0 : overrides                                         
+                         app.overrides.1 : ${toolkit.name}/overrides                         
+                    app.overrides.length : 2                                                 
+               app.phonegap.cache.enable : false                                             
+                  app.phonegap.config.id : com.domain.Apregoar                               
+                app.phonegap.config.name : Apregoar                                          
+                app.phonegap.config.path : C:\mcsig_git\Apregoar/phonegap                    
+              app.phonegap.config.remote : false                                             
+             app.phonegap.config.verbose : false                                             
+                  app.phonegap.js.0.path : cordova.js                                        
+              app.phonegap.js.0.priority : 1000                                              
+                app.phonegap.js.0.remote : true                                              
+                  app.phonegap.js.length : 1                                                 
+                app.phonegap.microloader : C:\mcsig_git\Apregoar\.sencha\app/Microloader.js  
+     app.phonegap.output.appCache.enable : false                                             
+                app.phonegap.output.base : C:\mcsig_git\Apregoar/phonegap/www                
+            app.phonegap.output.manifest : ${build.id}.json                                  
+                app.phonegap.output.page : index.html                                        
+             app.production.cache.enable : true                                              
+          app.production.compressor.type : yui                                               
+             app.production.loader.cache : ${build.timestamp}                                
+   app.production.output.appCache.enable : false                                             
+     app.production.output.appCache.path : cache.appcache                                    
+                      app.resource.paths :                                                   
+                        app.sass.dynamic : true                                              
+                            app.sass.etc : sass/etc/all.scss,${toolkit.name}/sass/etc/all.scss
+                          app.sass.etc.0 : sass/etc/all.scss                                 
+                          app.sass.etc.1 : ${toolkit.name}/sass/etc/all.scss                 
+                     app.sass.etc.length : 2                                                 
+                        app.sass.fashion : true                                              
+                      app.sass.namespace : Apregoar                                          
+                            app.sass.src : sass/src,${toolkit.name}/sass/src                 
+                          app.sass.src.0 : sass/src                                          
+                          app.sass.src.1 : ${toolkit.name}/sass/src                          
+                     app.sass.src.length : 2                                                 
+                            app.sass.var : sass/var/all.scss,sass/var,${toolkit.name}/sass/var/all.scss,${toolkit.name}/sass/var
+                          app.sass.var.0 : sass/var/all.scss                                 
+                          app.sass.var.1 : sass/var                                          
+                          app.sass.var.2 : ${toolkit.name}/sass/var/all.scss                 
+                          app.sass.var.3 : ${toolkit.name}/sass/var                          
+                     app.sass.var.length : 4                                                 
+                 app.slicer.cache.enable : false                                             
+        app.slicer.js.0.isWidgetManifest : true                                              
+                    app.slicer.js.0.path : C:\mcsig_git\Apregoar/sass/example/custom.js      
+                    app.slicer.js.length : 1                                                 
+       app.slicer.output.appCache.enable : false                                             
+                             app.version : 1.0.0.0                                           
+                    buildenvironment.dir : C:\mcsig_git\Apregoar                             
+               buildenvironment.load.dir : C:\mcsig_git\Apregoar                             
+                          cmd.config.dir : C:\Users\calli\AppData\Roaming\nvm\v16.6.1\node_modules\@sencha\cmd\dist
+                                 cmd.dir : C:\Users\calli\AppData\Roaming\nvm\v16.6.1\node_modules\@sencha\cmd\dist
+                    cmd.framework.minver : 5.5.0                                             
+                   cmd.framework.version : 99.99                                             
+              cmd.merge.tool.args.araxis : -wait -merge -3 -a1 {base} {user} {generated} {out}
+              cmd.merge.tool.args.kdiff3 : {base} {user} {generated} -o {out}                
+             cmd.merge.tool.args.p4merge : {base} {user} {generated} {out}                   
+           cmd.merge.tool.args.smartsync : {user} {generated} {base}                         
+          cmd.merge.tool.args.sourcegear : --merge --result={out} {user} {base} {generated}  
+            cmd.merge.tool.args.tortoise : -base:{base} -theirs:{generated} -mine:{user} -merged:{out}
+                              cmd.minver : 3.0.0.0                                           
+                            cmd.platform : windows                                           
+                     cmd.unicode.escapes : C:\Users\calli\AppData\Roaming\nvm\v16.6.1\node_modules\@sencha\cmd\dist/unicode-escapes.json
+                             cmd.version : 7.4.0.39                                          
+                            cmd.web.port : 1841                                              
+                     config.skipDownload : true                                              
+                      config.skipInherit : false                                             
+                        ext.license.name : gpl                                               
+                     framework.build.dir : ${package.output.base}                            
+                     framework.classpath : ${package.dir}/src                                
+                    framework.cmd.minver : 6.2.0.103                                         
+                   framework.cmd.version : 6.2.0.103                                         
+                 framework.compatVersion : 6.2.0                                             
+                    framework.config.dir : C:\Users\calli\AppData\Roaming\nvm\v16.6.1\node_modules\@sencha\cmd\dist\plugins\ext\current
+                       framework.creator : Sencha                                            
+           framework.detailedDescription : Sencha Ext JS JavaScript Framework                
+                           framework.dir : C:\mcsig_git\Apregoar\ext                         
+                  framework.example.apps : admin-dashboard,executive-dashboard,feed-viewer,kitchensink,calendar,classic/desktop,classic/ticket-app,classic/portal,classic/simple-tasks,classic/responsive-app,classic/aria,modern/addressbook,modern/blackberry,modern/energy,modern/stockapp,modern/states,modern/geocongress,modern/oreilly
+                framework.example.apps.0 : admin-dashboard                                   
+                framework.example.apps.1 : executive-dashboard                               
+               framework.example.apps.10 : classic/aria                                      
+               framework.example.apps.11 : modern/addressbook                                
+               framework.example.apps.12 : modern/blackberry                                 
+               framework.example.apps.13 : modern/energy                                     
+               framework.example.apps.14 : modern/stockapp                                   
+               framework.example.apps.15 : modern/states                                     
+               framework.example.apps.16 : modern/geocongress                                
+               framework.example.apps.17 : modern/oreilly                                    
+                framework.example.apps.2 : feed-viewer                                       
+                framework.example.apps.3 : kitchensink                                       
+                framework.example.apps.4 : calendar                                          
+                framework.example.apps.5 : classic/desktop                                   
+                framework.example.apps.6 : classic/ticket-app                                
+                framework.example.apps.7 : classic/portal                                    
+                framework.example.apps.8 : classic/simple-tasks                              
+                framework.example.apps.9 : classic/responsive-app                            
+           framework.example.apps.length : 18                                                
+                  framework.example.path : examples,templates                                
+                framework.example.path.0 : examples                                          
+                framework.example.path.1 : templates                                         
+           framework.example.path.length : 2                                                 
+                        framework.format : 1                                                 
+                          framework.isV5 : true                                              
+                          framework.isV6 : true                                              
+                         framework.isV62 : true                                              
+                          framework.name : ext                                               
+                     framework.namespace : Ext                                               
+                        framework.output : ${package.dir}/build                              
+                     framework.overrides : ${package.dir}/overrides                          
+                  framework.packages.dir : C:\mcsig_git\Apregoar\ext/packages/,C:\mcsig_git\Apregoar\ext/${toolkit.name}
+                framework.resource.paths : resources                                         
+              framework.resource.paths.0 : resources                                         
+         framework.resource.paths.length : 1                                                 
+                      framework.sass.etc : ${package.dir}/sass/etc/all.scss                  
+                  framework.sass.fashion : true                                              
+                framework.sass.namespace : Ext                                               
+                      framework.sass.src : ${package.dir}/sass/src                           
+                      framework.sass.var : ${package.dir}/sass/var                           
+                       framework.subpkgs : classic/classic,modern/modern,packages/charts,packages/amf,packages/soap,packages/ux,packages/google,packages/legacy,packages/font-awesome,packages/font-pictos,packages/font-ext
+                     framework.subpkgs.0 : classic/classic                                   
+                     framework.subpkgs.1 : modern/modern                                     
+                    framework.subpkgs.10 : packages/font-ext                                 
+                     framework.subpkgs.2 : packages/charts                                   
+                     framework.subpkgs.3 : packages/amf                                      
+                     framework.subpkgs.4 : packages/soap                                     
+                     framework.subpkgs.5 : packages/ux                                       
+                     framework.subpkgs.6 : packages/google                                   
+                     framework.subpkgs.7 : packages/legacy                                   
+                     framework.subpkgs.8 : packages/font-awesome                             
+                     framework.subpkgs.9 : packages/font-pictos                              
+                framework.subpkgs.length : 11                                                
+                       framework.summary : Ext JS                                            
+                          framework.type : framework                                         
+                       framework.version : 6.2.0.981                                         
+                       inspector.address : http://localhost:1839/                            
+                    package.sass.dynamic : true                                              
+                          repo.local.dir : C:\Users\calli\AppData\Roaming\nvm\v16.6.1\node_modules\@sencha\cmd\repo
+                       shared.sencha.dir : false                                             
+        system.java.net.useSystemProxies : true                                              
+                     workspace.build.dir : C:\mcsig_git\Apregoar/build                       
+                    workspace.config.dir : C:\mcsig_git\Apregoar\.sencha\workspace           
+                           workspace.dir : C:\mcsig_git\Apregoar                             
+           workspace.frameworks.ext.path : C:\mcsig_git\Apregoar\ext                         
+        workspace.frameworks.ext.version : 6.2.0.981                                         
+                  workspace.packages.dir : C:\mcsig_git\Apregoar/packages/local,C:\mcsig_git\Apregoar/packages
+              workspace.packages.extract : C:\mcsig_git\Apregoar/packages/remote             
+                     workspace.theme.dir : C:\mcsig_git\Apregoar/packages/local,C:\mcsig_git\Apregoar/packages/${args.themeName}
+
+Exception information:
+=======================
+C:\Users\calli\AppData\Roaming\nvm\v16.6.1\node_modules\@sencha\cmd\dist\plugin.xml:403: The following error occurred while executing this line:
+C:\Users\calli\AppData\Roaming\nvm\v16.6.1\node_modules\@sencha\cmd\dist\plugins\ext\current\plugin.xml:434: The following error occurred while executing this line:
+C:\mcsig_git\Apregoar\.sencha\app\build-impl.xml:386: The following error occurred while executing this line:
+C:\mcsig_git\Apregoar\.sencha\app\init-impl.xml:436: com.sencha.exceptions.ExNotFound: Unknown definition for dependency : Ext.window.Window
+     at com.sencha.ant.AntScript.execute(AntScript.java:121)
+     at com.sencha.command.plugin.PluginManager.execute(PluginManager.java:104)
+     at com.sencha.command.plugin.PluginManager.executeReverseFirst(PluginManager.java:145)
+     at com.sencha.command.environment.BuildEnvironment.execute(BuildEnvironment.java:309)
+     at com.sencha.command.environment.AppOrPackageEnvironment.execute(AppOrPackageEnvironment.java:729)
+     at com.sencha.command.BasePluginCommands$BasePluginCommand.doExecute(BasePluginCommands.java:125)
+     at com.sencha.command.app.AppCommands$RefreshCommand.execute(AppCommands.java:1631)
+     at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+     at sun.reflect.NativeMethodAccessorImpl.invoke(Unknown Source)
+     at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+     at java.lang.reflect.Method.invoke(Unknown Source)
+     at com.sencha.util.MethodInvoker$Arguments.invoke(MethodInvoker.java:175)
+     at com.sencha.cli.Command.dispatch(Command.java:43)
+     at com.sencha.command.BasePluginCommands$BasePluginCommand.dispatch(BasePluginCommands.java:289)
+     at com.sencha.cli.Commands.dispatch(Commands.java:64)
+     at com.sencha.cli.Commands.dispatch(Commands.java:64)
+     at com.sencha.command.Sencha.dispatch(Sencha.java:80)
+     at com.sencha.command.Sencha.main(Sencha.java:151)
+   Caused by: The following error occurred while executing this line:
+C:\Users\calli\AppData\Roaming\nvm\v16.6.1\node_modules\@sencha\cmd\dist\plugins\ext\current\plugin.xml:434: The following error occurred while executing this line:
+C:\mcsig_git\Apregoar\.sencha\app\build-impl.xml:386: The following error occurred while executing this line:
+C:\mcsig_git\Apregoar\.sencha\app\init-impl.xml:436: com.sencha.exceptions.ExNotFound: Unknown definition for dependency : Ext.window.Window
+     at org.apache.tools.ant.ProjectHelper.addLocationToBuildException(ProjectHelper.java:551)
+     at org.apache.tools.ant.taskdefs.Ant.execute(Ant.java:444)
+     at org.apache.tools.ant.taskdefs.CallTarget.execute(CallTarget.java:105)
+     at com.sencha.ant.CallTask.execute(CallTask.java:137)
+     at org.apache.tools.ant.UnknownElement.execute(UnknownElement.java:291)
+     at sun.reflect.GeneratedMethodAccessor32.invoke(Unknown Source)
+     at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+     at java.lang.reflect.Method.invoke(Unknown Source)
+     at org.apache.tools.ant.dispatch.DispatchUtils.execute(DispatchUtils.java:106)
+     at org.apache.tools.ant.Task.perform(Task.java:348)
+     at org.apache.tools.ant.Target.execute(Target.java:392)
+     at org.apache.tools.ant.Target.performTasks(Target.java:413)
+     at org.apache.tools.ant.Project.executeSortedTargets(Project.java:1399)
+     at org.apache.tools.ant.Project.executeTarget(Project.java:1368)
+     at org.apache.tools.ant.helper.DefaultExecutor.executeTargets(DefaultExecutor.java:41)
+     at org.apache.tools.ant.Project.executeTargets(Project.java:1251)
+     at com.sencha.ant.AntScript.execute(AntScript.java:117)
+     at com.sencha.command.plugin.PluginManager.execute(PluginManager.java:104)
+     at com.sencha.command.plugin.PluginManager.executeReverseFirst(PluginManager.java:145)
+     at com.sencha.command.environment.BuildEnvironment.execute(BuildEnvironment.java:309)
+     at com.sencha.command.environment.AppOrPackageEnvironment.execute(AppOrPackageEnvironment.java:729)
+     at com.sencha.command.BasePluginCommands$BasePluginCommand.doExecute(BasePluginCommands.java:125)
+     at com.sencha.command.app.AppCommands$RefreshCommand.execute(AppCommands.java:1631)
+     at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+     at sun.reflect.NativeMethodAccessorImpl.invoke(Unknown Source)
+     at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+     at java.lang.reflect.Method.invoke(Unknown Source)
+     at com.sencha.util.MethodInvoker$Arguments.invoke(MethodInvoker.java:175)
+     at com.sencha.cli.Command.dispatch(Command.java:43)
+     at com.sencha.command.BasePluginCommands$BasePluginCommand.dispatch(BasePluginCommands.java:289)
+     at com.sencha.cli.Commands.dispatch(Commands.java:64)
+     at com.sencha.cli.Commands.dispatch(Commands.java:64)
+     at com.sencha.command.Sencha.dispatch(Sencha.java:80)
+     at com.sencha.command.Sencha.main(Sencha.java:151)
+   Caused by: The following error occurred while executing this line:
+C:\mcsig_git\Apregoar\.sencha\app\build-impl.xml:386: The following error occurred while executing this line:
+C:\mcsig_git\Apregoar\.sencha\app\init-impl.xml:436: com.sencha.exceptions.ExNotFound: Unknown definition for dependency : Ext.window.Window
+     at org.apache.tools.ant.ProjectHelper.addLocationToBuildException(ProjectHelper.java:551)
+     at org.apache.tools.ant.taskdefs.Ant.execute(Ant.java:444)
+     at org.apache.tools.ant.UnknownElement.execute(UnknownElement.java:291)
+     at sun.reflect.GeneratedMethodAccessor32.invoke(Unknown Source)
+     at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+     at java.lang.reflect.Method.invoke(Unknown Source)
+     at org.apache.tools.ant.dispatch.DispatchUtils.execute(DispatchUtils.java:106)
+     at org.apache.tools.ant.Task.perform(Task.java:348)
+     at org.apache.tools.ant.Target.execute(Target.java:392)
+     at org.apache.tools.ant.Target.performTasks(Target.java:413)
+     at org.apache.tools.ant.Project.executeSortedTargets(Project.java:1399)
+     at org.apache.tools.ant.helper.SingleCheckExecutor.executeTargets(SingleCheckExecutor.java:38)
+     at org.apache.tools.ant.Project.executeTargets(Project.java:1251)
+     at org.apache.tools.ant.taskdefs.Ant.execute(Ant.java:442)
+     at org.apache.tools.ant.taskdefs.CallTarget.execute(CallTarget.java:105)
+     at com.sencha.ant.CallTask.execute(CallTask.java:137)
+     at org.apache.tools.ant.UnknownElement.execute(UnknownElement.java:291)
+     at sun.reflect.GeneratedMethodAccessor32.invoke(Unknown Source)
+     at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+     at java.lang.reflect.Method.invoke(Unknown Source)
+     at org.apache.tools.ant.dispatch.DispatchUtils.execute(DispatchUtils.java:106)
+     at org.apache.tools.ant.Task.perform(Task.java:348)
+     at org.apache.tools.ant.Target.execute(Target.java:392)
+     at org.apache.tools.ant.Target.performTasks(Target.java:413)
+     at org.apache.tools.ant.Project.executeSortedTargets(Project.java:1399)
+     at org.apache.tools.ant.Project.executeTarget(Project.java:1368)
+     at org.apache.tools.ant.helper.DefaultExecutor.executeTargets(DefaultExecutor.java:41)
+     at org.apache.tools.ant.Project.executeTargets(Project.java:1251)
+     at com.sencha.ant.AntScript.execute(AntScript.java:117)
+     at com.sencha.command.plugin.PluginManager.execute(PluginManager.java:104)
+     at com.sencha.command.plugin.PluginManager.executeReverseFirst(PluginManager.java:145)
+     at com.sencha.command.environment.BuildEnvironment.execute(BuildEnvironment.java:309)
+     at com.sencha.command.environment.AppOrPackageEnvironment.execute(AppOrPackageEnvironment.java:729)
+     at com.sencha.command.BasePluginCommands$BasePluginCommand.doExecute(BasePluginCommands.java:125)
+     at com.sencha.command.app.AppCommands$RefreshCommand.execute(AppCommands.java:1631)
+     at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+     at sun.reflect.NativeMethodAccessorImpl.invoke(Unknown Source)
+     at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+     at java.lang.reflect.Method.invoke(Unknown Source)
+     at com.sencha.util.MethodInvoker$Arguments.invoke(MethodInvoker.java:175)
+     at com.sencha.cli.Command.dispatch(Command.java:43)
+     at com.sencha.command.BasePluginCommands$BasePluginCommand.dispatch(BasePluginCommands.java:289)
+     at com.sencha.cli.Commands.dispatch(Commands.java:64)
+     at com.sencha.cli.Commands.dispatch(Commands.java:64)
+     at com.sencha.command.Sencha.dispatch(Sencha.java:80)
+     at com.sencha.command.Sencha.main(Sencha.java:151)
+   Caused by: The following error occurred while executing this line:
+C:\mcsig_git\Apregoar\.sencha\app\init-impl.xml:436: com.sencha.exceptions.ExNotFound: Unknown definition for dependency : Ext.window.Window
+     at org.apache.tools.ant.ProjectHelper.addLocationToBuildException(ProjectHelper.java:551)
+     at org.apache.tools.ant.taskdefs.Ant.execute(Ant.java:444)
+     at org.apache.tools.ant.taskdefs.CallTarget.execute(CallTarget.java:105)
+     at com.sencha.ant.CallTask.execute(CallTask.java:137)
+     at org.apache.tools.ant.UnknownElement.execute(UnknownElement.java:291)
+     at sun.reflect.GeneratedMethodAccessor32.invoke(Unknown Source)
+     at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+     at java.lang.reflect.Method.invoke(Unknown Source)
+     at org.apache.tools.ant.dispatch.DispatchUtils.execute(DispatchUtils.java:106)
+     at org.apache.tools.ant.Task.perform(Task.java:348)
+     at org.apache.tools.ant.Target.execute(Target.java:392)
+     at org.apache.tools.ant.Target.performTasks(Target.java:413)
+     at org.apache.tools.ant.Project.executeSortedTargets(Project.java:1399)
+     at org.apache.tools.ant.helper.SingleCheckExecutor.executeTargets(SingleCheckExecutor.java:38)
+     at org.apache.tools.ant.Project.executeTargets(Project.java:1251)
+     at org.apache.tools.ant.taskdefs.Ant.execute(Ant.java:442)
+     at org.apache.tools.ant.UnknownElement.execute(UnknownElement.java:291)
+     at sun.reflect.GeneratedMethodAccessor32.invoke(Unknown Source)
+     at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+     at java.lang.reflect.Method.invoke(Unknown Source)
+     at org.apache.tools.ant.dispatch.DispatchUtils.execute(DispatchUtils.java:106)
+     at org.apache.tools.ant.Task.perform(Task.java:348)
+     at org.apache.tools.ant.Target.execute(Target.java:392)
+     at org.apache.tools.ant.Target.performTasks(Target.java:413)
+     at org.apache.tools.ant.Project.executeSortedTargets(Project.java:1399)
+     at org.apache.tools.ant.helper.SingleCheckExecutor.executeTargets(SingleCheckExecutor.java:38)
+     at org.apache.tools.ant.Project.executeTargets(Project.java:1251)
+     at org.apache.tools.ant.taskdefs.Ant.execute(Ant.java:442)
+     at org.apache.tools.ant.taskdefs.CallTarget.execute(CallTarget.java:105)
+     at com.sencha.ant.CallTask.execute(CallTask.java:137)
+     at org.apache.tools.ant.UnknownElement.execute(UnknownElement.java:291)
+     at sun.reflect.GeneratedMethodAccessor32.invoke(Unknown Source)
+     at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+     at java.lang.reflect.Method.invoke(Unknown Source)
+     at org.apache.tools.ant.dispatch.DispatchUtils.execute(DispatchUtils.java:106)
+     at org.apache.tools.ant.Task.perform(Task.java:348)
+     at org.apache.tools.ant.Target.execute(Target.java:392)
+     at org.apache.tools.ant.Target.performTasks(Target.java:413)
+     at org.apache.tools.ant.Project.executeSortedTargets(Project.java:1399)
+     at org.apache.tools.ant.Project.executeTarget(Project.java:1368)
+     at org.apache.tools.ant.helper.DefaultExecutor.executeTargets(DefaultExecutor.java:41)
+     at org.apache.tools.ant.Project.executeTargets(Project.java:1251)
+     at com.sencha.ant.AntScript.execute(AntScript.java:117)
+     at com.sencha.command.plugin.PluginManager.execute(PluginManager.java:104)
+     at com.sencha.command.plugin.PluginManager.executeReverseFirst(PluginManager.java:145)
+     at com.sencha.command.environment.BuildEnvironment.execute(BuildEnvironment.java:309)
+     at com.sencha.command.environment.AppOrPackageEnvironment.execute(AppOrPackageEnvironment.java:729)
+     at com.sencha.command.BasePluginCommands$BasePluginCommand.doExecute(BasePluginCommands.java:125)
+     at com.sencha.command.app.AppCommands$RefreshCommand.execute(AppCommands.java:1631)
+     at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+     at sun.reflect.NativeMethodAccessorImpl.invoke(Unknown Source)
+     at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+     at java.lang.reflect.Method.invoke(Unknown Source)
+     at com.sencha.util.MethodInvoker$Arguments.invoke(MethodInvoker.java:175)
+     at com.sencha.cli.Command.dispatch(Command.java:43)
+     at com.sencha.command.BasePluginCommands$BasePluginCommand.dispatch(BasePluginCommands.java:289)
+     at com.sencha.cli.Commands.dispatch(Commands.java:64)
+     at com.sencha.cli.Commands.dispatch(Commands.java:64)
+     at com.sencha.command.Sencha.dispatch(Sencha.java:80)
+     at com.sencha.command.Sencha.main(Sencha.java:151)
+   Caused by: com.sencha.exceptions.ExNotFound: Unknown definition for dependency : Ext.window.Window
+     at org.apache.tools.ant.dispatch.DispatchUtils.execute(DispatchUtils.java:116)
+     at org.apache.tools.ant.Task.perform(Task.java:348)
+     at org.apache.tools.ant.Target.execute(Target.java:392)
+     at org.apache.tools.ant.Target.performTasks(Target.java:413)
+     at org.apache.tools.ant.Project.executeSortedTargets(Project.java:1399)
+     at org.apache.tools.ant.helper.SingleCheckExecutor.executeTargets(SingleCheckExecutor.java:38)
+     at org.apache.tools.ant.Project.executeTargets(Project.java:1251)
+     at org.apache.tools.ant.taskdefs.Ant.execute(Ant.java:442)
+     at org.apache.tools.ant.taskdefs.CallTarget.execute(CallTarget.java:105)
+     at com.sencha.ant.CallTask.execute(CallTask.java:137)
+     at org.apache.tools.ant.UnknownElement.execute(UnknownElement.java:291)
+     at sun.reflect.GeneratedMethodAccessor32.invoke(Unknown Source)
+     at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+     at java.lang.reflect.Method.invoke(Unknown Source)
+     at org.apache.tools.ant.dispatch.DispatchUtils.execute(DispatchUtils.java:106)
+     at org.apache.tools.ant.Task.perform(Task.java:348)
+     at org.apache.tools.ant.Target.execute(Target.java:392)
+     at org.apache.tools.ant.Target.performTasks(Target.java:413)
+     at org.apache.tools.ant.Project.executeSortedTargets(Project.java:1399)
+     at org.apache.tools.ant.helper.SingleCheckExecutor.executeTargets(SingleCheckExecutor.java:38)
+     at org.apache.tools.ant.Project.executeTargets(Project.java:1251)
+     at org.apache.tools.ant.taskdefs.Ant.execute(Ant.java:442)
+     at org.apache.tools.ant.UnknownElement.execute(UnknownElement.java:291)
+     at sun.reflect.GeneratedMethodAccessor32.invoke(Unknown Source)
+     at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+     at java.lang.reflect.Method.invoke(Unknown Source)
+     at org.apache.tools.ant.dispatch.DispatchUtils.execute(DispatchUtils.java:106)
+     at org.apache.tools.ant.Task.perform(Task.java:348)
+     at org.apache.tools.ant.Target.execute(Target.java:392)
+     at org.apache.tools.ant.Target.performTasks(Target.java:413)
+     at org.apache.tools.ant.Project.executeSortedTargets(Project.java:1399)
+     at org.apache.tools.ant.helper.SingleCheckExecutor.executeTargets(SingleCheckExecutor.java:38)
+     at org.apache.tools.ant.Project.executeTargets(Project.java:1251)
+     at org.apache.tools.ant.taskdefs.Ant.execute(Ant.java:442)
+     at org.apache.tools.ant.taskdefs.CallTarget.execute(CallTarget.java:105)
+     at com.sencha.ant.CallTask.execute(CallTask.java:137)
+     at org.apache.tools.ant.UnknownElement.execute(UnknownElement.java:291)
+     at sun.reflect.GeneratedMethodAccessor32.invoke(Unknown Source)
+     at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+     at java.lang.reflect.Method.invoke(Unknown Source)
+     at org.apache.tools.ant.dispatch.DispatchUtils.execute(DispatchUtils.java:106)
+     at org.apache.tools.ant.Task.perform(Task.java:348)
+     at org.apache.tools.ant.Target.execute(Target.java:392)
+     at org.apache.tools.ant.Target.performTasks(Target.java:413)
+     at org.apache.tools.ant.Project.executeSortedTargets(Project.java:1399)
+     at org.apache.tools.ant.Project.executeTarget(Project.java:1368)
+     at org.apache.tools.ant.helper.DefaultExecutor.executeTargets(DefaultExecutor.java:41)
+     at org.apache.tools.ant.Project.executeTargets(Project.java:1251)
+     at com.sencha.ant.AntScript.execute(AntScript.java:117)
+     at com.sencha.command.plugin.PluginManager.execute(PluginManager.java:104)
+     at com.sencha.command.plugin.PluginManager.executeReverseFirst(PluginManager.java:145)
+     at com.sencha.command.environment.BuildEnvironment.execute(BuildEnvironment.java:309)
+     at com.sencha.command.environment.AppOrPackageEnvironment.execute(AppOrPackageEnvironment.java:729)
+     at com.sencha.command.BasePluginCommands$BasePluginCommand.doExecute(BasePluginCommands.java:125)
+     at com.sencha.command.app.AppCommands$RefreshCommand.execute(AppCommands.java:1631)
+     at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+     at sun.reflect.NativeMethodAccessorImpl.invoke(Unknown Source)
+     at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+     at java.lang.reflect.Method.invoke(Unknown Source)
+     at com.sencha.util.MethodInvoker$Arguments.invoke(MethodInvoker.java:175)
+     at com.sencha.cli.Command.dispatch(Command.java:43)
+     at com.sencha.command.BasePluginCommands$BasePluginCommand.dispatch(BasePluginCommands.java:289)
+     at com.sencha.cli.Commands.dispatch(Commands.java:64)
+     at com.sencha.cli.Commands.dispatch(Commands.java:64)
+     at com.sencha.command.Sencha.dispatch(Sencha.java:80)
+     at com.sencha.command.Sencha.main(Sencha.java:151)
+   Caused by: Unknown definition for dependency : Ext.window.Window
+     at com.sencha.tools.compiler.sources.SymbolCache.linkClassGraph(SymbolCache.java:213)
+     at com.sencha.tools.compiler.sources.SymbolCache.processSymbols(SymbolCache.java:379)
+     at com.sencha.tools.compiler.sources.ClassPathScope.getScopeSymbols(ClassPathScope.java:417)
+     at com.sencha.tools.compiler.sources.ClassPathScope.getScopeSymbols(ClassPathScope.java:408)
+     at com.sencha.tools.compiler.sources.TransitiveEnabler.enableTransitiveDependencies(TransitiveEnabler.java:48)
+     at com.sencha.tools.compiler.sources.ClassPathScope.processTransitiveDependencies(ClassPathScope.java:589)
+     at com.sencha.tools.compiler.sources.ClassPathScope.enableTransitiveDependencies(ClassPathScope.java:600)
+     at com.sencha.tools.compiler.sources.ClassPathScope.enableTransitiveDependencies(ClassPathScope.java:604)
+     at com.sencha.tools.page.AppJsonBuilder.load(AppJsonBuilder.java:224)
+     at com.sencha.command.compile.app.LoadAppCommand.execute(LoadAppCommand.java:60)
+     at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+     at sun.reflect.NativeMethodAccessorImpl.invoke(Unknown Source)
+     at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+     at java.lang.reflect.Method.invoke(Unknown Source)
+     at com.sencha.util.MethodInvoker$Arguments.invoke(MethodInvoker.java:175)
+     at com.sencha.cli.Command.dispatch(Command.java:43)
+     at com.sencha.cli.Commands.dispatch(Commands.java:64)
+     at com.sencha.command.compile.CompileCommands.dispatch(CompileCommands.java:332)
+     at com.sencha.cli.AbstractCommand.dispatch(AbstractCommand.java:124)
+     at com.sencha.ant.CompileTask$CompileToken.initialize(CompileTask.java:156)
+     at com.sencha.ant.CompileTask$CompileToken.dispatchCommand(CompileTask.java:163)
+     at com.sencha.ant.CompileTask.doExecute(CompileTask.java:123)
+     at com.sencha.ant.BaseAntTask.execute(BaseAntTask.java:34)
+     at com.sencha.ant.CompileTask.execute(CompileTask.java:36)
+     at org.apache.tools.ant.UnknownElement.execute(UnknownElement.java:291)
+     at sun.reflect.GeneratedMethodAccessor32.invoke(Unknown Source)
+     at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+     at java.lang.reflect.Method.invoke(Unknown Source)
+     at org.apache.tools.ant.dispatch.DispatchUtils.execute(DispatchUtils.java:106)
+     at org.apache.tools.ant.Task.perform(Task.java:348)
+     at org.apache.tools.ant.Target.execute(Target.java:392)
+     at org.apache.tools.ant.Target.performTasks(Target.java:413)
+     at org.apache.tools.ant.Project.executeSortedTargets(Project.java:1399)
+     at org.apache.tools.ant.helper.SingleCheckExecutor.executeTargets(SingleCheckExecutor.java:38)
+     at org.apache.tools.ant.Project.executeTargets(Project.java:1251)
+     at org.apache.tools.ant.taskdefs.Ant.execute(Ant.java:442)
+     at org.apache.tools.ant.taskdefs.CallTarget.execute(CallTarget.java:105)
+     at com.sencha.ant.CallTask.execute(CallTask.java:137)
+     at org.apache.tools.ant.UnknownElement.execute(UnknownElement.java:291)
+     at sun.reflect.GeneratedMethodAccessor32.invoke(Unknown Source)
+     at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+     at java.lang.reflect.Method.invoke(Unknown Source)
+     at org.apache.tools.ant.dispatch.DispatchUtils.execute(DispatchUtils.java:106)
+     at org.apache.tools.ant.Task.perform(Task.java:348)
+     at org.apache.tools.ant.Target.execute(Target.java:392)
+     at org.apache.tools.ant.Target.performTasks(Target.java:413)
+     at org.apache.tools.ant.Project.executeSortedTargets(Project.java:1399)
+     at org.apache.tools.ant.helper.SingleCheckExecutor.executeTargets(SingleCheckExecutor.java:38)
+     at org.apache.tools.ant.Project.executeTargets(Project.java:1251)
+     at org.apache.tools.ant.taskdefs.Ant.execute(Ant.java:442)
+     at org.apache.tools.ant.UnknownElement.execute(UnknownElement.java:291)
+     at sun.reflect.GeneratedMethodAccessor32.invoke(Unknown Source)
+     at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+     at java.lang.reflect.Method.invoke(Unknown Source)
+     at org.apache.tools.ant.dispatch.DispatchUtils.execute(DispatchUtils.java:106)
+     at org.apache.tools.ant.Task.perform(Task.java:348)
+     at org.apache.tools.ant.Target.execute(Target.java:392)
+     at org.apache.tools.ant.Target.performTasks(Target.java:413)
+     at org.apache.tools.ant.Project.executeSortedTargets(Project.java:1399)
+     at org.apache.tools.ant.helper.SingleCheckExecutor.executeTargets(SingleCheckExecutor.java:38)
+     at org.apache.tools.ant.Project.executeTargets(Project.java:1251)
+     at org.apache.tools.ant.taskdefs.Ant.execute(Ant.java:442)
+     at org.apache.tools.ant.taskdefs.CallTarget.execute(CallTarget.java:105)
+     at com.sencha.ant.CallTask.execute(CallTask.java:137)
+     at org.apache.tools.ant.UnknownElement.execute(UnknownElement.java:291)
+     at sun.reflect.GeneratedMethodAccessor32.invoke(Unknown Source)
+     at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+     at java.lang.reflect.Method.invoke(Unknown Source)
+     at org.apache.tools.ant.dispatch.DispatchUtils.execute(DispatchUtils.java:106)
+     at org.apache.tools.ant.Task.perform(Task.java:348)
+     at org.apache.tools.ant.Target.execute(Target.java:392)
+     at org.apache.tools.ant.Target.performTasks(Target.java:413)
+     at org.apache.tools.ant.Project.executeSortedTargets(Project.java:1399)
+     at org.apache.tools.ant.Project.executeTarget(Project.java:1368)
+     at org.apache.tools.ant.helper.DefaultExecutor.executeTargets(DefaultExecutor.java:41)
+     at org.apache.tools.ant.Project.executeTargets(Project.java:1251)
+     at com.sencha.ant.AntScript.execute(AntScript.java:117)
+     at com.sencha.command.plugin.PluginManager.execute(PluginManager.java:104)
+     at com.sencha.command.plugin.PluginManager.executeReverseFirst(PluginManager.java:145)
+     at com.sencha.command.environment.BuildEnvironment.execute(BuildEnvironment.java:309)
+     at com.sencha.command.environment.AppOrPackageEnvironment.execute(AppOrPackageEnvironment.java:729)
+     at com.sencha.command.BasePluginCommands$BasePluginCommand.doExecute(BasePluginCommands.java:125)
+     at com.sencha.command.app.AppCommands$RefreshCommand.execute(AppCommands.java:1631)
+     at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+     at sun.reflect.NativeMethodAccessorImpl.invoke(Unknown Source)
+     at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+     at java.lang.reflect.Method.invoke(Unknown Source)
+     at com.sencha.util.MethodInvoker$Arguments.invoke(MethodInvoker.java:175)
+     at com.sencha.cli.Command.dispatch(Command.java:43)
+     at com.sencha.command.BasePluginCommands$BasePluginCommand.dispatch(BasePluginCommands.java:289)
+     at com.sencha.cli.Commands.dispatch(Commands.java:64)
+     at com.sencha.cli.Commands.dispatch(Commands.java:64)
+     at com.sencha.command.Sencha.dispatch(Sencha.java:80)
+     at com.sencha.command.Sencha.main(Sencha.java:151)
+

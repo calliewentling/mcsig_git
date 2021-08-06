@@ -9,6 +9,9 @@ $include-apregoar-view-main-list: dynamic(true);;
 $include-apregoar-view-main-main: dynamic(true);;
 $include-apregoar-view-main-maincontroller: dynamic(true);;
 $include-apregoar-view-main-mainmodel: dynamic(true);;
+$include-apregoar-view-main-map: dynamic(true);;
+$include-apregoar-view-main-mapcontroller: dynamic(true);;
+$include-apregoar-view-main-mapmodel: dynamic(true);;
 $include-ext-abstractcomponent: dynamic(true);;
 $include-ext-abstractcontainer: dynamic(true);;
 $include-ext-abstractmanager: dynamic(true);;
@@ -902,6 +905,37 @@ $include-ext-view-view: dynamic(true);;
 $include-ext-window-messagebox: dynamic(true);;
 $include-ext-window-toast: dynamic(true);;
 $include-ext-window-window: dynamic(true);;
+$include-geoext-component-featurerenderer: dynamic(true);;
+$include-geoext-component-map: dynamic(true);;
+$include-geoext-component-overviewmap: dynamic(true);;
+$include-geoext-component-popup: dynamic(true);;
+$include-geoext-data-layerstore: dynamic(true);;
+$include-geoext-data-mapfishprintprovider: dynamic(true);;
+$include-geoext-data-treestore: dynamic(true);;
+$include-geoext-data-model-base: dynamic(true);;
+$include-geoext-data-model-feature: dynamic(true);;
+$include-geoext-data-model-layer: dynamic(true);;
+$include-geoext-data-model-layertreenode: dynamic(true);;
+$include-geoext-data-model-olobject: dynamic(true);;
+$include-geoext-data-model-print-capability: dynamic(true);;
+$include-geoext-data-model-print-layout: dynamic(true);;
+$include-geoext-data-model-print-layoutattribute: dynamic(true);;
+$include-geoext-data-serializer-base: dynamic(true);;
+$include-geoext-data-serializer-imagewms: dynamic(true);;
+$include-geoext-data-serializer-tilewms: dynamic(true);;
+$include-geoext-data-serializer-vector: dynamic(true);;
+$include-geoext-data-serializer-wmts: dynamic(true);;
+$include-geoext-data-serializer-xyz: dynamic(true);;
+$include-geoext-data-store-features: dynamic(true);;
+$include-geoext-data-store-layers: dynamic(true);;
+$include-geoext-data-store-layerstree: dynamic(true);;
+$include-geoext-data-store-olobjects: dynamic(true);;
+$include-geoext-data-store-wfsfeatures: dynamic(true);;
+$include-geoext-mixin-symbolcheck: dynamic(true);;
+$include-geoext-plugin-layertreenode-contextmenu: dynamic(true);;
+$include-geoext-util-layer: dynamic(true);;
+$include-geoext-util-ogcfilter: dynamic(true);;
+$include-geoext-util-version: dynamic(true);;
 $output-paths: ("path": "../../classic/resources", "shared": "../../resources");
 
 /* ======================== ETC ======================== */
@@ -961,6 +995,14 @@ $current-package: 'font-awesome';
 $current-resource-root: $font-awesome-resource-root;
 $relative-image-path-for-uis: $font-awesome-resource-path;
 @import '../../../../../ext/packages/font-awesome/sass/etc/all';
+
+/* including package GeoExt */
+$GeoExt-resource-root: 'GeoExt' !default;
+$GeoExt-resource-path: 'GeoExt/images' !default;
+$current-package: 'GeoExt';
+$current-resource-root: $GeoExt-resource-root;
+$relative-image-path-for-uis: $GeoExt-resource-path;
+@import '../../../../../packages/remote/GeoExt/sass/etc/all';
 
 /* including package Apregoar */
 $Apregoar-resource-root: '' !default;

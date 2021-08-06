@@ -11,7 +11,6 @@ Ext.define('Apregoar.view.main.Main', {
 
     requires: [
         'Ext.MessageBox',
-
         'Apregoar.view.main.MainController',
         'Apregoar.view.main.MainModel',
         'Apregoar.view.main.List'
@@ -45,6 +44,13 @@ Ext.define('Apregoar.view.main.Main', {
                 html: '{loremIpsum}'
             }
         },{
+            title: 'GeoExt3 OL3 Map',
+            iconCls: 'fa-map-marker',
+            layout: 'fit',
+            items: [{
+                xtype: 'mappanel'
+            }]
+        }, {
             title: 'Groups',
             iconCls: 'x-fa fa-users',
             bind: {

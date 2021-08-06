@@ -30,7 +30,9 @@
      */
     "classpath": [
         "app",
-        "${toolkit.name}/src"
+        "${toolkit.name}/src",
+        "./lib/geoext/src"
+       // "packages/remote/GeoExt/src"
     ],
 
     /**
@@ -203,6 +205,9 @@
      */
     "js": [
         {
+            "path": "https://openlayers.org/en/v4.6.5/build/ol.js",
+            "remote": true
+        },{
             "path": "app.js",
             "bundle": true
         }
@@ -258,6 +263,7 @@
      *      }
      */
     "css": [
+        {"path": "https://openlayeres.org/en/v4.6.5/css/ol.css", "remote": true},
         {
             // this entry uses an ant variable that is the calculated
             // value of the generated output css file for the app,
@@ -520,7 +526,10 @@
                     "var": "classic/sass/save.scss",
                     "src": "classic/sass/save"
                 }
-            }
+            },
+            "requires": [
+                "GeoExt"
+            ]
         },
 
         "modern": {
@@ -531,7 +540,10 @@
                     "var": "modern/sass/save.scss",
                     "src": "modern/sass/save"
                 }
-            }
+            },
+            "requires": [
+                "GeoExt"
+            ]
         }
     },
 

@@ -96,6 +96,13 @@ Ext.define('Apregoar.view.main.Main', {
             html: '{loremIpsum}'
         }
     }, {
+        title: 'GeoExt3 OL3 Map',
+        iconCls: 'fa-map-marker',
+        layout: 'fit',
+        items: [{
+            xtype: 'mappanel'
+        }]
+    }, {
         title: 'Groups',
         iconCls: 'fa-users',
         bind: {
