@@ -38,7 +38,8 @@ Ext.define('Apregoar.view.main.Main', {
             },
             flex: 0
         },
-        iconCls: 'fa-th-list',
+        //iconCls: 'fa-th-list',
+        // THESISDEV add logo here instead
         items: [{
             xtype: 'button',
             text: 'logout',
@@ -83,36 +84,33 @@ Ext.define('Apregoar.view.main.Main', {
     },
 
     items: [{
-        title: 'Home',
-        iconCls: 'fa-home',
+        title: 'Apregoar',
+        //iconCls: 'fa-home',
         // The following grid shares a store with the classic version's grid as well!
-        items: [{
-            xtype: 'mainlist'
-        }]
-    }, {
-        title: 'Users',
-        iconCls: 'fa-user',
+        bind: {
+            html: 'O projeto espera que ajudar todas as utilizadores -- editores, leitores, e pesquisadores -- para entender melhor o que está acontecer e onde.'
+        }
+    },{
+        title: 'Entra',
+        //iconCls: 'fa-user',
         bind: {
             html: '{loremIpsum}'
         }
     }, {
-        title: 'GeoExt3 OL3 Map',
-        iconCls: 'fa-map-marker',
+        title: 'Pesquisa',
+        //iconCls: 'fa-map-marker',
         layout: 'fit',
         items: [{
             xtype: 'mappanel'
         }]
     }, {
-        title: 'Groups',
-        iconCls: 'fa-users',
+        title: 'Monitora',
+        //iconCls: 'fa-users',
         bind: {
             html: '{loremIpsum}'
-        }
-    }, {
-        title: 'Settings',
-        iconCls: 'fa-cog',
-        bind: {
-            html: '{loremIpsum}'
-        }
+        },
+        items: [{
+            xtype: 'mainlist'
+        }]
     }]
 });

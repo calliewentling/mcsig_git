@@ -28,7 +28,7 @@ Ext.define("Apregoar.view.main.Map",{
             })
         ],
         view: new ol.View({
-            center: ol.proj.fromLonLat( [-8.751278, 40.611368] ),
+            center: ol.proj.fromLonLat( [-9.1393, 38.7223] ),
             zoom: 12
         })
     })
