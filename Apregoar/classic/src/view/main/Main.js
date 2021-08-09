@@ -15,7 +15,10 @@ Ext.define('Apregoar.view.main.Main', {
 
         'Apregoar.view.main.MainController',
         'Apregoar.view.main.MainModel',
-        'Apregoar.view.main.List'
+        'Apregoar.view.main.List',
+
+        'Apregoar.view.entrada.EntradaFormController',
+        'Apregoar.view.entrada.EntradaForm'
     ],
 
     controller: 'main',
@@ -93,10 +96,11 @@ Ext.define('Apregoar.view.main.Main', {
     },{
         title: 'Entra',
         //iconCls: 'fa-user',
-        bind: {
-            html: '{loremIpsum}'
-        }
-    }, {
+        items: [{
+            xtype: 'entradaForm',
+            reference: 'entradaEntryForm'
+        }]
+    },{
         title: 'Pesquisa',
         //iconCls: 'fa-map-marker',
         layout: 'fit',
