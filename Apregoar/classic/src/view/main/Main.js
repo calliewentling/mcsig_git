@@ -92,26 +92,26 @@ Ext.define('Apregoar.view.main.Main', {
     },
 
     items: [{
-        title: 'Apregoar',
-        //iconCls: 'fa-home',
-        // The following grid shares a store with the classic version's grid as well!
-        bind: {
-            html: 'O projeto espera que ajudar todas as utilizadores -- editores, leitores, e pesquisadores -- para entender melhor o que está acontecer e onde.'
-        }
+        title: 'Entradas Suas',
+        //iconCls: 'fa-user',
+        items: [{
+            xtype: 'entradaList',
+            reference: 'entradaEntryList'
+        }]
     },{
-        title: 'Entra',
+        title: 'Entra Nova',
         //iconCls: 'fa-user',
         items: [{
             xtype: 'entradaForm',
             reference: 'entradaEntryForm'
         }]
     },{
-        title: 'Entra2',
-        //iconCls: 'fa-user',
-        items: [{
-            xtype: 'entradaList',
-            reference: 'entradaEntryList'
-        }]
+        title: 'Sobre',
+        //iconCls: 'fa-home',
+        // The following grid shares a store with the classic version's grid as well!
+        bind: {
+            html: 'O projeto espera que ajudar todas as utilizadores -- editores, leitores, e pesquisadores -- para entender melhor o que está acontecer e onde.'
+        }
     },{
         title: 'Pesquisa',
         //iconCls: 'fa-map-marker',

@@ -4,7 +4,7 @@ Ext.define('Apregoar.view.entrada.EntradaFormController', {
     alias: 'controller.entrada-form',
 
     // Entrar is not giving an error, but it isn't doing anything either
-    onCreateCLick: function(sender, record) {
+    onCreateClick: function(sender, record) {
         var entradaForm = this.getView().getForm();
 
         if (!entradaForm.isDirty()) {
@@ -21,7 +21,7 @@ Ext.define('Apregoar.view.entrada.EntradaFormController', {
             url: 'app/store/entradaEntries.json',
             waitMsg: 'Saving...',
             headers: {
-                'Content-Type': 'json'
+                'Content-Type': 'application/json'
             },
             clientValidation: true,
             submitEmptyText: true,

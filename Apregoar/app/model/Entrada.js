@@ -20,15 +20,12 @@ Ext.define('Apregoar.model.Entrada', {
         'sectionName',
         'themeName',
         'stypeName',
-        {name: 'publishDate', type: 'date'},
+        {name: 'publishDate', type: 'date', format: 'd m Y'},
         //'load_id', //unnecessary for user views
         'authorName',
         'publisherName'
     ],
 });
-
-
-
 // No validators here: should only validate on input probably
     //validators: {
     //    title: {type: 'length', min: 4},
