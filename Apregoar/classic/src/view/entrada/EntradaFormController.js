@@ -1,5 +1,6 @@
 Ext.define('Apregoar.view.entrada.EntradaFormController', {
     extend: 'Ext.app.ViewController',
+    requires: ['Apregoar.model.Entrada'],
     alias: 'controller.entrada-form',
 
     // Entrar is not giving an error, but it isn't doing anything either
@@ -17,10 +18,10 @@ Ext.define('Apregoar.view.entrada.EntradaFormController', {
 
         // Submit the Ajax request and handle the response
         entradaForm.submit({
-            url: '/api/entrada',
+            url: 'app/store/entradaEntries.json',
             waitMsg: 'Saving...',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'json'
             },
             clientValidation: true,
             submitEmptyText: true,
@@ -92,7 +93,7 @@ Ext.define('Apregoar.view.entrada.EntradaFormController', {
         }
 
         entradaForm.submit({
-            url: '/api/entrada/',
+            url: 'app/store/entradaEntries.json',
             waitMsg: 'Updating...',
             method: 'PUT',
             header: {
@@ -153,7 +154,7 @@ Ext.define('Apregoar.view.entrada.EntradaFormController', {
             fn: function (buttonValue, inputText, showConfig) {
                 if (buttonValue === 'yes') {
                     entradaForm.submit({
-                        url: '/api/entrada',
+                        url: 'app/store/entradaEntries.json',
                         method: 'DELETE',
                         clientValidation: true,
                         waitMsg: 'Apagando...',

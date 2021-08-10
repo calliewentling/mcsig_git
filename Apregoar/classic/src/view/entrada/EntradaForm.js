@@ -5,8 +5,8 @@ Ext.define('Apregoar.view.entrada.EntradaForm', {
 
     // added this part as a test to fix dependencies
     requires: [
-        "Apregoar.view.entrada.EntradaFormController"
-    //    "Apregoar.app.Entrada"
+        "Apregoar.view.entrada.EntradaFormController",
+        "Apregoar.model.Entrada"
     ],
 
     controller: 'entrada-form',
@@ -15,7 +15,7 @@ Ext.define('Apregoar.view.entrada.EntradaForm', {
         Ext.apply(this, {
             //set jsonsubmit to true for CUD operation using formSubmit()
             jsonSubmit: true,
-            url: 'api/entrada',
+            url: 'app/store/entradaEntries.json',
             resizable: false,
             collapsable: false,
             bodyPadding: '5',
@@ -46,10 +46,10 @@ Ext.define('Apregoar.view.entrada.EntradaForm', {
                         labelStyle: 'font-weight:bold'
                     },
                     items: [{
-                        fieldLabel: 'entrada_id',
-                        name: 'entrada_id',
+                        fieldLabel: 'Entrada ID',
+                        name: 'entradaId',
                         readOnly: true,
-                        width: 55
+                        width: 100
                     },{
                         fieldLabel: 'Titulo',
                         flex: 1,
@@ -62,46 +62,51 @@ Ext.define('Apregoar.view.entrada.EntradaForm', {
                     name: "summary",
                     width: '100%'
                 },{
+                    //xtype: 'urlfield',
                     fieldLabel: 'Ligação com a notícia original',
-                    name: 'web_link'
+                    name: 'webLink',
+                    width: '50%'
                 },{
-                    xfield: 'datefield',
+                    xtype: 'datefield',
+                    anchor: '100%',
                     fieldLabel: 'Inicio de instância',
-                    name: 't_begin'
+                    name: 'tBegin'
                 },{
-                    xfield: 'datefield',
+                    xtype: 'datefield',
+                    anchor: '100%',
                     fieldLabel: 'Fim de instância',
-                    name: 't_end'
+                    name: 'tEnd'
                 },{
                     fieldLabel: 'Descrição temporal',
-                    name: 't_desc'
+                    name: 'tDesc'
                 },{
                     fieldLabel: 'Localização',
-                    name: 'place_name',
+                    name: 'placeName',
                 },{
                     fieldLabel: 'Descrição do lugar',
-                    name: 'place_desc'
+                    name: 'placeDesc'
                 //},{
                     // Include geoinput element
                 },{
                     fieldLabel: 'Secção',
-                    name: 'section_name'
+                    name: 'sectionName'
                 },{
                     fieldLabel: 'Tema',
-                    name: "themename"
+                    name: "themeName"
                 },{
                     fieldLabel: 'Tipo',
-                    name: 'stype_name'
+                    name: 'stypeName'
                 },{
-                    xfield: 'datefield',
+                    xtype: 'datefield',
+                    anchor: '100%',
                     fieldLabel: 'Data de publicar',
-                    name: 'publish_date',
+                    name: 'publishDate',
                 },{
                     fieldLabel: 'Autor',
-                    name: "author_name"
+                    name: "authorName"
                 },{
                     fieldLabel: "Editor",
-                    name: 'publisher_name'
+                    name: 'publisherName'
                 }
             ],
         buttons: [

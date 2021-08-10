@@ -1,41 +1,33 @@
 Ext.define('Apregoar.model.Entrada', {
     extend: 'Ext.data.Model',
-    idProperty: 'entrada_id',
+    idProperty: 'entradaId',
 
     schema:{
         namespace: 'Apregoar.model'
-        //proxy: {
-        //    type: 'ajax',
-        //    api: {
-        //        read: 'WHAT GOES HERE' // what is my relevant URL??
-        //    },
-        //    reader: {
-        //        type: 'json',
-        //        rootProperty:'data'
-        //    }
-        //}
     },
 
     fields: [
-        {name: 'entrada_id', type: 'int'},
+        {name: 'entradaId', type: 'int'},
         'title',
         'summary',
-        'web_link',
-        {name: 't_begin', type: 'date'},
-        {name: 't_end', type: 'date'},
-        't_desc',
-        'place_name',
-        'place_desc',
+        'webLink',
+        {name: 'tBegin', type: 'date'},
+        {name: 'tEnd', type: 'date'},
+        'tDesc',
+        'placeName',
+        'placeDesc',
         // geom
-        'section_name',
-        'theme_name',
-        'stype_name',
-        {name: 'publish_date', type: 'date'},
+        'sectionName',
+        'themeName',
+        'stypeName',
+        {name: 'publishDate', type: 'date'},
         //'load_id', //unnecessary for user views
-        'author_name',
-        'publisher_name'
-    ]
+        'authorName',
+        'publisherName'
+    ],
 });
+
+
 
 // No validators here: should only validate on input probably
     //validators: {

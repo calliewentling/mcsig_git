@@ -18,7 +18,12 @@ Ext.define('Apregoar.view.main.Main', {
         'Apregoar.view.main.List',
 
         'Apregoar.view.entrada.EntradaFormController',
-        'Apregoar.view.entrada.EntradaForm'
+        'Apregoar.view.entrada.EntradaForm',
+
+        'Apregoar.view.entrada.EntradaListController',
+        'Apregoar.view.entrada.EntradaList',
+        'Apregoar.view.entrada.EntradaViewModel',
+        'Apregoar.model.Entrada'
     ],
 
     controller: 'main',
@@ -99,6 +104,13 @@ Ext.define('Apregoar.view.main.Main', {
         items: [{
             xtype: 'entradaForm',
             reference: 'entradaEntryForm'
+        }]
+    },{
+        title: 'Entra2',
+        //iconCls: 'fa-user',
+        items: [{
+            xtype: 'entradaList',
+            reference: 'entradaEntryList'
         }]
     },{
         title: 'Pesquisa',
