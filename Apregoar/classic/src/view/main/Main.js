@@ -23,6 +23,7 @@ Ext.define('Apregoar.view.main.Main', {
         'Apregoar.view.entrada.EntradaListController',
         'Apregoar.view.entrada.EntradaList',
         'Apregoar.view.entrada.EntradaViewModel',
+    //   'Apregoar.store.EntradaEntries',
         'Apregoar.model.Entrada'
     ],
 

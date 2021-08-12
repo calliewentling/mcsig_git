@@ -208,6 +208,10 @@
             "path": "https://openlayers.org/en/v4.6.5/build/ol.js",
             "remote": true
         },{
+            // tutorial addition
+            "path": "php/api.php",
+            "remote": true
+        },{
             "path": "app.js",
             "bundle": true
         }

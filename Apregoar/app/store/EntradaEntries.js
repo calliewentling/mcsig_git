@@ -6,8 +6,11 @@ Ext.define('Apregoar.store.EntradaEntries', {
     proxy: {
         type: 'ajax',
         url: 'app/store/entradaEntries.json',
+        //url: 'php/entradas.php',
         reader: {
             type: 'json',
         }
-    }
+    },
+
+    //autoLoad: true
 });

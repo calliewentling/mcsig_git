@@ -1,13 +1,13 @@
 <?php
 
-class QueryDatabase {
+class QueryEntradas {
 
    private $_db;
    protected $_result;
    public $results;
 
    public function __construct() {
-       $this->_db = new mysqli('host', 'username' ,'password', 'database');
+       $this->_db = new pg_connect("host=localhost dbname=postgres user=postgres password=thesis2021");       ;
 
        $_db = $this->_db;
 
@@ -21,8 +21,9 @@ class QueryDatabase {
    public function getResults($params) {
        $_db = $this->_db;
 
-       $_result = $_db->query("SELECT name,email,phone FROM heroes") or
-                  die('Connection Error: ' . $_db->connect_error);
+       $_result = pg_prepare($_db, "my_query", 'SELECT * FROM apregoar_test.entrada_test');
+
+       $_result = $_db->pg_execute($_db, "my_query", array()) or die('Connection Error: ' . $_db->connect_error);
 
        $results = array();
 
@@ -30,9 +31,10 @@ class QueryDatabase {
            array_push($results, $row);
        }
 
-       $this->_db->close();
+       pg_close($_db);
 
        return $results;
    }
 
 }
+// https://docs.sencha.com/extjs/6.2.0/guides/backend_connectors/direct/mysql_php.html

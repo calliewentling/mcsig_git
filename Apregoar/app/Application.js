@@ -34,6 +34,9 @@ Ext.define('Apregoar.Application', {
         Ext.create({
             xtype: loggedIn ? 'app-main' : 'login'
         });
+        
+        //https://docs.sencha.com/extjs/6.2.0/guides/backend_connectors/direct/mysql_php.html
+        Ext.direct.Manager.addProvider(Ext.REMOTING_API);
 
     },
 

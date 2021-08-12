@@ -4,6 +4,7 @@ $theme-name:  dynamic( 'theme-crisp' );
 $include-apregoar-application: dynamic(true);;
 $include-apregoar-model-entrada: dynamic(true);;
 $include-apregoar-store-entradaentries: dynamic(true);;
+$include-apregoar-store-entradatest: dynamic(true);;
 $include-apregoar-store-personnel: dynamic(true);;
 $include-apregoar-view-entrada-entradaform: dynamic(true);;
 $include-apregoar-view-entrada-entradaformcontroller: dynamic(true);;
