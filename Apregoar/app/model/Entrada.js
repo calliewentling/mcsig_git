@@ -3,7 +3,8 @@ Ext.define('Apregoar.model.Entrada', {
     idProperty: 'entradaId',
 
     schema:{
-        namespace: 'Apregoar.model'
+        namespace: 'Apregoar.model',
+
     },
 
     fields: [

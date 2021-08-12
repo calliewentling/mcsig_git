@@ -18,7 +18,7 @@ Ext.define('Apregoar.view.entrada.EntradaFormController', {
 
         // Submit the Ajax request and handle the response
         entradaForm.submit({
-            url: 'app/store/entradaEntries.json',
+            url: 'api/entrada',
             waitMsg: 'Saving...',
             headers: {
                 'Content-Type': 'application/json'
@@ -51,7 +51,7 @@ Ext.define('Apregoar.view.entrada.EntradaFormController', {
             }
         });
     },
-    // //NOT WORKING: 
+     //NOT WORKING: 
     //onReadClick: function (sender, record){
     //   var entradaForm = this.getView().getForm();
     //    //result should contain success=true and data property otherwise it will go to failure even if there is no failure
