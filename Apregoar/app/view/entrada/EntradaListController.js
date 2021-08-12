@@ -6,6 +6,7 @@ Ext.define('Apregoar.view.entrada.EntradaListController', {
     onAddClick: function (sender, record) {
 
         var entradaStore = this.getViewModel().getStore('EntradaListStore');
+        //var entradaStore = this.getViewModel().getStore('EntradaEntries');
 
         //adding dummy entrada
         var entradaModel = Ext.create('Apregoar.model.Entrada');

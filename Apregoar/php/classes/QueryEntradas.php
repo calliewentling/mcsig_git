@@ -7,7 +7,7 @@ class QueryEntradas {
    public $results;
 
    public function __construct() {
-       $this->_db = new pg_connect("host=localhost dbname=postgres user=postgres password=thesis2021");       ;
+       $this->_db = new pg_connect("host=localhost dbname=postgres user=postgres password=thesis2021");
 
        $_db = $this->_db;
 
@@ -21,9 +21,7 @@ class QueryEntradas {
    public function getResults($params) {
        $_db = $this->_db;
 
-       $_result = pg_prepare($_db, "my_query", 'SELECT * FROM apregoar_test.entrada_test');
-
-       $_result = $_db->pg_execute($_db, "my_query", array()) or die('Connection Error: ' . $_db->connect_error);
+       $_result =  pg_query($db, "SELECT * FROM apregoar_test.entrada_test") or die('Connection Error: ' . $_db->connect_error);
 
        $results = array();
 
@@ -31,7 +29,7 @@ class QueryEntradas {
            array_push($results, $row);
        }
 
-       pg_close($_db);
+       $this->_db->pg_close($_db);
 
        return $results;
    }

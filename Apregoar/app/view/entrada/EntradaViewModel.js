@@ -9,18 +9,23 @@ Ext.define('Apregoar.view.entrada.EntradaViewModel', {
             proxy:
             {
                 type: 'ajax',
+                //method: "POST",
                 reader:
                 {
-                    type: 'json'
+                    type: 'application/json'
                 },
-                url: 'app/store/entradaEntries.json',
+                url: 'php/entradas.php',
                 writer: {
-                    type: 'json',
-                    dateFormat: 'd/m/Y',
+                    type: 'application/json',
+                    dateFormat: 'Y-m-d',
                     writeAllFields: true
                 }
             }
-        },
+            // proxy: {
+            //     type: 'direct',
+            //     directFn: "QueryEntradas.getResults"
+            // },
+        }
     }
 });
 

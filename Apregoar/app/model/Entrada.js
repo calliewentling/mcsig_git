@@ -8,23 +8,25 @@ Ext.define('Apregoar.model.Entrada', {
     },
 
     fields: [
-        {name: 'entradaId', type: 'int'},
-        'title',
-        'summary',
-        'webLink',
-        {name: 'tBegin', type: 'date'},
-        {name: 'tEnd', type: 'date'},
-        'tDesc',
-        'placeName',
-        'placeDesc',
-        // geom
-        'sectionName',
-        'themeName',
-        'stypeName',
-        {name: 'publishDate', type: 'date', format: 'd m Y'},
-        //'load_id', //unnecessary for user views
         'authorName',
+        {name: 'entradaId', type: 'int'},
+        'placeDesc',
+        'placeName',
+        {name: 'publishDate', type: 'date', format: 'Y-m-d'},
+        'sectionName',
+        'stypeName',
+        'summary',
+        {name: 'tBegin', type: 'date', format: 'Y-m-d'},
+        'tDesc',
+        {name: 'tEnd', type: 'date', format: 'Y-m-d'},
+        'themeName',
+        'title',
+        'webLink',
         'publisherName'
+        // geom
+        //'load_id', //unnecessary for user views
+        
+        
     ],
 });
 // No validators here: should only validate on input probably
