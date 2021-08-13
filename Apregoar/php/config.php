@@ -3,7 +3,21 @@
     function get_extdirect_api() {
 
         $API = array(
-            'QueryEntradas' => array(
+            'QueryStories' => array(
+                'methods' => array(
+                    'getResults' => array(
+                        'len' => 1
+                    )
+                )
+            ),
+            'QueryInstances' => array(
+                'methods' => array(
+                    'getResults' => array(
+                        'len' => 1
+                    )
+                )
+            ),
+            'QueryGazetteer' => array(
                 'methods' => array(
                     'getResults' => array(
                         'len' => 1

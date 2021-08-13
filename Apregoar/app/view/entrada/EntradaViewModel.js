@@ -21,27 +21,6 @@ Ext.define('Apregoar.view.entrada.EntradaViewModel', {
                     writeAllFields: true
                 }
             }
-            // proxy: {
-            //     type: 'direct',
-            //     directFn: "QueryEntradas.getResults"
-            // },
         }
     }
 });
-
-//        EntradaListPagingStore: {
-//            model: 'Apregoar.model.Entrada',
-//            autoLoad: true,
-//            pageSize: 5,
-//            proxy:
-//           {
-//               type: 'rest',
-//               reader:
-//               {
-//                   rootProperty: 'data',
-//                   type: 'json',
-//                   totalProperty: 'TotalCount'
-//               },
-//               url: '/api/entrada'
-//           }
-//        }

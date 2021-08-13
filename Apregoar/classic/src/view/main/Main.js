@@ -24,7 +24,9 @@ Ext.define('Apregoar.view.main.Main', {
         'Apregoar.view.entrada.EntradaList',
         'Apregoar.view.entrada.EntradaViewModel',
     //   'Apregoar.store.EntradaEntries',
-        'Apregoar.model.Entrada'
+        'Apregoar.model.Entrada',
+
+        'Apregoar.view.story.StoryList'
     ],
 
     controller: 'main',
@@ -53,7 +55,7 @@ Ext.define('Apregoar.view.main.Main', {
             xtype: 'button',
             text: 'logout',
             margin: '10 0',
-            handler: 'onClickButton'
+            handler: 'onClickLogout'
         }]
     },
 
@@ -95,6 +97,9 @@ Ext.define('Apregoar.view.main.Main', {
     items: [{
         title: 'Entradas Suas',
         //iconCls: 'fa-user',
+        bind: {
+            html: 'This is currently being read by a json file... not dynamically querying a database'
+        },
         items: [{
             xtype: 'entradaList',
             reference: 'entradaEntryList'
@@ -124,10 +129,19 @@ Ext.define('Apregoar.view.main.Main', {
         title: 'Monitora',
         //iconCls: 'fa-users',
         bind: {
-            html: '{loremIpsum}'
+            html: 'It appears that my list isn\'t coming through. Attempting to connect via php router to view all stories'
         },
         items: [{
-            xtype: 'mainlist'
+            xtype: 'storylist'
+        }]
+    }, {
+        title: 'Story Form',
+        //iconCls: 'fa-users',
+        bind: {
+            html: 'Test of story form'
+        },
+        items: [{
+            xtype: 'storyform'
         }]
     }]
 });

@@ -1,6 +1,6 @@
 <?php
 
-class QueryEntradas {
+class QueryInstances {
 
    private $_db;
    protected $_result;
@@ -21,7 +21,7 @@ class QueryEntradas {
    public function getResults($params) {
        $_db = $this->_db;
 
-       $_result =  pg_query($db, "SELECT * FROM apregoar_test.entrada_test") or die('Connection Error: ' . $_db->connect_error);
+       $_result =  pg_query($db, "SELECT story_id AS storyId, t_begin AS tBegin, t_end AS tEnd, t_desc AS tDesc, place_id AS placeId, sinstance_id AS instanceID FROM public.sinstance") or die('Connection Error: ' . $_db->connect_error);
 
        $results = array();
 

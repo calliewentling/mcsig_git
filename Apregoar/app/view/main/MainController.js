@@ -19,7 +19,7 @@ Ext.define('Apregoar.view.main.MainController', {
         }
     },
 
-    onClickButton: function() {
+    onClickLogout: function() {
         // Remove the localStorage key/value
         localStorage.removeItem('ApregoarLoggedIn');
 
