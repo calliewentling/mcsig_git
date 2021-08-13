@@ -12,11 +12,11 @@ Ext.define('Apregoar.view.entrada.EntradaViewModel', {
                 //method: "POST",
                 reader:
                 {
-                    type: 'application/json'
+                    type: 'json'
                 },
-                url: 'php/entradas.php',
+                url: 'php/entradas.json',
                 writer: {
-                    type: 'application/json',
+                    type: 'json',
                     dateFormat: 'Y-m-d',
                     writeAllFields: true
                 }

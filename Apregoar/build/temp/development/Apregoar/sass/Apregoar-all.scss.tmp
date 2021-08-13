@@ -1,5 +1,5 @@
 $app-name:  dynamic( 'Apregoar' );
-$image-search-path: 'C:/mcsig_git/apregoar/build/development/Apregoar/classic/resources';
+$image-search-path: 'C:/mcsig_git/Apregoar/build/development/Apregoar/classic/resources';
 $theme-name:  dynamic( 'theme-crisp' );
 $include-apregoar-application: dynamic(true);;
 $include-apregoar-model-entrada: dynamic(true);;
