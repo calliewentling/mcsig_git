@@ -26,38 +26,40 @@ def create_app(test_config=None):
 
     
 
-    # a simple page that says hello
-    """ @app.route('/hello')
-    def hello():
-        return 'Hello, World!' """
+#### It's on
     
-    from apregoar.models import People, session, engine
-    
-    
+    from apregoar.models import Stories, session, engine
+            
     @app.route('/')
     def home():
-        return '<a href="/addperson"><button> Click here to publish articles </button></a>'
+        return '<a href="/addstory"><button> Click here to publish articles </button></a>'
     
-    @app.route("/favicon.ico")
-    def favicon():
-        return "", 200
+
     
-    @app.route("/addperson")
-    def addperson():
+    @app.route("/addstory")
+    def addstory():
         return render_template("layout.html")
 
 
-    @app.route("/personadd", methods=['POST'])
+    @app.route("/storyadd", methods=['POST'])
     def personadd():
-        pname = request.form["pname"]
-        color = request.form["color"]
-        entry = People(pname, color)
+        title = request.form["title"]
+        summary =request.form["summary"]
+        pub_date = request.form["pub_date"]
+        web_link =request.form["web_link"]
+        section = request.form["section"]
+        tags = request.form["tags"]
+        author = request.form["author"]
+        publication =request.form["publication"]
+        entry = Stories(title, summary, pub_date, web_link, section, tags, author, publication)
         session.add(entry)
         session.commit()
 
         return render_template("layout.html")
 
+    #Stories.__table__.create(engine)
 
+    return app
 
     #from . import auth
     #app.register_blueprint(auth.bp)
@@ -67,9 +69,13 @@ def create_app(test_config=None):
     #app.add_url_rule('/', endpoint='index')
 
    ## Run to initialize table in Postgresql
-    #People.__table__.create(engine)
+    
 
-    return app
+    # @app.route("/favicon.ico")
+    # def favicon():
+    #     return "", 200
+
+
 
 ## Moved to models.py or config.py
 #from sqlalchemy import create_engine

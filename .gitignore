@@ -3,7 +3,7 @@ venv/
 *.pyc
 __pycach__/
 
-instance/
+*/instance/
 
 .pytest_cache/
 .coverage
