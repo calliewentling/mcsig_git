@@ -4,7 +4,10 @@
 import os
 
 from flask import Flask, render_template, request, flash
-from flask_sqlalchemy import SQLAlchemy
+#from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from apregoar.models import Stories, UGazetteer, Instances
 
 def create_app(test_config=None):
     # create and configure the app
@@ -24,12 +27,16 @@ def create_app(test_config=None):
     except OSError:
         pass
 
+    engine = create_engine('postgresql://postgres:thesis2021@localhost/postgres', echo=True)
+    
+    Session = sessionmaker(bind=engine)
+    session = Session()
     
 
 #### It's on
     
-    from apregoar.models import Stories, session, engine
-            
+    
+        
     @app.route('/')
     def home():
         return '<a href="/addstory"><button> Click here to publish articles </button></a>'
@@ -42,7 +49,7 @@ def create_app(test_config=None):
 
 
     @app.route("/storyadd", methods=['POST'])
-    def personadd():
+    def storyadd():
         title = request.form["title"]
         summary =request.form["summary"]
         pub_date = request.form["pub_date"]
@@ -52,12 +59,15 @@ def create_app(test_config=None):
         author = request.form["author"]
         publication =request.form["publication"]
         entry = Stories(title, summary, pub_date, web_link, section, tags, author, publication)
+        #entry = Stories(title)
         session.add(entry)
         session.commit()
 
         return render_template("layout.html")
 
     #Stories.__table__.create(engine)
+    #UGazetteer.__table__.create(engine)
+    #Instances.__table__.create(engine)
 
     return app
 
