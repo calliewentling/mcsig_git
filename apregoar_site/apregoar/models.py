@@ -1,6 +1,7 @@
 from flask import current_app, g
 from flask.cli import with_appcontext
-from sqlalchemy import Column, Integer, String, Date, Text
+from sqlalchemy import Table, Column, Integer, String, Date, Text, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from geoalchemy2 import Geometry
 
@@ -19,6 +20,7 @@ class Stories(Base):
     tags = Column(Text, nullable=True)
     author = Column(Text, nullable=True)
     publication = Column(Text, nullable=False)
+    instances = relationship("Instances", cascade="all, delete")
     
 
     def __init__(self, title, summary, pub_date, web_link, section, tags, author, publication):
@@ -37,6 +39,7 @@ class UGazetteer(Base):
     p_id = Column(Integer, primary_key=True)
     p_name = Column(Text, nullable=False)
     geom = Column(Geometry('POLYGON'))
+    instances = relationship("Instances")
 
     def __init__(self, p_name, geom):
         self.p_name = p_name
@@ -52,8 +55,8 @@ class Instances(Base):
     t_type = Column(Text, nullable=True)
     t_desc = Column(Text, nullable=True)
     p_desc = Column(Text, nullable=True)
-    s_id = Column(Integer) #define as foreign key
-    p_id = Column(Integer) #define as foriegn key
+    s_id = Column(Integer, ForeignKey('apregoar.stories.s_id')) #define as foreign key
+    p_id = Column(Integer, ForeignKey('apregoar.ugazetteer.p_id')) #define as foriegn key
     
     def __init__(self, t_begin, t_end, t_type, t_desc, p_desc, story_id, place_id):
         self.t_begin = t_begin
