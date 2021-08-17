@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>{% block title %}{% endblock %}</title>
+    </head>
+    <body>
+        <link href="../../static/css/publish.css" rel="stylesheet"> 
+        {% block body %}
+            <h1>Publish a Spatial/Temporal Reference</h1>
+        {% endblock %}
+
+        <div class="error-status">
+            <div id="user-taken"></div>
+        </div>
+
+        <script>
+            function errorAlert(error) {
+                const errorMsg = "";
+                const eAlert = document.getElementById('user-taken');
+                if (error == 1) {
+                    eAlert.innerHTML = '<p>"Username in use. Please choose another" </p>';
+                }
+                else {
+                    eAlert.innerHTML = '';
+                }
+            }
+        </script>
+        
+
+        <form name="addUser" action="{{ url_for('useradd')}}" method="post">
+
+            <h3>Add a new user</h3>
+            <label for="username">Username</label>
+            <input name="username" id="username" required>
+            <span class="error" aria-live="polite"></span>
+
+            <label for="password">Password</label>
+            <input name="password" id="password" required>
+            <span class="error" aria-live="polite"></span>
+
+            <label for="organization">Affiliation</label>
+            <input name="organization" id="organization" required>
+            <span class="error" aria-live="polite"></span>
+
+            <div>
+                <button>Save</button>
+            </div>
+
+        </form>
+
+        <script>
+            const form = document.getElementsbyTagName('addUser')[0];
+
+            const vusername = document.getElementbyId('username');
+            const vuserError = document.querySelector('#username + span.error');
+            vusername.addEventListener('input', function (event) {
+                //Each time the user types something, we check if the form fields are valid
+                if (vusername.validity.valid) {
+                    //In case there is an error message visible, if the field is valid, we remove the error message.
+                    vtitelError.innterHTML = ''; //Reset the content of the message
+                    vtitleError.className = 'error'; //reset the visual state of the message
+                } else {
+                    // If there is still an error, show the correct error
+                    showError();
+                }
+            });
+            form.addEventListener('submit', function (event) {
+                if (!vusername.validity.valid) {
+                    // If it isn't, we display the appropriate error message
+                    showError();
+                    //Then prevent the form from being sent by canceling the event
+                    event.preventDefault();
+                }
+            });
+            function showError() {
+                if(vusername.validity.valueMissing) {
+                    //If the field is empty display the following error message
+                    vusernameError.textContent ="Enter Title";
+                } else if(vusername.validity.tooShort) {
+                    //If the data is too short display the following error message.
+                    vusernameError.textContent = "Title should be at least ${ vtitle.minLength } characters.";
+                }
+                //Set the styling
+                vusernameeError.className = 'error active';
+            }
+
+        </script>
+
+    </body>
+</html>

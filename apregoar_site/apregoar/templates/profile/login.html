@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>{% block title %}{% endblock %}</title>
+    </head>
+    <body>
+        <link href="../../static/css/publish.css" rel="stylesheet"> 
+        {% block body %}
+            <h1>Select Your Username</h1>
+        {% endblock %}
+
+        <!-- https://stackoverflow.com/a/45877130 -->
+        <select name="selectuser" method="GET" action="{{url_for('profile')}}">
+            <option value="{{unames[0]}}" selected>{{unames[0]}}</option>
+            {% for uname in unames[1:]%}
+                <option value="{{uname}}">{{uname}}</option>"
+            {% endfor %}
+        </select>
+    </body>
+</html>

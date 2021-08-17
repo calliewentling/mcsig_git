@@ -2,12 +2,17 @@
 #https://flask.palletsprojects.com/en/2.0.x/tutorial/layout/
 
 import os
-
-from flask import Flask, render_template, request, flash
+import flask
+from flask import Flask, g, render_template, request, flash
 #from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import create_engine
+from apregoar.models import Stories, UGazetteer, Instances, Users
+from sqlalchemy import text
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
-from apregoar.models import Stories, UGazetteer, Instances
+import json
+
+global currentuser
+
 
 def create_app(test_config=None):
     # create and configure the app
@@ -28,19 +33,85 @@ def create_app(test_config=None):
         pass
 
     engine = create_engine('postgresql://postgres:thesis2021@localhost/postgres', echo=True)
-    
     Session = sessionmaker(bind=engine)
     session = Session()
-    
+
 
 #### It's on
+
+    @app.before_request
+    def create_sesion():
+        flask.g.session = Session()
     
-    
+    @app.teardown_appcontext
+    def shutdown_session(response_or_exc):
+        flask.g.session.commit()
+        flask.g.session.close()
+  
         
     @app.route('/')
     def home():
         #return '<a href="/addstory"><button> Click here to publish articles </button></a>'
         return render_template("layout.html")
+
+    @app.route("/adduser")
+    def adduser():
+        return render_template("/profile/newuser.html")
+
+    @app.route("/useradd", methods=['POST', 'GET'])
+    def useradd():
+        error = 0     
+        uname = request.form["username"]
+        password = request.form["password"]
+        organization = request.form["organization"]         
+        
+        with engine.connect() as conn:
+            print(uname)
+            SQL = text("SELECT username FROM apregoar.users WHERE username = :x")
+            SQL = SQL.bindparams(x=uname)
+            result = conn.execute(SQL)
+            count = 0
+            for row in result:
+                print("username:",row['username'])
+                count += 1
+
+            print(count)
+        
+        if count == 0:
+            entryU = Users(uname, password, organization)
+            session.add(entryU)
+            session.commit()
+            return render_template("profile/profile.html")
+
+        else:
+            return render_template("profile/newuser.html")
+        
+    @app.route("/login", methods=['GET'])
+    def login():
+        with engine.connect() as conn:
+            SQL = text("SELECT username FROM apregoar.users")
+            result = conn.execute(SQL)
+            print(result)
+            unames=[]
+            for row in result:
+                unames.append(row[0])
+            print(unames)
+        
+        return render_template("profile/login.html", unames=unames) 
+
+    @app.route("/profile")
+    def profile():
+        currentuser = request.form["user_list"]
+        return render_template("profile/profile.html")
+
+        
+        #else:
+        #    error = 1
+        #    return render_template("profile/newuser.html", error)
+
+
+
+        
 
     
     @app.route("/addstory")
@@ -50,20 +121,26 @@ def create_app(test_config=None):
 
     @app.route("/storyadd", methods=['POST'])
     def storyadd():
+        ##Required
         title = request.form["title"]
+        pub_date = request.form["pubDate"]
+        web_link =request.form["webLink"]
+        publication =request.form["publication"]
+        ##Optional
         summary =request.form["summary"]
-        pub_date = request.form["pub_date"]
-        web_link =request.form["web_link"]
         section = request.form["section"]
         tags = request.form["tags"]
         author = request.form["author"]
-        publication =request.form["publication"]
+        #Prepare & Submit
         entry = Stories(title, summary, pub_date, web_link, section, tags, author, publication)
-        #entry = Stories(title)
         session.add(entry)
         session.commit()
 
-        return render_template("publish/create.html")
+        return render_template("publish/add_instance.html")
+
+    @app.route("/add_instance")
+    def addinstance():
+        return render_template("publish/add_instance.html")
     
     @app.route("/viewmap")
     def viewmap():
@@ -73,14 +150,14 @@ def create_app(test_config=None):
     def localize():
         return render_template("publish/localize.html")
 
+    #Users.__table__.create(engine)
     #Stories.__table__.create(engine)
     #UGazetteer.__table__.create(engine)
     #Instances.__table__.create(engine)
+    
 
     return app
 
-    #from . import auth
-    #app.register_blueprint(auth.bp)
 
     #from . import blog
     #app.register_blueprint(blog.bp)

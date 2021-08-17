@@ -53,22 +53,44 @@ body { margin: 0; padding: 0; }
     }
 </style>
 
+<style>
+    .instanceform-box {
+        height: 150px;
+        width: 150px;
+        position: absolute;
+        bottom: 40px;
+        right: 10px;
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 15px;
+        text-align: center;
+    }
+
+    p {
+        font-family: 'Open Sans';
+        margin: 0;
+        font-size: 13px;
+    }
+</style>
+
 <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 <script src="../../static/js/mapbox-gl-draw.js"></script>
-<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.2.2/mapbox-gl-draw.css" type="text/css">
+<link rel="stylesheet" href="../../static/css/mapbox-gl-draw.css" type="text/css">
 <div id="map"></div>
 <div class="calculation-box">
     <p>Click the map to draw a polygon.</p>
     <div id="calculated-area"></div>
+    <div style="color:red"><p> ToDO: Add intersecting freguesias</p></div>
 </div>
 <div class="save-box">
     <p>Guardar a geometria</p>
     <p id = "polyval"></p>
     <button onClick="savePoly()">Save geometry</button>
-    <button href="/addstory">Return home</button>
+    <button }>Return home</button>
     <div id="save-button"></div>
 </div>
-
+<div height=100%>
+    <p>Definir uma instância da notícia</p>
+</div>
 <script>
 	mapboxgl.accessToken = 'pk.eyJ1IjoiY3dlbnRsaW5nIiwiYSI6ImNqd2F0cmVvajA5bHAzemx6NDF3bmZ6NGsifQ.2qy1Q4WfMf4XFllp2v96HQ';
     const map = new mapboxgl.Map({
@@ -110,12 +132,11 @@ body { margin: 0; padding: 0; }
         }
     }; 
 
-    function savePoly() {
+    function savePoly(e) {
         const newPoly = draw.getAll();
         const confirm = document.getElementById('save-button');
         if (data.features.length > 0) {
-            polyval.textContent = newPoly
-            answer.innerHTML = `<p>Geometry: <strong>${newPoly}</strong></p>`;
+            answer.innerHTML = `<p>Geometry: <strong>${newPoly.geometry.coordinates()}</strong></p>`;
         } else {
             answer.innerHTML = '';
             if (e.type !== 'draw.delete')

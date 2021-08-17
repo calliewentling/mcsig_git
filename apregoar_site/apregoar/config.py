@@ -8,3 +8,9 @@
 
 # DEBUG = True
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+engine = create_engine('postgresql://postgres:thesis2021@localhost/postgres', echo=True)
+Session = sessionmaker(bind=engine)
+session = Session()
