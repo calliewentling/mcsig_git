@@ -3,7 +3,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Draw a polygon and calculate its area</title>
+<title>Localizar as Notícias</title>
 <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
 <!-- <link href="https://api.mapbox.com/mapbox-gl-js/v2.4.0/mapbox-gl.css" rel="stylesheet"> -->
 <link href="../../static/css/mapbox-gl.css" rel="stylesheet"> 
@@ -34,6 +34,25 @@ body { margin: 0; padding: 0; }
     }
 </style>
 
+<style>
+    .save-box {
+        height: 150px;
+        width: 150px;
+        position: absolute;
+        bottom: 40px;
+        right: 10px;
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 15px;
+        text-align: center;
+    }
+
+    p {
+        font-family: 'Open Sans';
+        margin: 0;
+        font-size: 13px;
+    }
+</style>
+
 <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 <script src="../../static/js/mapbox-gl-draw.js"></script>
 <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-draw/v1.2.2/mapbox-gl-draw.css" type="text/css">
@@ -41,6 +60,13 @@ body { margin: 0; padding: 0; }
 <div class="calculation-box">
     <p>Click the map to draw a polygon.</p>
     <div id="calculated-area"></div>
+</div>
+<div class="save-box">
+    <p>Guardar a geometria</p>
+    <p id = "polyval"></p>
+    <button onClick="savePoly()">Save geometry</button>
+    <button href="/addstory">Return home</button>
+    <div id="save-button"></div>
 </div>
 
 <script>
@@ -86,8 +112,10 @@ body { margin: 0; padding: 0; }
 
     function savePoly() {
         const newPoly = draw.getAll();
+        const confirm = document.getElementById('save-button');
         if (data.features.length > 0) {
-            return newPoly
+            polyval.textContent = newPoly
+            answer.innerHTML = `<p>Geometry: <strong>${newPoly}</strong></p>`;
         } else {
             answer.innerHTML = '';
             if (e.type !== 'draw.delete')
@@ -96,6 +124,6 @@ body { margin: 0; padding: 0; }
     }
 </script>
 
-    <button onClick="savePoly()">Save location geometry</button>
+
 </body>
 </html>

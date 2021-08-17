@@ -69,9 +69,9 @@ def create_app(test_config=None):
     def viewmap():
         return render_template("publish/instance.html")
 
-    @app.route("/mapbox_gl_draw")
-    def drawpolytest():
-        return render_template("publish/mapbox_gl_draw.html")
+    @app.route("/localize")
+    def localize():
+        return render_template("publish/localize.html")
 
     #Stories.__table__.create(engine)
     #UGazetteer.__table__.create(engine)
