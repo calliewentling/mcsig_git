@@ -1,0 +1,14 @@
+{
+    "__comment1__": "https://openlayers.org/en/latest/examples/draw-features.html",
+    "name": "draw-features",
+    "dependencies": {
+      "ol": "6.6.1"
+    },
+    "devDependencies": {
+      "parcel": "^2.0.0-beta.1"
+    },
+    "scripts": {
+      "start": "parcel ../../templates/publish/instance.html",
+      "build": "parcel build --public-url . ../../templates/publish/instance.html"
+    }
+  }

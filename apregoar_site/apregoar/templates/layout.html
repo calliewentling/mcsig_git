@@ -6,40 +6,17 @@
     </head>
     <body>
     {% block body %}
-        <h1>Publish a Spatial/Temporal Reference</h1>
+        <h1>Home</h1>
     {% endblock %}
-
-        <form action="{{ url_for('storyadd')}}" method="post">
-            <h5>Enter the article details</h5>
-            <div>
-                <input type="text" name="title" placeholder="Title">
-            </div>
-            <div>
-                <input type="text" name="summary" placeholder="Summary (optional)">
-            </div>
-            <div>
-                <input type="date" name="pub_date" placeholder="Date of Publish">
-            </div>
-            
-            <div>
-                <input type="text" name="web_link" placeholder="Link to Story">
-            </div>
-            <div>
-                <input type="text" name="section" placeholder="Section (optional)">
-            </div>
-            <div>
-                <input type="text" name="tags" placeholder="Tags (optional, separate by commas (','))">
-            </div>
-            <div>
-                <input type="text" name="author" placeholder="Author (optional)">
-            </div>
-            <div>
-                <input type="text" name="publication" placeholder="Original publication">
-            </div>
-        <div>
-            <button >Submit</button>
-        </div>
-    </form>
+    <div>
+        <a href="/addstory"><button> Click here to publish articles </button></a> 
+    </div>
+    <div>
+        <a href="/viewmap"><button> View Map </button></a>
+    </div>
+    <div>
+        <a href="/mapbox_gl_draw"><button> Draw Polygons </button></a>
+    </div>
 
     </body>
 </html>

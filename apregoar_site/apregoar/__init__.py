@@ -39,13 +39,13 @@ def create_app(test_config=None):
         
     @app.route('/')
     def home():
-        return '<a href="/addstory"><button> Click here to publish articles </button></a>'
-    
+        #return '<a href="/addstory"><button> Click here to publish articles </button></a>'
+        return render_template("layout.html")
 
     
     @app.route("/addstory")
     def addstory():
-        return render_template("layout.html")
+        return render_template("publish/create.html")
 
 
     @app.route("/storyadd", methods=['POST'])
@@ -63,7 +63,15 @@ def create_app(test_config=None):
         session.add(entry)
         session.commit()
 
-        return render_template("layout.html")
+        return render_template("publish/create.html")
+    
+    @app.route("/viewmap")
+    def viewmap():
+        return render_template("publish/instance.html")
+
+    @app.route("/mapbox_gl_draw")
+    def drawpolytest():
+        return render_template("publish/mapbox_gl_draw.html")
 
     #Stories.__table__.create(engine)
     #UGazetteer.__table__.create(engine)
