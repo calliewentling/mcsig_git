@@ -136,9 +136,9 @@ body { margin: 0; padding: 0; }
         const newPoly = draw.getAll();
         const confirm = document.getElementById('save-button');
         if (data.features.length > 0) {
-            answer.innerHTML = `<p>Geometry: <strong>${newPoly.geometry.coordinates()}</strong></p>`;
+            confirm.innerHTML = `<p>Geometry: <strong>${newPoly.geometry.coordinates()}</strong></p>`;
         } else {
-            answer.innerHTML = '';
+            confirm.innerHTML = '';
             if (e.type !== 'draw.delete')
                 alert('Click the map to draw a polygon.');
         }

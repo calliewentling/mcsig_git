@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="utf-8">
@@ -10,12 +11,15 @@
             <h1>Select Your Username</h1>
         {% endblock %}
 
-        <!-- https://stackoverflow.com/a/45877130 -->
-        <select name="selectuser" method="GET" action="{{url_for('profile')}}">
-            <option value="{{unames[0]}}" selected>{{unames[0]}}</option>
-            {% for uname in unames[1:]%}
-                <option value="{{uname}}">{{uname}}</option>"
-            {% endfor %}
-        </select>
+        <form method="post" action=" /confirmu">
+            <!-- https://stackoverflow.com/a/45877130 -->
+            <select name="selectuser" >
+                <option value="{{unames[0]}}" selected>{{unames[0]}}</option>
+                {% for uname in unames[1:]%}
+                    <option value="{{uname}}">{{uname}}</option>"
+                {% endfor %}
+            </select>
+            <button type=submit>Confirm</button>
+        </form>
     </body>
 </html>

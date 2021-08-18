@@ -7,7 +7,13 @@
     {% block body %}
         <h1>Profile</h1>
     {% endblock %}
+    <h1 id="welcome"></h1>
     
+    <script>
+        currentuser = "{{currentuser}}";
+        const welcomeU = document.getElementById('welcome');
+        welcomeU.innerHTML = `<h3>${currentuser}</h3>`;
+    </script>
     <div>
         <a href="/addstory"><button> Click here to publish articles </button></a> 
     </div>

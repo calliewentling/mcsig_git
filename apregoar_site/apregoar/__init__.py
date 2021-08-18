@@ -99,10 +99,16 @@ def create_app(test_config=None):
         
         return render_template("profile/login.html", unames=unames) 
 
-    @app.route("/profile")
-    def profile():
-        currentuser = request.form["user_list"]
-        return render_template("profile/profile.html")
+    @app.route("/confirmu", methods=["GET", "POST"])
+    def confirmu():
+        if request.method == 'POST':
+            print("arrived at confirmu")
+            currentuser = request.form["selectuser"]
+            print("current user is: "+currentuser)
+            return render_template("profile/profile.html", currentuser=currentuser)
+        
+        else:
+            return render_template("profile/login.html")
 
         
         #else:
@@ -157,25 +163,3 @@ def create_app(test_config=None):
     
 
     return app
-
-
-    #from . import blog
-    #app.register_blueprint(blog.bp)
-    #app.add_url_rule('/', endpoint='index')
-
-   ## Run to initialize table in Postgresql
-    
-
-    # @app.route("/favicon.ico")
-    # def favicon():
-    #     return "", 200
-
-
-
-## Moved to models.py or config.py
-#from sqlalchemy import create_engine
-#engine = create_engine('postgresql://postgres:thesis2021@localhost/postgres', echo=True)
-#Base = declarative_base()
-#from sqlalchemy.ext.declarative import declarative_base
-#from sqlalchemy import Column, Integer, String
-#from geoalchemy2 import Geometry
