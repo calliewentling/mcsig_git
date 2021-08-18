@@ -69,17 +69,35 @@ body { margin: 0; padding: 0; }
 <div class="instanceform-box">
     <h2>Definir uma instância da notícia</h2>
 
-    <form method="post" action="/save_instance">
+    <form method="post", action="/save_instance", method='post'>
         <div id="selectName">
             <input type="text" id="pName" name="pName" placeholder="Name" required>
             <span class="error" aria-live="polite"></span>
         </div>
         <br>
         <div id="selectDesc">
-            <input type="text" id="pDesc" name="pDesc" placeholder="Description">
+            <input type="text" id="pDesc" name="pDesc" placeholder="Spatial description">
         </div>
         <br>
         <div id="selectGeom"></div>
+        <br>
+        <div>
+            <input type="date" id="tBegin" name="tBegin" placeholder="Begin day">
+        </div>
+        <br>
+        <div>
+            <input type="date" id="tEnd" name="tEnd" placeholder="End day">
+        </div>
+        <br>
+        <div>
+            <input type="text" id="tType" name="tType" placeholder="Type of Temporal Interval">
+        </div>
+        <br>
+        <div>
+            <input type="text" id="tDesc" name="tDesc" placeholder="Temporal description">
+        </div>
+        <br>
+        <div id="formButton"></div>
 
     </form>
 </div>
@@ -109,7 +127,8 @@ body { margin: 0; padding: 0; }
     const answer = document.getElementById('calculated-area');
     const saveG = document.getElementById('selectGeom');
     const saveN = document.getElementById('selectName');
-    const saveD = document.getElementById('selectDesc')
+    const saveD = document.getElementById('selectDesc');
+    const saveB = document.getElementById('formButton');
     saveG.innerHTML = `*Draw Geometry*`;
     map.addControl(draw);
 
@@ -130,8 +149,10 @@ body { margin: 0; padding: 0; }
             console.log("data features:");
             let newPoly = data.features[0].geometry.coordinates[0];
             console.log(newPoly);
-            nGon = newPoly.length-1;
-            saveG.innerHTML = `<select name="selectGeom"> <option value=${newPoly}> This geometry</option> </select><br><br><button type="submit">Associate</button>`;
+            nGon = newPoly.length;
+            
+            saveG.innerHTML = `<select name="selectGeom" id="selectGeom"> <option value=${newPoly}> This geometry</option> </select>`;
+            saveB.innerHTML = `<button type="submit">Associate</button>`;
         } else {
             answer.innerHTML = '';
             if (e.type !== 'draw.delete')
