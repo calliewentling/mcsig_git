@@ -21,25 +21,6 @@ body { margin: 0; padding: 0; }
         width: 150px;
         position: absolute;
         bottom: 40px;
-        left: 10px;
-        background-color: rgba(255, 255, 255, 0.9);
-        padding: 15px;
-        text-align: center;
-    }
-
-    p {
-        font-family: 'Open Sans';
-        margin: 0;
-        font-size: 13px;
-    }
-</style>
-
-<style>
-    .save-box {
-        height: 150px;
-        width: 150px;
-        position: absolute;
-        bottom: 40px;
         right: 10px;
         background-color: rgba(255, 255, 255, 0.9);
         padding: 15px;
@@ -52,14 +33,15 @@ body { margin: 0; padding: 0; }
         font-size: 13px;
     }
 </style>
+
 
 <style>
     .instanceform-box {
-        height: 150px;
-        width: 150px;
+        height: 80%;
+        width: 400px;
         position: absolute;
-        bottom: 40px;
-        right: 10px;
+        top: 5%;
+        left: 10px;
         background-color: rgba(255, 255, 255, 0.9);
         padding: 15px;
         text-align: center;
@@ -75,29 +57,41 @@ body { margin: 0; padding: 0; }
 <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 <script src="../../static/js/mapbox-gl-draw.js"></script>
 <link rel="stylesheet" href="../../static/css/mapbox-gl-draw.css" type="text/css">
+<link href="../../static/css/publish.css" rel="stylesheet">
 <div id="map"></div>
+
 <div class="calculation-box">
     <p>Click the map to draw a polygon.</p>
     <div id="calculated-area"></div>
-    <div style="color:red"><p> ToDO: Add intersecting freguesias</p></div>
+    <div style="color:red"><p> Add intersecting freguesias</p></div>
 </div>
-<div class="save-box">
-    <p>Guardar a geometria</p>
-    <p id = "polyval"></p>
-    <button onClick="savePoly()">Save geometry</button>
-    <button }>Return home</button>
-    <div id="save-button"></div>
+
+<div class="instanceform-box">
+    <h2>Definir uma instância da notícia</h2>
+
+    <form method="post" action="/save_instance">
+        <div id="selectName">
+            <input type="text" id="pName" name="pName" placeholder="Name" required>
+            <span class="error" aria-live="polite"></span>
+        </div>
+        <br>
+        <div id="selectDesc">
+            <input type="text" id="pDesc" name="pDesc" placeholder="Description">
+        </div>
+        <br>
+        <div id="selectGeom"></div>
+
+    </form>
 </div>
-<div height=100%>
-    <p>Definir uma instância da notícia</p>
-</div>
+
+
 <script>
 	mapboxgl.accessToken = 'pk.eyJ1IjoiY3dlbnRsaW5nIiwiYSI6ImNqd2F0cmVvajA5bHAzemx6NDF3bmZ6NGsifQ.2qy1Q4WfMf4XFllp2v96HQ';
     const map = new mapboxgl.Map({
         container: 'map', // container ID
         style: 'mapbox://styles/cwentling/cksfd4uh6532w18nt3bbtxtae', // style URL
-        center: [-9.1393, 38.7223], // starting position [lng, lat]
-        zoom: 12 // starting zoom
+        center: [-9.150404956762742, 38.72493479806579], // starting position [lng, lat]
+        zoom: 13 // starting zoom
     });
 
     const draw = new MapboxDraw({
@@ -111,38 +105,82 @@ body { margin: 0; padding: 0; }
         // The user does not have to click the polygon control button first.
         defaultMode: 'draw_polygon'
     });
+
+    const answer = document.getElementById('calculated-area');
+    const saveG = document.getElementById('selectGeom');
+    const saveN = document.getElementById('selectName');
+    const saveD = document.getElementById('selectDesc')
+    saveG.innerHTML = `*Draw Geometry*`;
     map.addControl(draw);
 
     map.on('draw.create', updateArea);
     map.on('draw.delete', updateArea);
     map.on('draw.update', updateArea);
 
+    
+    
     function updateArea(e) {
+        console.log(e);
         const data = draw.getAll();
-        const answer = document.getElementById('calculated-area');
         if (data.features.length > 0) {
             const area = turf.area(data);
             // Restrict the area to 2 decimal points.
             const rounded_area = Math.round(area * 100) / 100;
             answer.innerHTML = `<p><strong>${rounded_area}</strong></p><p>square meters</p>`;
+            console.log("data features:");
+            let newPoly = data.features[0].geometry.coordinates[0];
+            console.log(newPoly);
+            nGon = newPoly.length-1;
+            saveG.innerHTML = `<select name="selectGeom"> <option value=${newPoly}> This geometry</option> </select><br><br><button type="submit">Associate</button>`;
         } else {
             answer.innerHTML = '';
             if (e.type !== 'draw.delete')
                 alert('Click the map to draw a polygon.');
+                ;
+            nGon=0;
+            saveG.innerHTML = `<p>*No geometry selected*</p>`;
         }
+        
     }; 
 
-    function savePoly(e) {
-        const newPoly = draw.getAll();
-        const confirm = document.getElementById('save-button');
-        if (data.features.length > 0) {
-            confirm.innerHTML = `<p>Geometry: <strong>${newPoly.geometry.coordinates()}</strong></p>`;
+</script>
+
+<script>
+    const form = document.getElementsbyTagName('save_instance')[0];
+
+    const vName = document.getElementbyId('pName');
+    const vNameError = document.querySelector('#pName + span.error');
+    vtitle.addEventListener('input', function (event) {
+        //Each time the user types something, we check if the form fields are valid
+        if (vName.validity.valid) {
+            //In case there is an error message visible, if the field is valid, we remove the error message.
+            vNameError.innterHTML = ''; //Reset the content of the message
+            vNameError.className = 'error'; //reset the visual state of the message
         } else {
-            confirm.innerHTML = '';
-            if (e.type !== 'draw.delete')
-                alert('Click the map to draw a polygon.');
+            // If there is still an error, show the correct error
+            showError();
         }
+    });
+    form.addEventListener('submit', function (event) {
+        if (!vName.validity.valid) {
+            // If it isn't, we display the appropriate error message
+            showError();
+            //Then prevent the form from being sent by canceling the event
+            event.preventDefault();
+        }
+    });
+    function showError() {
+        if(vName.validity.valueMissing) {
+            //If the field is empty display the following error message
+            vtitleError.textContent ="Enter Title";
+        } else if(vName.validity.tooShort) {
+            //If the data is too short display the following error message.
+            vNameError.textContent = "Title should be at least ${ vtitle.minLength } characters.";
+        }
+        //Set the styling
+        vNameError.className = 'error active';
     }
+
 </script>
 
 
