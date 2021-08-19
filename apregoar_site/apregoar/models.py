@@ -4,6 +4,7 @@ from sqlalchemy import Table, Column, Integer, String, Date, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from geoalchemy2 import Geometry
+from geoalchemy2 import comparator
 
 Base = declarative_base()
 
@@ -56,7 +57,7 @@ class UGazetteer(Base):
     __table_args__={"schema":"apregoar"}
     p_id = Column(Integer, primary_key=True)
     p_name = Column(Text, nullable=False)
-    geom = Column(Geometry('POLYGON'))
+    geom = Column(Geometry('POLYGON')) #PGComparator
     u_id = Column(Integer, ForeignKey('apregoar.users.u_id'))
     instances = relationship("Instances")
 

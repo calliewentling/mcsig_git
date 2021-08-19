@@ -66,10 +66,11 @@ body { margin: 0; padding: 0; }
     <div style="color:red"><p> Add intersecting freguesias</p></div>
 </div>
 
-<div class="instanceform-box">
+<div class="instanceform-box" id="save_instance">
     <h2>Definir uma instância da notícia</h2>
 
-    <form method="post", action="/save_instance", method='post'>
+    <!-- <form method="post", action="/save_instance", method='post'> -->
+    <div>   
         <div id="selectName">
             <input type="text" id="pName" name="pName" placeholder="Name" required>
             <span class="error" aria-live="polite"></span>
@@ -98,8 +99,8 @@ body { margin: 0; padding: 0; }
         </div>
         <br>
         <div id="formButton"></div>
-
-    </form>
+    </div>
+    <!-- </form> -->
 </div>
 
 
@@ -147,12 +148,16 @@ body { margin: 0; padding: 0; }
             const rounded_area = Math.round(area * 100) / 100;
             answer.innerHTML = `<p><strong>${rounded_area}</strong></p><p>square meters</p>`;
             console.log("data features:");
+            let allPoly = data.features;
+            console.log(allPoly);
             let newPoly = data.features[0].geometry.coordinates[0];
             console.log(newPoly);
+            geoPoly = JSON.stringify(allPoly)
+            console.log(geoPoly);
             nGon = newPoly.length;
             
-            saveG.innerHTML = `<select name="selectGeom" id="selectGeom"> <option value=${newPoly}> This geometry</option> </select>`;
-            saveB.innerHTML = `<button type="submit">Associate</button>`;
+            saveG.innerHTML = `<select name="selectGeom" id="selectGeom"> <option value=${allPoly}> This geometry</option> </select>`;
+            saveB.innerHTML = `<button id="submitGeom" onClick="submit_poly();">Associate</button>`;
         } else {
             answer.innerHTML = '';
             if (e.type !== 'draw.delete')
@@ -164,14 +169,61 @@ body { margin: 0; padding: 0; }
         
     }; 
 
+    function submit_poly() {
+        var pNamef = document.getElementById("pName")
+        var pDescf = document.getElementById("pDesc")
+        var geom = geoPoly
+        var tBeginf = document.getElementById("tBegin")
+        var tEndf = document.getElementById("tEnd")
+        var tTypef = document.getElementById("tType")
+        var tDescf = document.getElementById("tDesc")
+
+        var entry = {
+            type: "Feature",
+            properties : {
+                pName: pNamef.value,
+                pDesc: pDescf.value,
+                tBegin: tBeginf.value,
+                tEnd: tEndf.value,
+                tType: tTypef.value,
+                tDesc: tDescf.value
+            },
+            geometry: geom,
+        };
+        console.log(entry)
+
+        fetch(`${window.origin}/save_instance`, {
+            method: "POST",
+            credentials: "include",
+            body: JSON.stringify(entry),
+            cache: "no-cache",
+            headers: new Headers({
+                "content-type": "application/json"
+            })
+        })
+        .then(function(response) {
+            if (response.status !== 200) {
+                console.log(`Looks like there was a problem. Status code: ${response.status}`);
+                return;
+            }
+            response.json().then(function(data) {
+                console.log(data);
+            });
+        })
+        .catch(function(error) {
+        console.log("Fetch error: " + error);
+        });
+
+    }
 </script>
 
+<!--
 <script>
-    const form = document.getElementsbyTagName('save_instance')[0];
+    const form = document.getElementById('save_instance')[0];
 
-    const vName = document.getElementbyId('pName');
+    const vName = document.getElementById('pName');
     const vNameError = document.querySelector('#pName + span.error');
-    vtitle.addEventListener('input', function (event) {
+    vName.addEventListener('input', function (event) {
         //Each time the user types something, we check if the form fields are valid
         if (vName.validity.valid) {
             //In case there is an error message visible, if the field is valid, we remove the error message.
@@ -193,16 +245,17 @@ body { margin: 0; padding: 0; }
     function showError() {
         if(vName.validity.valueMissing) {
             //If the field is empty display the following error message
-            vtitleError.textContent ="Enter Title";
+            vNameError.textContent ="Enter Title";
         } else if(vName.validity.tooShort) {
             //If the data is too short display the following error message.
-            vNameError.textContent = "Title should be at least ${ vtitle.minLength } characters.";
+            vNameError.textContent = "Title should be at least ${ vName.minLength } characters.";
         }
         //Set the styling
         vNameError.className = 'error active';
     }
 
 </script>
+-->
 
 
 </body>

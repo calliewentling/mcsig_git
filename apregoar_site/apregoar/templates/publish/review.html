@@ -8,12 +8,17 @@
         <link href="../../static/css/publish.css" rel="stylesheet"> 
         {% block body %}
             <h1>Reveiw Story</h1>
+            <div>
+                <h3>Title</h3>
+                <a href="/localize"><button>Add localization</button></a>
+            </div>
         {% endblock %}
-
-        <h3>Title</h3>
-        <p>{{ cstory }}</p>
         <script>
-            
+            let cstory = JSON.stringify( '{{ cstory }}');
+            console.log(cstory)
+            cstory = JSON.parse(cstory)
+            console.log(cstory)
         </script>
+        This is wholely fucked
     </body>
 </html>

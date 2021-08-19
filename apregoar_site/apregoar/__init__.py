@@ -3,7 +3,7 @@
 
 import os
 import flask
-from flask import Flask, g, render_template, request, flash
+from flask import Flask, g, render_template, request, flash, jsonify, make_response
 #from flask_sqlalchemy import SQLAlchemy
 from apregoar.models import Stories, UGazetteer, Instances, Users
 from sqlalchemy import text
@@ -11,7 +11,15 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from flask_table import Table, Col
 import json
+import geojson
+import shapely.wkt
+import psycopg2
+from shapely.geometry import shape
 import pandas as pd
+from sqlalchemy import *
+from sqlalchemy.orm import *
+from geoalchemy2 import *
+from shapely.geometry import Polygon
 #import geopandas as gpd
 #import geojson
 
@@ -37,7 +45,8 @@ def create_app(test_config=None):
     except OSError:
         pass
     
-    
+    current_sid = 15
+    current_uid=3
     engine = create_engine('postgresql://postgres:thesis2021@localhost/postgres', echo=True)
     Session = sessionmaker(bind=engine)
     session = Session()
@@ -101,7 +110,8 @@ def create_app(test_config=None):
             entryU = Users(uname, password, organization)
             session.add(entryU)
             session.commit()
-            return render_template("profile/profile.html")
+            login()
+            return render_template("layout.html")
 
         else:
             return render_template("profile/newuser.html")
@@ -196,16 +206,26 @@ def create_app(test_config=None):
         entry = Stories(title, summary, pub_date, web_link, section, tags, author, publication, u_id)
         session.add(entry)
         session.commit()
+        #Retreive the s_id
+        with engine.connect() as conn:
+                SQL = text("SELECT s_id FROM apregoar.stories WHERE title = :x")
+                SQL = SQL.bindparams(x=title)
+                result = conn.execute(SQL)
+                for row in result:
+                    s_id=row['s_id']
+                    print(s_id)
+                    global current_sid
+                    current_sid=s_id
         return render_template("publish/review.html")
 
 
-
+    """     ##This should be layered back into "storyadd", from "create.html" to populate current story on "Review.html"
     @app.route("/test", methods=['POST', 'GET'])
     def test():
         #solve this user issue -- apparently globals are staying global
-        currentuser = "cwentling"
-        current_uid=1
-        title = "Jorge Romão, o artista que faz dos muros da graça telas para as suas pinturas"
+        #currentuser = "cwentling"
+        #current_uid=1
+        #title = "Jorge Romão, o artista que faz dos muros da graça telas para as suas pinturas"
         SQL = text("SELECT * FROM apregoar.stories WHERE stories.title = :x")
         SQL = SQL.bindparams(x=title)
         SQLt = text("SELECT * FROM apregoar.stories")
@@ -220,34 +240,112 @@ def create_app(test_config=None):
         )
         cstory_df["pub_date"] = cstory_df['pub_date'].dt.strftime('%x')
         print(cstory_df.head())
-        cstory=cstory_df.to_json(orient='records')
-        cstory=json.loads(cstory) #parsed
-        cstory=json.dumps(cstory)
+        cstory = cstory_df.to_json(orient="values")
+        cstory = json.dumps(cstory)
         print(cstory)
 
-        return render_template("publish/review.html", cstory=cstory)    
-
-
-
-
-    @app.route("/add_instance")
-    def addinstance():
-        return render_template("publish/add_instance.html")
+        return render_template("publish/review.html", cstory=cstory)     """
 
 
 
     
-    @app.route("/viewmap")
-    def viewmap():
-        return render_template("publish/instance.html")
-
-
-
-
-    @app.route("/localize")
+    @app.route("/localize", methods=["GET", "POST"])
     def localize():
         return render_template("publish/localize.html")
 
+
+
+    @app.route("/save_instance", methods=["POST"])
+    def save_instance():
+        # These should be global but aren't
+        u_id = current_uid
+        print(u_id)
+        s_id = current_sid
+        print(s_id)
+        ## Comment these badboys out once the above is figured out
+        #u_id = 13
+        #s_id = 15
+
+        #Results from user input on localize
+        req = request.get_json()
+        print(req)
+        res = make_response(jsonify(req), 200)
+        #Transforming Temporal and descriptions from user input
+        instance = req["properties"]
+        print(instance)
+        p_name = instance["pName"]
+        p_desc = instance["pDesc"]
+        t_begin = instance["tBegin"]
+        t_end = instance["tEnd"]
+        t_type = instance["tType"]
+        t_desc = instance["tDesc"]
+        #Extract geometry in correct format from user input
+        idx=0
+        features = req['geometry']
+        features = json.loads(features)
+        for idx, val in enumerate(features): #supports multiple polygons with the same temporal description
+            coords=features[idx]['geometry']['coordinates'][0] #extracting coordinates
+            shape=Polygon(coords)
+            shapeWKT=shape.to_wkt()
+            geom=shapeWKT
+            pentry = UGazetteer(p_name, geom, u_id)
+            print(pentry)
+            session.add(pentry)
+            session.commit()
+            print("feature committed!")
+            #determine place ID to associate to instance
+            p_id=None
+            with engine.connect() as conn:
+                SQL = text("SELECT p_id FROM apregoar.ugazetteer WHERE p_name = :x AND u_id =:y ORDER BY p_id DESC LIMIT 1")
+                SQL = SQL.bindparams(x=p_name, y=u_id)
+                result = conn.execute(SQL)
+                print("current assigned p_id: ",p_id)
+                for row in result:
+                    p_id=row['p_id']
+                    print(p_id)
+            #Save instance for each geometry with associated p_id
+            ientry = Instances(t_begin, t_end, t_type, t_desc, p_desc, s_id, p_id, u_id)
+            session.add(ientry)
+            session.commit()
+            print("Instance committed!!")
+        print("places and instances saved!")
+    
+        return res
+        #Make localize show text that says: success! and then a button to return to review
+
+
+        #return render_template("publish/localize.html")
+
+    """ @app.route("/save_instcont")
+    def TSTSAET():
+        #geom = shape(geom)
+        #geom = geom.wkt
+        #print(geom)
+
+        ##Prepare & Submit
+        pentry = UGazetteer(p_name, geom, u_id)
+        session.add(pentry)
+        session.commit()
+
+        with engine.connect() as conn:
+            SQL = text("SELECT TOP 1 p_id FROM apregoar.ugazeteers WHERE p_name = :x AND u_id = :y, ORDER BY p_id DESC")
+            SQL = SQL.bindparams(x=p_name, y=current_uid)
+            result = conn.execute(SQL)
+            print("results of query:")
+            print(result)
+            p_id=[]
+            for row in result:
+                p_id.append(row[0])
+            print(p_id)
+            p_id=p_id[0]
+            print("associated p_id: ",p_id)
+
+
+        #ientry = Instances(t_begin, t_end, t_type, t_desc, p_desc, s_id, p_id, u_id)
+        session.commit()
+        return render_template("publish/review.html")"""
+
+    ## INITIALIZE TABLES
     #Users.__table__.create(engine)
     #Stories.__table__.create(engine)
     #UGazetteer.__table__.create(engine)
