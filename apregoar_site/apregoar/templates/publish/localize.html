@@ -99,6 +99,16 @@ body { margin: 0; padding: 0; }
         </div>
         <br>
         <div id="formButton"></div>
+        <br>
+        <br>
+        <div id="successAnnoncement">
+        </div>
+        <br>
+        <br>
+        <!--
+        <button type="button" href="/storyreview">Back to main story</button>
+        <button type="button" href="/profile">Profile</button>
+        -->
     </div>
     <!-- </form> -->
 </div>
@@ -131,6 +141,7 @@ body { margin: 0; padding: 0; }
     const saveD = document.getElementById('selectDesc');
     const saveB = document.getElementById('formButton');
     saveG.innerHTML = `*Draw Geometry*`;
+    const successA = document.getElementById('successAnnouncement');
     map.addControl(draw);
 
     map.on('draw.create', updateArea);
@@ -158,6 +169,7 @@ body { margin: 0; padding: 0; }
             
             saveG.innerHTML = `<select name="selectGeom" id="selectGeom"> <option value=${allPoly}> This geometry</option> </select>`;
             saveB.innerHTML = `<button id="submitGeom" onClick="submit_poly();">Associate</button>`;
+            
         } else {
             answer.innerHTML = '';
             if (e.type !== 'draw.delete')
@@ -170,6 +182,7 @@ body { margin: 0; padding: 0; }
     }; 
 
     function submit_poly() {
+        successA.innerHTML = `<p>Saving... </p>`;
         var pNamef = document.getElementById("pName")
         var pDescf = document.getElementById("pDesc")
         var geom = geoPoly
@@ -208,7 +221,9 @@ body { margin: 0; padding: 0; }
             }
             response.json().then(function(data) {
                 console.log(data);
-            });
+                successA.innerHTML = `<p> Congratulations! Your entry was saved </p>`;
+            }
+            );
         })
         .catch(function(error) {
         console.log("Fetch error: " + error);

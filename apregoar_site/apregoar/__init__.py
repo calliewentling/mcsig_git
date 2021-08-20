@@ -169,6 +169,10 @@ def create_app(test_config=None):
         else:
             return render_template("profile/login.html")
 
+    @app.route("/profile", methods=['POST'])
+    def profile():
+        return render_template("profile/profile.html")
+
 
 #########################
 ###### Publish
@@ -178,7 +182,7 @@ def create_app(test_config=None):
     def addstory():
         return render_template("publish/create.html")
 
-
+    
 
     @app.route("/storyadd", methods=['POST'])
     def storyadd():
@@ -314,36 +318,10 @@ def create_app(test_config=None):
         #Make localize show text that says: success! and then a button to return to review
 
 
-        #return render_template("publish/localize.html")
+    @app.route("/storyreview", methods=['POST'])
+    def storyreview():
+        return render_template("publish/review.html")
 
-    """ @app.route("/save_instcont")
-    def TSTSAET():
-        #geom = shape(geom)
-        #geom = geom.wkt
-        #print(geom)
-
-        ##Prepare & Submit
-        pentry = UGazetteer(p_name, geom, u_id)
-        session.add(pentry)
-        session.commit()
-
-        with engine.connect() as conn:
-            SQL = text("SELECT TOP 1 p_id FROM apregoar.ugazeteers WHERE p_name = :x AND u_id = :y, ORDER BY p_id DESC")
-            SQL = SQL.bindparams(x=p_name, y=current_uid)
-            result = conn.execute(SQL)
-            print("results of query:")
-            print(result)
-            p_id=[]
-            for row in result:
-                p_id.append(row[0])
-            print(p_id)
-            p_id=p_id[0]
-            print("associated p_id: ",p_id)
-
-
-        #ientry = Instances(t_begin, t_end, t_type, t_desc, p_desc, s_id, p_id, u_id)
-        session.commit()
-        return render_template("publish/review.html")"""
 
     ## INITIALIZE TABLES
     #Users.__table__.create(engine)
