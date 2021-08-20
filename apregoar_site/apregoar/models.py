@@ -57,7 +57,7 @@ class UGazetteer(Base):
     __table_args__={"schema":"apregoar"}
     p_id = Column(Integer, primary_key=True)
     p_name = Column(Text, nullable=False)
-    geom = Column(Geometry('POLYGON')) #PGComparator
+    geom = Column(Geometry('POLYGON', 3857)) #PGComparator
     u_id = Column(Integer, ForeignKey('apregoar.users.u_id'))
     instances = relationship("Instances")
 

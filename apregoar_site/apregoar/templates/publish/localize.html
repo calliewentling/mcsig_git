@@ -141,7 +141,6 @@ body { margin: 0; padding: 0; }
     const saveD = document.getElementById('selectDesc');
     const saveB = document.getElementById('formButton');
     saveG.innerHTML = `*Draw Geometry*`;
-    const successA = document.getElementById('successAnnouncement');
     map.addControl(draw);
 
     map.on('draw.create', updateArea);
@@ -182,7 +181,8 @@ body { margin: 0; padding: 0; }
     }; 
 
     function submit_poly() {
-        successA.innerHTML = `<p>Saving... </p>`;
+        //const successA = document.getElementById('successAnnouncement');
+        //successA.innerHTML = `<p>Saving... </p>`;
         var pNamef = document.getElementById("pName")
         var pDescf = document.getElementById("pDesc")
         var geom = geoPoly
@@ -221,7 +221,7 @@ body { margin: 0; padding: 0; }
             }
             response.json().then(function(data) {
                 console.log(data);
-                successA.innerHTML = `<p> Congratulations! Your entry was saved </p>`;
+                //successA.innerHTML = `<p> Congratulations! Your entry was saved </p>`;
             }
             );
         })

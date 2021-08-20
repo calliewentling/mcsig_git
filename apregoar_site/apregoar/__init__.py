@@ -45,11 +45,13 @@ def create_app(test_config=None):
     except OSError:
         pass
     
-    current_sid = 15
-    current_uid=3
+    #current_sid = 15
+    #current_uid=1
     engine = create_engine('postgresql://postgres:thesis2021@localhost/postgres', echo=True)
     Session = sessionmaker(bind=engine)
     session = Session()
+
+    
 
 #########################
 ###### IT BEGINS ########
@@ -76,6 +78,14 @@ def create_app(test_config=None):
     def home():
         #return '<a href="/addstory"><button> Click here to publish articles </button></a>'
         return render_template("layout.html")
+
+
+#########################
+###### Search
+#########################
+    @app.route('/search_map')
+    def search_map():
+        return render_template("/search/results_map.html")
 
 #########################
 ###### Profile
@@ -262,13 +272,15 @@ def create_app(test_config=None):
     @app.route("/save_instance", methods=["POST"])
     def save_instance():
         # These should be global but aren't
-        u_id = current_uid
-        print(u_id)
-        s_id = current_sid
-        print(s_id)
+        #u_id = current_uid
+        #print(u_id)
+        #s_id = current_sid
+        #print(s_id)
         ## Comment these badboys out once the above is figured out
-        #u_id = 13
-        #s_id = 15
+        u_id = 1
+        print("forcing UID = 1 since not yet global")
+        s_id = 2
+        print("forcing s_id = 1 since not yet global")
 
         #Results from user input on localize
         req = request.get_json()
@@ -290,9 +302,18 @@ def create_app(test_config=None):
         for idx, val in enumerate(features): #supports multiple polygons with the same temporal description
             coords=features[idx]['geometry']['coordinates'][0] #extracting coordinates
             shape=Polygon(coords)
+            print()
+            print("shape: ")
+            print(shape)
             shapeWKT=shape.to_wkt()
-            geom=shapeWKT
+            textWKT='SRID=3857;'+shapeWKT
+            print()
+            print("textWKT: ")
+            print(textWKT)
+            geom = textWKT
             pentry = UGazetteer(p_name, geom, u_id)
+            print()
+            print("pentry: ")
             print(pentry)
             session.add(pentry)
             session.commit()
@@ -329,5 +350,6 @@ def create_app(test_config=None):
     #UGazetteer.__table__.create(engine)
     #Instances.__table__.create(engine)
     
+
 
     return app
