@@ -5,7 +5,7 @@ import os
 import flask
 from flask import Flask, g, render_template, request, flash, jsonify, make_response
 #from flask_sqlalchemy import SQLAlchemy
-from apregoar.models import Stories, UGazetteer, Instances, Users
+from apregoar.models import Stories, UGazetteer, Instances, Users, EGazetteer, SpatialAssoc
 from sqlalchemy import text
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
@@ -301,17 +301,20 @@ def create_app(test_config=None):
         features = json.loads(features)
         for idx, val in enumerate(features): #supports multiple polygons with the same temporal description
             coords=features[idx]['geometry']['coordinates'][0] #extracting coordinates
+            print()
+            print("coords: ")
+            print(coords)
             shape=Polygon(coords)
             print()
             print("shape: ")
             print(shape)
             shapeWKT=shape.to_wkt()
-            textWKT='SRID=3857;'+shapeWKT
+            '''textWKT='SRID=3857;'+shapeWKT
             print()
             print("textWKT: ")
             print(textWKT)
-            geom = textWKT
-            pentry = UGazetteer(p_name, geom, u_id)
+            geom = textWKT'''
+            pentry = UGazetteer(p_name, shapeWKT, u_id)
             print()
             print("pentry: ")
             print(pentry)
@@ -349,6 +352,8 @@ def create_app(test_config=None):
     #Stories.__table__.create(engine)
     #UGazetteer.__table__.create(engine)
     #Instances.__table__.create(engine)
+    #EGazetteer.__table__.create(engine)
+    #SpatialAssoc.__table__.create(engine)
     
 
 

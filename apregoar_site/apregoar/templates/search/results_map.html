@@ -26,58 +26,58 @@
                 }
             );
             
-
             map.on('load', () => {
-                map.addSource('portugalfreguesias',
+                map.addSource('apregoaregaz',
                     {
                         'type': 'vector',
                         'tiles': [
-                            "http://localhost:8080/geoserver/gwc/service/wmts?REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&LAYER=apregoar:freguesias&STYLE=&TILEMATRIX=EPSG:900913:{z}&TILEMATRIXSET=EPSG:900913&FORMAT=application/vnd.mapbox-vector-tile&TILECOL={x}&TILEROW={y}"
+                            "http://localhost:8080/geoserver/gwc/service/wmts?REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&LAYER=apregoar:egazetteer&STYLE=&TILEMATRIX=EPSG:900913:{z}&TILEMATRIXSET=EPSG:900913&FORMAT=application/vnd.mapbox-vector-tile&TILECOL={x}&TILEROW={y}"
                         ]
                     })
                 map.addLayer(
                     {
-                        'id': 'freguesias', // Layer ID
+                        'id': 'egazetteer', // Layer ID
                         'type': 'fill',
-                        'source': 'portugalfreguesias', // ID of the tile source created above
+                        'source': 'apregoaregaz', // ID of the tile source created above
                         // Source has several layers. We visualize the one with name 'sequence'.
-                        'source-layer': 'freguesias',
+                        'source-layer': 'egazetteer',
                     
                         'paint': {
                             "fill-outline-color": "#6e4040",
-                            "fill-color": "#a442f5",
+                            "fill-color": "#a442f5", //purple
                             "fill-opacity": 0.25
                         }
                     },
                 );
             });
+            
 
             map.on('load', () => {
-                map.addSource('apregoargaz',
+                map.addSource('apregoaregaz2',
                     {
                         'type': 'vector',
                         'tiles': [
-                            "http://localhost:8080/geoserver/gwc/service/wmts?REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&LAYER=apregoar:ugazetteer&STYLE=&TILEMATRIX=EPSG:900913:{z}&TILEMATRIXSET=EPSG:900913&FORMAT=application/vnd.mapbox-vector-tile&TILECOL={x}&TILEROW={y}"
+                            "http://localhost:8080/geoserver/gwc/service/wmts?REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&LAYER=apregoar:egazetteer2&STYLE=&TILEMATRIX=EPSG:900913:{z}&TILEMATRIXSET=EPSG:900913&FORMAT=application/vnd.mapbox-vector-tile&TILECOL={x}&TILEROW={y}"
                         ]
                     })
                 map.addLayer(
                     {
-                        'id': 'ugazetteer', // Layer ID
+                        'id': 'egazetteer2', // Layer ID
                         'type': 'fill',
-                        'source': 'apregoargaz', // ID of the tile source created above
+                        'source': 'apregoaregaz2', // ID of the tile source created above
                         // Source has several layers. We visualize the one with name 'sequence'.
-                        'source-layer': 'ugazetteer',
+                        'source-layer': 'egazetteer2',
                     
                         'paint': {
                             "fill-outline-color": "#cccc2d",
-                            "fill-color": "#fc033d",
-                            //"fill-opacity": 0.5
+                            "fill-color": "#fc033d", //red
+                            "fill-opacity": 0.25
                         }
                     },
                 );
             });
             
-            
+
             map.addControl(new mapboxgl.NavigationControl());
         </script>
     </body>

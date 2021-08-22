@@ -1,3 +1,4 @@
+from typing import Tuple
 from flask import current_app, g
 from flask.cli import with_appcontext
 from sqlalchemy import Table, Column, Integer, String, Date, Text, ForeignKey
@@ -60,6 +61,7 @@ class UGazetteer(Base):
     geom = Column(Geometry('POLYGON', 3857)) #PGComparator
     u_id = Column(Integer, ForeignKey('apregoar.users.u_id'))
     instances = relationship("Instances")
+    #eplaces = relationship("EGazetteer")
 
     def __init__(self, p_name, geom, u_id):
         self.p_name = p_name
@@ -89,3 +91,33 @@ class Instances(Base):
         self.s_id = s_id
         self.p_id = p_id
         self.u_id = u_id
+    
+class EGazetteer(Base):
+    __tablename__="egazetteer"
+    __table_args__={"schema":"apregoar"}
+    e_id = Column(Integer, primary_key=True)
+    o_id = Column(Integer)
+    source = Column(Text)
+    type = Column(Text)
+    name = Column(Text)
+    geom = Column(Geometry('Geometry', 3857))
+    #iplaces = relationship("SpatialAssoc")
+
+    def __init__(self, o_id, source, type, name, geom):
+        self.o_id = o_id
+        self.source = source
+        self.type = type
+        self.name = name
+        self.geom = geom
+
+class SpatialAssoc(Base):
+    __tablename__="spatial_assoc"
+    __table_args__={"schema":"apregoar"}
+    place_id = Column(Integer, ForeignKey('apregoar.ugazetteer.p_id'), primary_key=True) #define as foriegn key
+    freguesia_id = Column(Integer, ForeignKey('apregoar.egazetteer.e_id'), primary_key=True)
+    #ugaz = relationship("UGazetteer")
+    #egaz = relationship("EGazetteer")
+
+    def __init__(self, place_id, freguesia_id):
+        self.place_id = place_id
+        self.freguesia_id = freguesia_id
