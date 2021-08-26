@@ -131,7 +131,7 @@ The data relates potentially multiple spatial definitions to a particular news s
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.9\linewidth]{images/data_model.png}
+	\includegraphics[width=.9\linewidth]{images/db_model.png}
 	\caption{Data model}
 	\label{fig:data_model}
 \end{figure}
@@ -139,8 +139,8 @@ The data relates potentially multiple spatial definitions to a particular news s
 Publishers can associate spatiotemporal and thematic attributes to the stories they publish, reference to which is stored in a geodatabase. Only publishers perform any sort of data manipulation (create, update, delete) operations, while the remaining views simply read the data stored within. 
 
 \subsection{Data Collection}
-\subsubsection{Corpora}
-The following corpora is selected as a representation of event reports for the month of October, 2020. It incorporates public organization (Municipality and selected Freguesias) as well as private newsmedia sources to inform the organiational rubric and data model.  
+\subsubsection{Development Corpora}
+The following corpora is selected as a representation of event reports for the month of October, 2020. It incorporates public organization (Municipality and selected Freguesias) as well as private newsmedia sources to inform the organiational rubric and data model.  As historical values, these are used to develop and test the application.
 
 %-{\color{red} Use RSS feeds of publications as a source of data input\cite{Rivera2020}}\\
 
@@ -178,7 +178,7 @@ The following corpora is selected as a representation of event reports for the m
 
 \textit{*Público data was procurred via the website's search feature, which includes results from all of their products.  The filters used were keyword ''LISBOA'' published during October 2020. }
 
-All attributes are copied direclty from the source materials, with the exeption of times and places. These are extracted from the corpora, as these elements may not be explicitys stated (``yesterday'' or ``near the road'' or ``on his birthday''). Required fields indicate those that must be extractable from articles to be included in the corpora. Priority fields are ideally included, and efforts to extract this data will be made if not immediately obvious. If not applicable, these fields may remain blank. Other fields are helpful but not critical for inclusion.
+All attributes are copied directly from the source materials, with the exeption of times and places. These are extracted from the corpora, as these elements may not be explicitys stated (``yesterday'' or ``near the road'' or ``on his birthday''). Required fields indicate those that must be extractable from articles to be included in the corpora. Recommended fields are ideally included, and efforts to extract this data will be made if not immediately obvious. If not applicable, these fields may remain blank. 
 
 \begin{table} [H]
 		\centering
@@ -186,20 +186,16 @@ All attributes are copied direclty from the source materials, with the exeption 
 			\hline
 			\textbf{Attribute} & \textbf{Type} & \textbf{Priority} & \textbf{Visibility} & \textbf{Note} \\
 			\hline
-			Title & Text & Critical & Yes & \\
-			Summary & Text & Low & Maybe & Keyword search priority \\
-			Contents & Text & High & No & Keyword search \\
-			Photo & Web link & Low & Maybe & \\
-			Section & Text & High & Yes & Thematic filtering \\
-			Themes & Text & High & Yes & Thematic filtering \\
-			Times & Text list & High & Yes & Temporal filtering \\
-			Places & Text list & High & Yes & Geospatial filtering \\
-			Referenced articles & Web link & Low & Maybe &Suggestion \\
-			Related articles & Web link & low & Maybe &Suggestion \\
-			Author & Text & High & Yes & \\
-			Source & Text & Critical & Yes & \\
-			Publication date & Date & Critical & Yes & Default temporal filtering and extraction\\
-			Link & Web link & Critcal & Yes & \\
+			Title & Text & Required & Yes & \\
+			Summary & Text & Recommended & Maybe & Keyword search priority \\
+			Section & Text & Recommended & Yes & Thematic filtering \\
+			Themes & Text & Recommended & Yes & Thematic filtering \\
+			Times & Date & Required & Yes & Temporal filtering \\
+			Places & Text list & Required & Yes & Geospatial filtering \\
+			Author & Text & Recommended & Yes & \\
+			Publisher & Text & Required & Yes & \\
+			Publication date & Date & Required & Yes & Default temporal filtering and extraction\\
+			Link & Web link & Required  & Yes & \\
 			\hline
 		\end{tabular}
 		\caption{Corpora attribute collection}
@@ -207,112 +203,151 @@ All attributes are copied direclty from the source materials, with the exeption 
 \end{table}
 
 \subsubsection{Basemaps}
+Basemaps are include to orient the publisher or reader, improve the browsing user experience, as well as to provide automated spatial enrichment by automatically associating key values (such as freuesia). Additional base features (such as roads, parks, blocks, etc.) are already accommodated into the search tools associated with MapBox, so they have not been manually incorporated as a part of this work, though this is an opportunity for further enrichment in the future. 
 \begin{table} [H]
 		\centering
-		\begin{tabular}{| l l l l l |}
+		\begin{tabular}{| l p{5cm} l  l |}
 			\hline
-			Source & Name & \# Records & Geometry & SRS \\ 
+			Source & Name & Geometry & SRS \\ 
+			\hline \hline
+			DGTerritório & CAOP 2019 - Continental & MultiPolygon & EPSG:3763 \\
 			\hline
-			\hline
-			CML Geodados & Quarteirões & 1086 & Area & EPSG:4326 \\
-			& Grandes parques e jardins de lisboa & 190 & Area & EPSG:4326 \\
-			& Rede viária & 3763 & Line &  EPSG:4326 \\
-			& Limite do conselho & 1 & Area & EPSG:4326 \\
-			& Rede ferroviária subterrânea & 1 & Line & EPSG:4326 \\
-			\hline
-			DGTerritório & CAOP 2019 - Continental & 3,223 & Area & EPSG:3763 \\
-			\hline
-			& {\color{red}Bairros} &  &  &  \\
-			\hline
-			& {\color{red}Address} &  &  &  \\
-			\hline
-			\hline
-			\textbf{Total} & & \textbf{ \textbf{\color{red}8,224}} & & \\
+			MapBox & Roadways, administrative boundaries, built features, natural features, places, terrain & MultiFeature & EPSG:3857\\
 			\hline
 		\end{tabular}
 		\caption{Base map data}
 		\label{table:data_basemaps}
 \end{table}
+More interesting than the freguesia level is the opportunity to associate stories by neighborhood, which are more granular than parishes and also less reliant on administrative boundaries, perhaps better representing the lived reality of city users. For example: within the same parish, demographics may differ wildly. Politicians may use different clothing, language, and tones when interacting with the people from different neighborhoods, demonstrating spatial autocorrelation on a very fine level. This, of course, presents a challenge as there is no formal definition of neighborhoods as they are not officially recognized, nor static. Some applications have defined approximations of these (see the differentiation used by Idealista in their spatial searching functionality, figure \ref{fig:neighborhood}), but these are not publically available. Other opportunities to approximately define these areas include using existing gazetteers (such as Open Street Map) which may include textual association with neighborhoods in their descriptions, and create minimum bounding areas around these to indicate general areas.
 
-\subsubsection{Gazetteers}
--{\color{red} Include feature codes from GeoNames to help with disambiguation of human annotators selecting toponyms\cite{Karimzadeh2019}}\\
-\begin{table} [H]
-		\centering
-		\begin{tabular}{| l l l l l |}
-			\hline
-			Source & Name & \# Records & Geometry & SRS \\ 
-			\hline
-			\hline
-			GeoNames & PT&37327 & Point & WGS84 \\
-			\hline
-			OSM PT & Waterways & 49,376 & Line & WGS84 \\
-			&  & 54,041 & Area & WGS84 \\
-			& Transport & 18,696 & Point & WGS84 \\
-			& & 1,078 & Area & WGS84 \\
-			& Traffic & 84,756 & Point & WGS84 \\
-			&  & 35,339 & Area & WGS84 \\
-			& Roads & 1,035,765 & Line & WGS84 \\
-			& Railways & 8,310 & Line & WGS84 \\
-			& POIs & 100,214 & Point & WGS84 \\
-			&  & 71,335 & Area & WGS84 \\
-			& POWs & 2,133 & Point & WGS84 \\
-			&  & 7,358 & Area & WGS84 \\
-			& Places & 23,594 & Point & WGS84 \\
-			&  & 1,971 & Area & WGS84 \\
-			& Natural & 89,483 & Point & WGS84 \\
-			&  & 1,369 & Area & WGS84 \\
-			& Landuse & 209,330 & Area & WGS84 \\
-			& Buildings & 1,060,745 & Area & WGS84 \\
-			\hline
-			\hline
-			\textbf{Total} & & \textbf{2,892,220} & & \\
-			\hline
-		\end{tabular}
-		\caption{Gazetteer data}
-		\label{table:data_gazetteer}
-\end{table}
+Since there is a lack of definition in this area, perhaps there is an opportunity for the user gazetteer developed in this application to inform future approximations of neighborhoods in the future. If, for example, enough stories define instance areas as neighborhoods, over time the overlap of these could be used to indicate fuzzy neighborhood definitions for this or other purposes.
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=.9\linewidth]{images/method_model.png}
-	\caption{Preliminary methodology}
-	\label{fig:method_model}
+	\includegraphics[width=.5\linewidth]{images/neighborhood_definition.png}
+	\caption{Vector approximation of neighborhoods in Campolide}
+	\label{fig:neighborhood}
 \end{figure}
 
+%\subsubsection{Gazetteers}
+%-{\color{red} Include feature codes from GeoNames to help with disambiguation of human annotators selecting toponyms\cite{Karimzadeh2019}}\\
+%\begin{table} [H]
+%		\centering
+%		\begin{tabular}{| l l l l l |}
+%			\hline
+%			Source & Name & \# Records & Geometry & SRS \\ 
+%			\hline
+%			\hline
+%			GeoNames & PT&37327 & Point & WGS84 \\
+%			\hline
+%			OSM PT & Waterways & 49,376 & Line & WGS84 \\
+%			&  & 54,041 & Area & WGS84 \\
+%			& Transport & 18,696 & Point & WGS84 \\
+%			& & 1,078 & Area & WGS84 \\
+%			& Traffic & 84,756 & Point & WGS84 \\
+%			&  & 35,339 & Area & WGS84 \\
+%			& Roads & 1,035,765 & Line & WGS84 \\
+%			& Railways & 8,310 & Line & WGS84 \\
+%			& POIs & 100,214 & Point & WGS84 \\
+%			&  & 71,335 & Area & WGS84 \\
+%			& POWs & 2,133 & Point & WGS84 \\
+%			&  & 7,358 & Area & WGS84 \\
+%			& Places & 23,594 & Point & WGS84 \\
+%			&  & 1,971 & Area & WGS84 \\
+%			& Natural & 89,483 & Point & WGS84 \\
+%			&  & 1,369 & Area & WGS84 \\
+%			& Landuse & 209,330 & Area & WGS84 \\
+%			& Buildings & 1,060,745 & Area & WGS84 \\
+%			\hline
+%			\hline
+%			\textbf{Total} & & \textbf{2,892,220} & & \\
+%			\hline
+%		\end{tabular}
+%		\caption{Gazetteer data}
+%		\label{table:data_gazetteer}
+%\end{table}
+
+%\begin{figure}[H]
+%	\centering
+%	\includegraphics[width=.5\linewidth]{images/method_model.png}
+%	\caption{Preliminary methodology}
+%	\label{fig:method_model}
+%\end{figure}
+
 \subsection{Preprocessing}
-Load all gazetteer data into QGIS.
-Establish georeference (note in data breakdown), transform as necessary
-Manually code all article data. Using multiple sources to ensure continuity across local data sources.
+The environment was initialized using python within the Flask app framework.
 
-\subsection{Initialization of development environment}
-Selection and integration of resources and tools:
-\begin{itemize}
-	\item Database: PostgreSQL
-\end{itemize}
-Establish geodatabase structure, accommodating multiple language options, load gazetteer(s) and relevant administrative boundary data
-Develop and test Input tool: wordpress plugin?
-Develop and test search tool
-Develop and test Context tool
-Translate web app content to portuguese and load translations
-Migrate site to the server
-Test system
-Compare results against mined location results
-Document results
+The test corpora of October 2020 was reviewed and thematic, temporal, and spatial extraction. Feature attributes were adjusted to better fit the actual samples of corpora. A selection of these were added as records to a new shapefile in QGIS 3.8 and saved polygon geometries in EPSG:3857.  These geometries were staged for testing and validation throughout the development process.
 
-Future development: dashboard tool
+Models representing each table in the postgris database were defined and initialized. Basemap features such as freguesias are loaded into the postgres database, then copied and culled to the greater Lisbon area (inclusive of all DL and AML areas) as individual records into an External Gazetteer (EGazetteer) table. The values associated with various groupings (DL, AML, and municipalities) were unioned into single features and added as new records. All values were transformed into the EPSG:3875 for consistency.
 
-\subsection{Tool design}
--{\color{red}Define design requirements and views to achieve them\cite{Zhang2019}}\\
+\subsection{Views and functionality}
+The Apregoar web application was tested using Google Chrome browser. It is currently locally hosted, but with plans to be accessible after additional testing and refinement.
 
-\subsection{Testing}
-- {\color{red}Test in different browsers for feature functionality.\cite{Shneiderman2020}}\\
+{\color{red}figure of publishing view}
+
+\subsubsection{Publishing view}
+Publishers are invited to login prior to manipulating the database. This is because their userid is a requirement to commiting new story records to the database, so that only this user (or, in the future, their colleagues) can adjust the articles that they publish. This is also to support monitoring of recent activity.
+
+Publishers are then encouraged to associate thematic attributes to their story which will be immediately saved to the database. Publishers are then invited to define one or more instances (temporal and spatial definitions) to the story on a new window pane. Here, publishers may draw one or more polygons associated with a particular time frame, define the time frame, including optional additional context, and save the instance to the database, associated with the original story. Additional instances may be added as appropriate.  The stories and their associated instances comprise the GeoCorpora that is available for browsing, searching, and exporting.
+
+Publishers may then navigate back to their profile where they can view all recent stories, and elect to edit any details as necessary.
+
+{\color{red}figure of publishing view}
+{\color{red}figure of recent activity view}
+
+\subsubsection{Search view}
+The GeoCorpora is immediately available for browsing and searching. To access this view, users are not required to login. Users may navigate around the base map at will, zooming in and out to explore the locations of stories, and viewing summary details in the tooltips.  By clicking on a particular story, the user will arrive at that stories page where they can view all of the details simultaneously, as well as a context map. From here, users may navigate directly to the original article where it is being hosted by the publisher.
+
+To assist in searching, users may define parameters for any of the thematic attributes. They may also define temporal filters to establish a timeframe of interest for either the content (instances) or publication of the articles. Likewise, they may select to search within predefined areas (from the egazetteer) or design their own search area.
+
+The results are displayed in both list and map format to suite the user's preference.
+
+{\color{red}figure of searching view}
+
+
+\subsubsection{Context view}
+The context view is accessible by navigating to the page associated with each story. There, all of the attributes are displayed along with a small context map to situate the story in the city.
+
+
+{\color{red}figure of context view view}
+
+
+
+%\subsection{Initialization of development environment}
+%Selection and integration of resources and tools:
+%\begin{itemize}
+%	\item Database: PostgreSQL
+%\end{itemize}
+%Establish geodatabase structure, accommodating multiple language options, load gazetteer(s) and relevant administrative boundary data
+%Develop and test Input tool: wordpress plugin?
+%Develop and test search tool
+%Develop and test Context tool
+%Translate web app content to portuguese and load translations
+%Migrate site to the server
+%Test system
+%Compare results against mined location results
+%Document results
+%
+%Future development: dashboard tool
+
+%\subsection{Tool design}
+%-{\color{red}Define design requirements and views to achieve them\cite{Zhang2019}}\\
+%
+%\subsection{Testing}
+%- {\color{red}Test in different browsers for feature functionality.\cite{Shneiderman2020}}\\
 
 \subsection{Validation}
-1. GDELT: compare Lisbon Oct 2020 to results
-2. Automatic extraction over sample corpora to compare results {\color{red} leverage Rivera2020 study}
-- spaCy
--{\color{orange}``Large scale infomration extraction tasks''\cite{spaCy2020}}\\
--{\color{orange} Free online classes to learn\cite{spaCy2020}}\\
--{\color{purple}Utilize NER to extract exact and complete places.  As a baseline comparison to the input tool? Used together? Feed through the system with a “check point” (verify the identified place before input)?\cite{Gupta2020}}\\
--{\color{red}Use local datasets (Público, CML, Freguesia) from 1 month of each to build and test a backoffice plugin for defining localization of news articles. Ask MAGG or similar to apply the plug in for upcoming articles for a 1 month period and test against the same dataset with NewsStand. Is it richer/more accurate? Is the journalist satisfied with the result? Is the reader? Load the same local base gazetteer (OSM Portugal and Global)\cite{Lieberman2010}}\\
--{\color{red}Use method for extraction on input articles to extract and geolocate place for input comparison to automated methods?? Python and Restful API}\\
+Validation at this stage is based on visual inspection for accuracy of geometry of user georeferenced corpora. At this stage, since the georeferencing is not being associated by either the original journalist or publisher, it is likely that the geometries are not exactly adherent to the appropriate locations. For this reason, rigerous testing should be done by these professionals to ensure accuracy, ease of entry, and value. This is the proximal step in the development process.
+
+Future testing of the system may also include a comparison of natural language processing (such as the system described in \cite{Rivera2020}) using the same corpora for the same period and comparing the results. The system is expected to outperform GDELT and such other large scale, international endeavors, as these do not attempt hyperlocal granularity.
+
+
+%1. GDELT: compare Lisbon Oct 2020 to results
+%2. Automatic extraction over sample corpora to compare results {\color{red} leverage \cite{Rivera2020} study}
+%- spaCy
+%-{\color{orange}``Large scale infomration extraction tasks''\cite{spaCy2020}}\\
+%-{\color{orange} Free online classes to learn\cite{spaCy2020}}\\
+%-{\color{purple}Utilize NER to extract exact and complete places.  As a baseline comparison to the input tool? Used together? Feed through the system with a “check point” (verify the identified place before input)?\cite{Gupta2020}}\\
+%-{\color{red}Use local datasets (Público, CML, Freguesia) from 1 month of each to build and test a backoffice plugin for defining localization of news articles. Ask MAGG or similar to apply the plug in for upcoming articles for a 1 month period and test against the same dataset with NewsStand. Is it richer/more accurate? Is the journalist satisfied with the result? Is the reader? Load the same local base gazetteer (OSM Portugal and Global)\cite{Lieberman2010}}\\
+%-{\color{red}Use method for extraction on input articles to extract and geolocate place for input comparison to automated methods?? Python and Restful API}\\
