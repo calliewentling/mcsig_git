@@ -1,4 +1,9 @@
 \subsection{Future opportunities}
+\subsubsection{Distribution}
+The WebApp should be made publicly deployed for interaction with and contribution from any users. The product shoudl be licensed as free and open source such taht it can be accessible and leveraged by other individuals and organizations for further development or related projects. Future developments should continue to leverage open source tools, platforms, and data to support this end.
+
+A plugin to relevant backoffices (such as \color{red}NewStory} on WordPress) should be developed and tested for easier integration of existing publishing processes. This should be tested with a local news provider to ensure viability in the market.
+
 \subsubsection{Validation}
 Though testing of these hypotheses through rigerous comparison to the status quo (traditional online news sources without a spatial element) and emerging product performing automatic extraction of place (such those of the GDELT project) are not included in this endeavor, the resulting tools should provide a basis from which future projects may develop and evaluate.
 
@@ -13,6 +18,10 @@ Though testing of these hypotheses through rigerous comparison to the status quo
 \subsubsection{Recommended extraction of place}
 -{\color{purple}Avoid the issue of high volume evaluation all together. Those who write the story can apply the location which is the most accurate option. In the absence of the author assigning place, automatic extraction (perhaps such an LSTM model) is an appropriate tool for historical articles.\cite{Halterman2019}}\\
 
+\subsection{Multiple languages}
+The Web App should support the definition of use in English and Portuguese (leveraging a platform for expansion to other languages via internationalization and localization techniques) for all elements of the user interface, usch as lproejct description, instructions, filters, units, etc. All data incorporated from external sources (such as news article contents, publisher tags, gazetteer names, etc.) may remain in their original forms/languages. If possible, alternate forms will be supported if provisioned by the original source. The langauge opptions of English and Portuguese should support the international use and cross investigation of a wider user base.
+%-{\color{purple}Allow users to select several languages (English and Portuguese)\cite{Shneiderman2020}}\\
+
 \subsubsection{Incorporation of historical stories}
 GDELT
 
@@ -20,3 +29,18 @@ GDELT
 -{\color{orange} Online clustering: “a clustering algorithm for the news domain should group together all news articles that describe the same news event into groups of articles termed story clusters. Broadly, a news event is defined in terms of both story content and story lifetime - articles in the same cluster should share much of the same important keywords, and should have temporally proximate dates of publication.”\cite{Teitler2008}}\\
 -{\color{orange}Future development: “We will consider ways to use clustering to determine the news provider’s geographic scope (i.e. the geographic location of the newspaper), and use it to improve both geotagging and local news coverage.” }{\color{purple}leveraging local knowledge/gazetteers}\cite{Teitler2008}\\
 
+\subsubsection{User experience}
+Future iterations of the project should include an improved  user experience via a more aesthetically pleasing GUI and 
+
+\subsection{Sustainability}
+The project is a foundation for future development in the geospatial and temporal distribution of news story contents.  The proof of concept should demonstrate the value of such filtering and may be built upon in one or more of the following ways: 
+\begin{enumerate}
+	\item as a free tool; 
+	\item as the base of a new online news journal product;
+	\item incorporated into existing online databases to incorporate the temporal spatial dimension into and enhance their own thematic tools; or 
+	\item to be incorporated into municipalities as a public participation platform / community empowerment tool to better understand incidents that are spatially relevant. 
+\end{enumerate}
+
+This last option is especially interesting if future planned events and city data are layered in. It is also the direction of most interest to me and future efforts may involve collaboration with one or more cities to design a public participation tool. Additional functionality may include additional languages, additional study areas, development of a smart phone application, an option for automatic localization (such as for geo-tagging news stories or proximal searching), incorporation of historical datasets, incorporation of future events, additional data visualization options, APIs for integration with other applications, white-labeling options for commercial applications, etc.
+
+At minimum, its documentation and codebase will be available under an open license from which anyone may develop in the future.
