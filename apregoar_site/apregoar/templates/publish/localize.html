@@ -113,8 +113,13 @@ body { margin: 0; padding: 0; }
     <!-- </form> -->
 </div>
 
+<!-- Load the `mapbox-gl-geocoder` plugin. -->
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css" type="text/css">
 
 <script>
+
+    
 	mapboxgl.accessToken = 'pk.eyJ1IjoiY3dlbnRsaW5nIiwiYSI6ImNqd2F0cmVvajA5bHAzemx6NDF3bmZ6NGsifQ.2qy1Q4WfMf4XFllp2v96HQ';
     const map = new mapboxgl.Map({
         container: 'map', // container ID
@@ -122,6 +127,14 @@ body { margin: 0; padding: 0; }
         center: [-9.150404956762742, 38.72493479806579], // starting position [lng, lat]
         zoom: 13 // starting zoom
     });
+
+    // Add the control to the map.
+    map.addControl(
+        new MapboxGeocoder({
+            accessToken: mapboxgl.accessToken,
+            mapboxgl: mapboxgl
+        })
+    );
 
     const draw = new MapboxDraw({
         displayControlsDefault: false,
@@ -157,16 +170,20 @@ body { margin: 0; padding: 0; }
             // Restrict the area to 2 decimal points.
             const rounded_area = Math.round(area * 100) / 100;
             answer.innerHTML = `<p><strong>${rounded_area}</strong></p><p>square meters</p>`;
-            console.log("data features:");
+            // Getting coordinates input polygons
+            console.log("data features (allPoly):");
             let allPoly = data.features;
             console.log(allPoly);
             let newPoly = data.features[0].geometry.coordinates[0];
+            console.log("newPoly:");
             console.log(newPoly);
-            geoPoly = JSON.stringify(allPoly)
+            geoPoly = JSON.stringify(allPoly);
+            console.log("geoPoly");
             console.log(geoPoly);
             nGon = newPoly.length;
+            console.log("Saving allPoly")
             
-            saveG.innerHTML = `<select name="selectGeom" id="selectGeom"> <option value=${allPoly}> This geometry</option> </select>`;
+            saveG.innerHTML = `<select name="selectGeom" id="selectGeom"> <option value=${geoPoly}> This geometry</option> </select>`;
             saveB.innerHTML = `<button id="submitGeom" onClick="submit_poly();">Associate</button>`;
             
         } else {

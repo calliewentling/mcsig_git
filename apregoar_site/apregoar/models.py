@@ -58,7 +58,7 @@ class UGazetteer(Base):
     __table_args__={"schema":"apregoar"}
     p_id = Column(Integer, primary_key=True)
     p_name = Column(Text, nullable=False)
-    geom = Column(Geometry('POLYGON', 3857)) #PGComparator
+    geom = Column(Geometry('POLYGON', 4326)) #PGComparator
     u_id = Column(Integer, ForeignKey('apregoar.users.u_id'))
     instances = relationship("Instances")
     #eplaces = relationship("EGazetteer")
@@ -100,7 +100,7 @@ class EGazetteer(Base):
     source = Column(Text)
     type = Column(Text)
     name = Column(Text)
-    geom = Column(Geometry('Geometry', 3857))
+    geom = Column(Geometry('Geometry', 4326))
     #iplaces = relationship("SpatialAssoc")
 
     def __init__(self, o_id, source, type, name, geom):

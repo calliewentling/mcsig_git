@@ -85,6 +85,8 @@ def create_app(test_config=None):
 #########################
     @app.route('/search_map')
     def search_map():
+        with engine.connect() as conn:
+            SQL = text("SELECT * FROM apregoar.ugazetteer LEFT JOIN  apregoar.instances ON ugazetteer.p_id = instances.p_id")
         return render_template("/search/results_map.html")
 
 #########################
@@ -271,6 +273,8 @@ def create_app(test_config=None):
 
     @app.route("/save_instance", methods=["POST"])
     def save_instance():
+        con = psycopg2.connect("dbname=postgres user=postgres password=thesis2021")
+        cur = con.cursor()
         # These should be global but aren't
         #u_id = current_uid
         #print(u_id)
@@ -279,7 +283,7 @@ def create_app(test_config=None):
         ## Comment these badboys out once the above is figured out
         u_id = 1
         print("forcing UID = 1 since not yet global")
-        s_id = 2
+        s_id = 1
         print("forcing s_id = 1 since not yet global")
 
         #Results from user input on localize
@@ -304,20 +308,17 @@ def create_app(test_config=None):
             print()
             print("coords: ")
             print(coords)
+            #Switch coordinate order here
             shape=Polygon(coords)
             print()
             print("shape: ")
             print(shape)
             shapeWKT=shape.to_wkt()
-            '''textWKT='SRID=3857;'+shapeWKT
-            print()
-            print("textWKT: ")
-            print(textWKT)
-            geom = textWKT'''
             pentry = UGazetteer(p_name, shapeWKT, u_id)
             print()
             print("pentry: ")
             print(pentry)
+            
             session.add(pentry)
             session.commit()
             print("feature committed!")
@@ -335,6 +336,34 @@ def create_app(test_config=None):
             ientry = Instances(t_begin, t_end, t_type, t_desc, p_desc, s_id, p_id, u_id)
             session.add(ientry)
             session.commit()
+            cur.execute("""
+                SELECT e_id, name
+                FROM apregoar.egazetteer AS egaz
+                WHERE ST_Intersects(
+                    egaz.geom,
+                    (
+                        SELECT geom
+                        FROM apregoar.ugazetteer
+                        WHERE p_id = %(pgeom)s
+                        ORDER BY p_id DESC LIMIT 1
+                    )
+                );""",
+                {'pgeom':p_id,}
+            )
+            autoP = cur.fetchall()
+            print(autoP)
+
+            with engine.connect() as conn:
+                for i in autoP:
+                    print(i[0])
+                    cur.execute("""
+                        INSERT INTO apregoar.spatial_assoc (place_id, freguesia_id)
+                        VALUES (%(id)s,%(e_id)s)
+                        """,
+                        {'id':p_id,'e_id':i[0]}
+                    )
+            con.commit()
+            print("spatial association complete!")
             print("Instance committed!!")
         print("places and instances saved!")
     
