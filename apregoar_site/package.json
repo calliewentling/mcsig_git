@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "@mapbox/mapbox-gl-geocoder": "^4.7.3"
+    "@mapbox/mapbox-gl-geocoder": "^4.7.3",
+    "ol": "^6.9.0"
   }
 }

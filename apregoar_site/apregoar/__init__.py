@@ -278,13 +278,13 @@ def create_app(test_config=None):
         # These should be global but aren't
         #u_id = current_uid
         #print(u_id)
-        #s_id = current_sid
-        #print(s_id)
+        s_id = current_sid
+        print(s_id)
         ## Comment these badboys out once the above is figured out
         u_id = 1
         print("forcing UID = 1 since not yet global")
-        s_id = 1
-        print("forcing s_id = 1 since not yet global")
+        #s_id = 1
+        #print("forcing s_id = 1 since not yet global")
 
         #Results from user input on localize
         req = request.get_json()
@@ -384,6 +384,9 @@ def create_app(test_config=None):
     #EGazetteer.__table__.create(engine)
     #SpatialAssoc.__table__.create(engine)
     
-
+    #TESTING
+    @app.route("/testpage")
+    def testpage():
+        return render_template("x_practice/quickstart.html")
 
     return app

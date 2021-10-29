@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "ol-mapbox-style": "^6.5.1"
+  }
+}
