@@ -1,45 +1,189 @@
-<html>
-<head>
-    <title>OpenLayers for GeoNoticias data</title>
-    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.8.1/build/ol.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.8.1/css/ol.css">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/css/ol.css" type="text/css">
+    <style>
+      .map {
+        height: 400px;
+        width: 100%;
+      }
+      .ol-popup {
+        position: absolute;
+        background-color: white;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #cccccc;
+        bottom: 12px;
+        left: -50px;
+        min-width: 280px;
+      }
+      .ol-popup:after, .ol-popup:before {
+        top: 100%;
+        border: solid transparent;
+        content: " ";
+        height: 0;
+        width: 0;
+        position: absolute;
+        pointer-events: none;
+      }
+      .ol-popup:after {
+        border-top-color: white;
+        border-width: 10px;
+        left: 48px;
+        margin-left: -10px;
+      }
+      .ol-popup:before {
+        border-top-color: #cccccc;
+        border-width: 11px;
+        left: 48px;
+        margin-left: -11px;
+      }
+      .ol-popup-closer {
+        text-decoration: none;
+        position: absolute;
+        top: 2px;
+        right: 8px;
+      }
+      .ol-popup-closer:after {
+        content: "✖";
+      }
+
     </style>
-
-</head>
-
-<body>
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/build/ol.js"></script>
+    <title>OpenLayers example</title>
+  </head>
+  <body>
+    <h2>Apregoar</h2>
     <div id="map" class="map"></div>
-    <script>
-        var map = new ol.Map({
-            view: new ol.View({
-                projection: 'EPSG:4326',
-                center: [-9.150404956762742,38.72493479806579],
-                zoom: 12
-            }),
-            layers: [
-                new ol.layer.Tile({
-                    source: new ol.source.OSM()
-                })
-            ],
-            target: 'map'
-        });
+    <div id="info">&nbsp;</div> <!--Area to load Results of getInfo -->
+    <div id="popup" class="ol-popup">
+      <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+      <div id="popup-content"></div>
+    </div>
 
-        var geonoticia = new ol.layer.Image({
-            source: new ol.source.ImageWMS({
-                url: "http://localhost:8080/geoserver/apregoar/wms",
-                params: {"LAYERS":"apregoar:geonoticias"},
-                serverType:'geoserver'
-            })
-        });
 
-        var geonoticia2 = new ol.layer.Vector({
-            source: new ol.source.Vector
-        });
+    <script type="text/javascript">
+      /**
+     * Elements that make up the popup.
+     */
+      const container = document.getElementById('popup');
+      const content = document.getElementById('popup-content');
+      const closer = document.getElementById('popup-closer');
 
-        geonoticia.setOpacity(0.7)
+      /**
+       * Create an overlay to anchor the popup to the map.
+       */
+      const overlay = new ol.Overlay({
+        element: container,
+        autoPan: true,
+        autoPanAnimation: {
+          duration: 250,
+        },
+      });
+
+      /**
+       * Add a click handler to hide the popup.
+       * @return {boolean} Don't follow the href.
+       */
+      closer.onclick = function () {
+        overlay.setPosition(undefined);
+        closer.blur();
+        return false;
+      };
+
+      const key = 'Jf5RHqVf6hGLR1BLCZRY';
+      const attributions =
+        '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> ' +
+        '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>';
+
+      const wmsSource = new ol.source.ImageWMS({
+        url: 'http://localhost:8080/geoserver/apregoar/wms',
+        params: {"LAYERS":"apregoar:geonoticias"},
+        serverType: 'geoserver',
+        crossOrigin: 'anonymous',
+      });
+
+      const wmsLayer = new ol.layer.Image({
+        source: wmsSource,
+      });
+
+      const view = new ol.View({
+        projection: 'EPSG:4326',
+        center: [-9.150404956762742,38.72493479806579],
+        zoom: 12
+      });
+
+      const map = new ol.Map({
+        layers: [
+          new ol.layer.Tile({
+            source: new ol.source.OSM()
+          })
+        ],
+        overlays: [overlay],
+        target: 'map',
+        view: view,
+      });
+
+      wmsLayer.setOpacity(0.7)
+      map.addLayer(wmsLayer);
+
+
+
+      /**
+       * Add a click handler to the map to render the popup
+       */
+       map.on('singleclick', function (evt) {
+        const coordinate = evt.coordinate;
+        const hdms = ol.coordinate.toStringHDMS(ol.proj.toLonLat(coordinate));
+
+        document.getElementById('info').innerHTML = '';
+        const viewResolution = /** @type {number} */ (view.getResolution());
+        const url = wmsSource.getFeatureInfoUrl(
+          evt.coordinate,
+          viewResolution,
+          'EPSG:4326',
+          {'INFO_FORMAT': 'application/json'}
+        );
+
+
+
+        if (url) {
+          fetch(url)
+            .then((response) => response.text())
+            .then((data) => {
+              var features = [];
+              var title = [];
+              var web_link =[];
+              var message = [];
+              console.log(data);
+              var geonoticia = JSON.parse(data);
+              if (geonoticia.numberReturned > 0) {
+                features = geonoticia.features;
+                console.log("Features:")
+                console.log(features);
+                title = features[0].properties.title;
+                console.log("Title:")
+                console.log(title);
+                web_link = features[0].properties.web_link;
+                console.log("Web Link:")
+                console.log(web_link);
+                var codeBlock = '<h3>' + title + '</h3>' +
+                  '<a href="' + web_link +'"> Notícia </a>';
+                document.getElementById('info').innerHTML = codeBlock;
+                content.innerHTML = codeBlock;
+                overlay.setPosition(coordinate);
+              }else{
+                overlay.setPosition(undefined);
+              }
+            });
+        }
+
         
-        map.addLayer(geonoticia);
-
+      });
+      
     </script>
-</body>
+  </body>
 </html>
+
