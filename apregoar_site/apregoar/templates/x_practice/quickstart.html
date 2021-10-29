@@ -129,6 +129,8 @@
       wmsLayer.setOpacity(0.7)
       map.addLayer(wmsLayer);
 
+
+
       /**
        * Add a click handler to the map to render the popup
        */
@@ -136,8 +138,49 @@
         const coordinate = evt.coordinate;
         const hdms = ol.coordinate.toStringHDMS(ol.proj.toLonLat(coordinate));
 
-        content.innerHTML = '<p>You clicked here:</p><code>' + hdms + '</code>';
-        overlay.setPosition(coordinate);
+        document.getElementById('info').innerHTML = '';
+        const viewResolution = /** @type {number} */ (view.getResolution());
+        const url = wmsSource.getFeatureInfoUrl(
+          evt.coordinate,
+          viewResolution,
+          'EPSG:4326',
+          {'INFO_FORMAT': 'application/json'}
+        );
+
+
+
+        if (url) {
+          fetch(url)
+            .then((response) => response.text())
+            .then((data) => {
+              var features = [];
+              var title = [];
+              var web_link =[];
+              var message = [];
+              console.log(data);
+              var geonoticia = JSON.parse(data);
+              if (geonoticia.numberReturned > 0) {
+                features = geonoticia.features;
+                console.log("Features:")
+                console.log(features);
+                title = features[0].properties.title;
+                console.log("Title:")
+                console.log(title);
+                web_link = features[0].properties.web_link;
+                console.log("Web Link:")
+                console.log(web_link);
+                var codeBlock = '<h3>' + title + '</h3>' +
+                  '<a href="' + web_link +'"> Notícia </a>';
+                document.getElementById('info').innerHTML = codeBlock;
+                content.innerHTML = codeBlock;
+                overlay.setPosition(coordinate);
+              }else{
+                overlay.setPosition(undefined);
+              }
+            });
+        }
+
+        
       });
       
     </script>
@@ -175,3 +218,31 @@
         map.getTargetElement().style.cursor = hit ? 'pointer' : '';
       });
 -->
+
+<!-- const vectorSource = new ol.source.Vector({
+        format: new ol.format.GeoJSON(),
+        url: function (extent) {
+          return (
+            'https://localhost:8080/geoserver/wfs?' +
+            'service=WFS&' +
+            'version=1.1.0&' +
+            'request=GetFeature&' +
+            'typename=apregoar:geonoticias&' +
+            'outputFormat=application/json&'
+          );
+        },
+        strategy: ol.loadingstrategy.bbox,
+      });
+
+      const wfsLayer = new ol.layer.Vector({
+        source: vectorSource,
+        style: new ol.style.Style({
+          stroke: new ol.style.Stroke({
+            color: 'rgba(0,0,255,1.0)',
+            width: 2,
+          }),
+        }),
+      });
+    
+    
+          map.addLayer(wfsLayer);-->
