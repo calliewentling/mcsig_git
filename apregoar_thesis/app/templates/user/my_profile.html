@@ -1,0 +1,31 @@
+{% extends "user/templates/user_template.html" %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block main %}
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+
+      <h1>My Profile</h1>
+      <hr>
+
+      <div class="card">
+        <div class="card-body">
+          <h4>{{ user["username"] }}</h4>
+          <hr>
+
+          <p>{{ user["email"] }}</p>
+          <p class="text-muted">{{ user["bio"] }}</p>
+
+        </div>
+      </div>
+
+      <a href="/sign-out"><button type="button" class="btn btn-primary">Sign out</button></a>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -7,8 +7,8 @@
 <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
 <!-- <link href="https://api.mapbox.com/mapbox-gl-js/v2.4.0/mapbox-gl.css" rel="stylesheet"> -->
 <link href="../../static/css/mapbox-gl.css" rel="stylesheet"> 
-<!-- <script src="https://api.mapbox.com/mapbox-gl-js/v2.4.0/mapbox-gl.js"></script> -->
-<script src="<../../static/js/mapbox-gl.js>"></script>
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.4.0/mapbox-gl.js"></script>
+<!--<script src="../../static/js/mapbox-gl.js"></script>-->
 <style>
 body { margin: 0; padding: 0; }
 #map { position: absolute; top: 0; bottom: 0; width: 100%; }
@@ -101,7 +101,7 @@ body { margin: 0; padding: 0; }
         <div id="formButton"></div>
         <br>
         <br>
-        <div id="successAnnoncement">
+        <div id="successAnnouncement">
         </div>
         <br>
         <br>
@@ -198,8 +198,8 @@ body { margin: 0; padding: 0; }
     }; 
 
     function submit_poly() {
-        //const successA = document.getElementById('successAnnouncement');
-        //successA.innerHTML = `<p>Saving... </p>`;
+        const successA = document.getElementById('successAnnouncement');
+        /*successA.innerHTML = `<p>Saving... </p>`;*/
         var pNamef = document.getElementById("pName")
         var pDescf = document.getElementById("pDesc")
         var geom = geoPoly
@@ -238,7 +238,7 @@ body { margin: 0; padding: 0; }
             }
             response.json().then(function(data) {
                 console.log(data);
-                //successA.innerHTML = `<p> Congratulations! Your entry was saved </p>`;
+                /*successA.innerHTML = `<p> Congratulations! Your entry was saved </p>`;*/
             }
             );
         })

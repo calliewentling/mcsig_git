@@ -1,0 +1,149 @@
+{% extends "user/templates/user_template.html" %}
+{% import "macros/input_macros.html" as im %}
+
+{% block title %}Jinja{% endblock %}
+
+{% block main %}
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h1>Jinja</h1>
+      <hr>
+      <h4>Accessing an object's value</h4>
+      <hr>
+      <p>Hello {{ my_name }}!</p>
+
+      <h4>Looping through an interable</h4>
+      <hr>
+
+      <strong class="d-block mb-3">Programming languages</strong>
+      <ul>
+          {% for lang in langs %}
+          <li>{{ lang }}</li>
+          {% endfor %}
+      </ul>
+
+      <h4>Looping and enumerating an interable</h4>
+      <hr>
+
+      <strong class="d-block mb-3">Programming languages</strong>
+      <ul>
+          {% for lang in langs %}
+          <li>{{ loop.index }} - {{ lang }}</li>
+          {% endfor %}
+      </ul>
+
+      <h4>Looping key/value pairs in a dict</h4>
+      <hr>
+
+      <strong class="d-block mb-3">Friends & ages</strong>
+      <ul>
+          {% for name, age in friends.items() %}
+          <li>{{ name }}: {{ age }}</li>
+          {% endfor %}
+      </ul>
+
+      <h4>Calling Functions</h4>
+      <hr>
+
+      <p>{{ repeat("Jinja is great! ", 10) }}</p>
+
+      <h4>List index</h4>
+      <hr>
+
+      <p>{{ langs[0] }}</p>
+
+      <h4>Dictionary value</h4>
+      <hr>
+
+      <p>{{ friends["Bernardo"] }}</p>
+
+      <h4>Class attributes</h4>
+      <hr>
+
+      <p>{{ my_remote.description }}</p>
+
+      <h4>Class methods</h4>
+        <hr>
+        <p>{{ my_remote.pull() }}</p>
+
+        <h4>Create a class</h4>
+        <hr>
+        {% set new_repo = GitRemote(
+            name="Learning Flask",
+            description="Learn the Flask web framework for Python",
+            domain="https://github.com/Julian-Nash/learning-flask.git") 
+        %}
+        <p>{{ new_repo.description }}</p>
+
+        <h4>Unpack variables</h4>
+        <hr>
+        {% set foo, bar = colors %}
+        <p>{{ foo }}</p>
+        <p>{{ bar }}</p>
+
+        <h4>Conditional if</h4>
+        <hr>
+        {% if cool %}
+        <p>Cool = {{ cool }}</p>
+        {% endif %}
+
+        <h4>Conditional if/elif</h4>
+        <hr>
+        {% if my_age < 18 %}
+        <p>No entry</p>
+        {% elif my_age <= 25 %}
+        <p>You may enter</p>
+        {% else %}
+        <p>Entry denied. You're not cool enough</p>
+        {% endif %}
+
+        <h4>Built in filters (length)</h4>
+        <hr>
+        <p>{{ langs|length }}</p>
+
+        <h4>Filters & conditionals</h4>
+        <hr>
+        {% if langs|length > 2 %}
+        {% for lang in langs %}
+            {% if lang == "Python" %}
+            <p>{{ lang|upper }}</p>
+            {% else %}
+            <p>{{ lang|reverse }}</p>
+            {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        <h4>Join filter</h4>
+        <hr>
+        <p>Unjoined: {{ langs }}</p>
+        <p>Joined: {{ langs|join(", ") }}</p>
+
+        <h4>Custom filters</h4>
+        <hr>
+        <p>{{ date|clean_date }}</p>
+
+        <h4>Escaped</h4>
+        <hr>
+        {{ my_html|safe }}
+
+        <!--<h4>Suspicious script</h4>
+        <hr>
+        {{ suspicious|safe }}-->
+        
+        <h4>Macros</h4>
+        <hr>
+
+        <form action="#" method="POST">
+            {{ im.input(label="Name", id="name", name="name", placeholder="Enter your name") }}
+
+            {{ im.input(label="Email", type="email", id="email", name="email", placeholder="Enter your email") }}
+
+            {{ im.input(label="Password", id="password", name="password", placeholder="Enter your password") }}
+        </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
