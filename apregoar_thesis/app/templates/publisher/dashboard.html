@@ -8,6 +8,27 @@
   <div class="row">
     <div class="col">
       <h1>Publisher dashboard</h1>
+      <hr>
+      <div id="welcome"></div>
+      <script>
+        username = "{{ username }}";
+        const welcomeU = document.getElementById('welcome');
+        welcomeU.innerHTML = `<h2>Welcome, ${username}</h2>`;
+      </script>
+      <div>
+        <h4>Publicar uma notícia nova</h4>
+        <a href="/addstory"><button> Publicar </button></a> 
+      </div>
+      <div>
+        <h4>Editar as notícias existentes</h4>
+          <a href="/localize"><button> Draw Polygons </button></a>
+      </div>
+      <div>
+        <h4>Ver todos as notícias no mapa</h4>
+      </div>
+      <div>
+        <a href="/sign-out"><button type="button" class="btn btn-primary">Sign out</button></a>
+      </div>
     </div>
   </div>
 </div>

@@ -1,0 +1,58 @@
+{% extends "publisher/templates/publisher_template.html" %}
+
+{% block title %}Notícia Nova{% endblock %}
+
+{% block main %}
+
+<script src="{{ url_for('static', filename='js/create.js') }}"></script>
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h1>Notícia Nova</h1>
+    </div>
+  </div>
+</div>
+
+<form name="addStory" action="{{ url_for('storyadd')}}" method="post">
+    <h3>Enter the article details</h3>
+    <!-- Required fields -->
+    <h5> Required fields </h5>
+    <div>
+            <input type="text" id="title" name="title" placeholder="Title" required minlength="6">
+            <span class="error" aria-live="polite"></span>
+    </div>
+    <div>
+        <input type="date" id="pubDate" name="pubDate" placeholder="Date of Publish">
+        <span class="error" aria-live="polite"></span>
+    </div>
+    <div>
+        <input type="text" id= "webLink" name="webLink" placeholder="Link to Story" required minlength="6">
+        <span class="error" aria-live="polite"></span>
+    </div>
+    <div>
+        <input type="text" id ="publication" name="publication" placeholder="Revista" required minlength="4">
+        <span class="error" aria-live="polite"></span>
+    </div>
+    <!-- Optional fields -->
+    <h5> Recommended fields </h5>
+    <div>
+        <input type="text" name="summary" placeholder="Summary">
+    </div>
+    <div>
+        <input type="text" name="section" placeholder="Section">
+    </div>
+    <div>
+        <input type="text" name="tags" placeholder="Tags (separate by commas: ',')">
+    </div>
+    <div>
+        <input type="text" name="author" placeholder="Author">
+    </div>
+<div>
+    <button>Save</button>
+</div>
+</form>
+
+
+
+{% endblock %}
