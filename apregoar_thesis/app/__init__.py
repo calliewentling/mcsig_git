@@ -29,9 +29,12 @@ session = Session()
 ###### Initializing sessions
 #########################
 
+
+
 @app.before_request
 def create_session():
     flask.g.session = Session()
+
     
 @app.teardown_appcontext
 def shutdown_session(response_or_exc):
