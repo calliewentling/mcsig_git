@@ -1,6 +1,7 @@
 from app import app
 from datetime import datetime
-from flask import request, redirect, jsonify, make_response, render_template, session, redirect, url_for
+from flask import request, redirect, jsonify, make_response, render_template, redirect, url_for, g
+from flask import session as fsession #To distinguish between flash session and sqalchemy session
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 import psycopg2
@@ -9,7 +10,35 @@ from app import engine, session, text
 # import secrets
 # secrets.token_urlsafe(16)
 
-app.config["SECRET_KEY"] = "OCML3BRawWEUeaxcuKHLpw"
+#app.config["SECRET_KEY"] = "OCML3BRawWEUeaxcuKHLpw"
+app.secret_key = '2b3c4ee1b3eea60976f2d55163bbd0f88613657a9260e7de60d4b97c04273460'
+
+users = {} #is this necessary
+
+@app.before_request
+def before_request_func():
+    print("Test of before request")
+    with engine.connect() as conn:
+        SQL = text("SELECT * FROM apregoar.users")
+        #print(SQL)            
+        result = conn.execute(SQL)   
+        print("SQL executed")
+        
+        
+        for row in result:
+            #print(row)
+            #print("username:",row['username'])
+            #print("affiliation:",row['organization'])
+            users[row['username']] = {
+                "id": row["u_id"],
+                "username": row['username'],
+                "affiliation": row['organization']
+            }
+
+        print(users)
+        print("Checkpoint end connect")  
+    
+    #https://pythonise.com/series/learning-flask/python-before-after-request
 
 @app.route("/")
 def index():
@@ -94,6 +123,10 @@ def jinja():
 def clean_date(dt):
     return dt.strftime("%d %b %Y")
 
+#########################
+###### User login
+#########################
+
 @app.route("/sign-up", methods=["GET","POST"]) #Good to go!
 def sign_up():
     if request.method == "POST":
@@ -144,112 +177,50 @@ def sign_up():
     return render_template("user/sign_up.html")
 
 
-@app.route("/profile/<username>")
-def profile(username):
-    user = None
-    if username in users:
-        user = users[username]
-    return render_template("user/profile.html", username=username, user=user)
-
-
-# Mock database for signin
-# This should be replaced ultimately by actual database of users
-users = {
-    "cwentling": {
-        "username": "cwentling",
-        "firstname": "Callie",
-        "lastname": " Wentling",
-        "email": "calliewentling@gmail.com",
-        "password": "thesis2021",
-        "bio": "Some rando on the itnernet",
-        "role": "user",
-        "affiliation": ""
-    },
-    "ccarvalho": {
-        "username": "ccarvalho",
-        "firstname": "Catarina",
-        "lastname": "Carvalho",
-        "email": "catarina.carvalho@amensagem.pt",
-        "password": "thesis2021",
-        "bio": "President, publisher and writer of A Mensagem",
-        "role": "publisher",
-        "affiliation": "A Mensagem"
-    },
-    "admin": {
-        "username": "admin",
-        "firstname": "",
-        "lastname": "",
-        "email": "cwentling@novaims.unl.pt",
-        "password": "thesis2021",
-        "bio": "Progress is being made",
-        "role": "admin",
-        "affiliation": "apregoar"
-    }
-}
-
-
 @app.route("/sign-in", methods=["GET", "POST"])
 def sign_in():
     if request.method == "POST":
-        try: 
-            print("Checkpoint A")
-            req = request.form
-            username = req.get("username")
-            password = req.get("password")
-            print("Entered username: ", username)
-            print("Entered password: ", password)
+        req = request.form
+        username = req.get("username")
+        password = req.get("password")
+        print("Entered username: ", username)
+        print("Entered password: ", password)
 
-            #conn = psycopg2.connect("dbname=postgres user=postgres password=thesis2021")
-            #cur = conn.cursor()
+        with engine.connect() as conn:
+            SQL = text("SELECT * FROM apregoar.users WHERE username = :x and password = :y")
+            SQL = SQL.bindparams(x=username, y=password)
+            print(SQL)
+            result = conn.execute(SQL)   
+            print("SQL executed")
+            userval = {}
+                
+            for row in result:
+                print(row)
+                print("username:",row['username'])
+                print("affiliation:",row['organization'])
+                userval = {
+                    username: {
+                        "username": row['username'],
+                        "affiliation": row['organization']
+                    }
+                }
+                print("users dict: ",userval)
+            print("Checkpoint end connect")  
 
-            #print("Checkpoint B")
-
-            
-            #THIS ISNT WORKING COPY 
-            #SQL = text("SELECT * FROM apregoar.users WHERE username = (%s) and password = (%s)")
-            #SQL = text("SELECT * FROM apregoar.users WHERE username = :x and password = :y")
-            #print("Checkpoint D1")
-            #SQL = SQL.bindparams(x=username, y=password)
-            #print("Checkpoint D2")
-            #print(SQL)
-            #print("Checkpoint D3")
-            #result = cur.execute(SQL)
-            #cur.execute(SQL)
-            #print("Checkpoint E")
-            #result = cur.fetchone()
-            #print("DB result: ",result)
-
-            with engine.connect() as conn:
-                SQL = text("SELECT * FROM apregoar.users WHERE username = :x and password = :y")
-                SQL = SQL.bindparams(x=username, y=password)
-                print(SQL)
-                result = conn.execute(SQL)
-                print("SQL Executed!")
-                uexists = 0
-                for row in result:
-                    print("username:",row['username'])
-                    print("affiliation:",row['organization'])
-                    print(row)
-                    uexists = 1
-                print("Checkpoint end connect")
-                print("Does a user exist? ",uexists)    
-
-        except:
-            print("Checkpoint C")
-            feedback = f"Something went wrong. Please try again."
-            return render_template("user/sign_in.html", feedback=feedback)
 
         #while result is not None: #Not using because result is always "not None", even if empty
-        while uexists == 1: #moved here to avoid exceptions
+        if username in userval:
             print("Checkpoint results")
             #print(result[0])
-            session['USERNAME'] = username #TypeError: 'Session' object does not support item assignment.  Try https://stackoverflow.com/questions/61804039/typeerror-session-object-does-not-support-item-assignment
-            print(session)
-            print("Checkpoint results2")
+            g.username = username
+            fsession['username'] = username #!!!!
+            #session.modified = True
+            print(fsession)
+            print("Session user assigned")
             return redirect(url_for("my_profile"))
 
         else:
-            print("Checkpoint not found")
+            print("Combo not found")
             feedback = f"Username/password combination not found. Please try again."
             return render_template("user/sign_in.html", feedback=feedback)
 
@@ -258,16 +229,27 @@ def sign_in():
 @app.route("/my_profile")
 def my_profile():
 
-    if not session.get("USERNAME") is None:
-        username = session.get("USERNAME")
+    if not fsession.get("username") is None:
+        username = fsession.get("username")
         user = users[username]
         return render_template("user/my_profile.html", user=user)
     else:
-        print("No username found in session")
+        print("No username found in fsession")
         return redirect(url_for("sign_in"))
 
 @app.route("/sign-out")
 def sign_out():
-    session.pop("USERNAME", None)
+    fsession.pop("username", None)
     return redirect(url_for("sign_in"))
+
+@app.route("/profile/<username>")
+def profile(username):
+    user = None
+    if username in users:
+        user = users[username]
+    return render_template("user/profile.html", username=username, user=user)
+
+#########################
+###### 
+#########################
 

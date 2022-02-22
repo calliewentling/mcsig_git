@@ -21,7 +21,8 @@ except OSError:
     pass
 
 engine = create_engine('postgresql://postgres:thesis2021@localhost/postgres', echo=True)
-Session = sessionmaker(bind=engine)
+#Session = sessionmaker(bind=engine)
+Session = sessionmaker(engine) #as per https://docs.sqlalchemy.org/en/14/orm/session_basics.html#basics-of-using-a-session
 session = Session()
 
 #########################
@@ -29,7 +30,7 @@ session = Session()
 #########################
 
 @app.before_request
-def create_sesion():
+def create_session():
     flask.g.session = Session()
     
 @app.teardown_appcontext
