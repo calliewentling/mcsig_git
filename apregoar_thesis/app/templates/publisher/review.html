@@ -1,0 +1,32 @@
+{% extends "publisher/templates/publisher_template.html" %}
+
+{% block title %}Review{% endblock %}
+
+{% block main %}
+
+<script src="{{ url_for('static', filename='js/create.js') }}"></script>
+
+
+
+<div class="container">
+    <div class="row">
+      <div class="col">
+  
+        <h1>Review</h1>
+        <hr>
+  
+        <div class="card">
+          <div class="card-body">
+              
+            <p>Story: {{ story }}</p>
+            
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+
+
+
+{% endblock %}

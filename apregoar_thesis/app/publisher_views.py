@@ -30,18 +30,24 @@ from app import engine, session, text
 #global currentuser
 #global currentuid
 
+###############
+# Callies Notes
+###############
+# 
+#Url_for redirects to the defined function, not the app.route or template
+
 app.secret_key = '2b3c4ee1b3eea60976f2d55163bbd0f88613657a9260e7de60d4b97c04273460'
 
 users = {} #is this necessary
 
 @app.before_request
 def before_request_func():
-    print("Test of before request")
+    #print("Test of before request")
     with engine.connect() as conn:
         SQL = text("SELECT * FROM apregoar.users")
         #print(SQL)            
         result = conn.execute(SQL)   
-        print("SQL executed")
+        #print("SQL executed")
         
         for row in result:
             #print(row)
@@ -50,11 +56,12 @@ def before_request_func():
             users[row['username']] = {
                 "id": row["u_id"],
                 "username": row['username'],
-                "affiliation": row['organization']
+                "affiliation": row['organization'],
+                "email": row['email']
             }
 
-        print(users)
-        print("Checkpoint end connect")  
+        #print(users)
+        #print("Checkpoint end connect")  
     
     #https://pythonise.com/series/learning-flask/python-before-after-request
 
@@ -168,7 +175,14 @@ def sign_in():
 @app.route("/publisher/my_profile")
 def pub_profile():
     if not fsession.get("username") is None:
-        user = fsession.get("username")
+        activeu = fsession.get("username")
+        user = {
+            "username": activeu,
+            "email": users[activeu]["email"],
+            "org": users[activeu]["affiliation"], 
+            "id": users[activeu]["id"]
+        }
+        print("User id: ",user["id"])
 
         return render_template("publisher/my_profile.html", user=user)
     else:
@@ -193,7 +207,20 @@ def profile(username):
 
 @app.route("/publisher/dashboard")
 def publisher_dashboard():
-    return render_template("publisher/dashboard.html", username=fsession["USERNAME"])
+    if not fsession.get("username") is None:
+        activeu = fsession.get("username")
+        user = {
+            "username": activeu,
+            "email": users[activeu]["email"],
+            "org": users[activeu]["affiliation"], 
+            "id": users[activeu]["id"]
+        }
+        print("User id: ",user["id"])
+
+        return render_template("publisher/dashboard.html", username=user["username"])
+    else:
+        print("No username found in fsession")
+        return redirect(url_for("sign_in"))
 
 @app.route("/publisher/profile")
 def publisher_profile():
@@ -209,20 +236,26 @@ def storyadd():
         #currentuser = "cwentling"
         #current_uid=1
         #title = "Jorge Romão, o artista que faz dos muros da graça telas para as suas pinturas"
+    activeu = fsession.get("username")
     print("")
     print()
-    print("currentuser is: ",session["USERNAME"])
+    print("currentuser is: ",activeu)
+    u_id = users[activeu]["id"]
+    print("current user id: ",u_id)
     print()
-    ##Required
-    title = request.form["title"]
-    pub_date = request.form["pubDate"]
-    web_link =request.form["webLink"]
-    publication =request.form["publication"]
-    ##Optional
-    summary =request.form["summary"]
-    section = request.form["section"]
-    tags = request.form["tags"]
-    author = request.form["author"]
+    
+    story = {
+        ##Required
+        "title": request.form["title"],
+        "pub_date": request.form["pubDate"],
+        "web_link": request.form["webLink"],
+        "publication": request.form["publication"],
+        ##Optional
+        "summary": request.form["summary"],
+        "section" : request.form["section"],
+        "tags": request.form["tags"],
+        "author": request.form["author"]
+    }
     '''
     ##THIS MUST BE FIGURED OUT Pausing because first I need to redo the signin
     #Global value
@@ -242,4 +275,4 @@ def storyadd():
             global current_sid
             current_sid=s_id
     '''
-    return render_template("publish/review.html")
+    return render_template("publisher/review.html", story=story)

@@ -20,7 +20,7 @@ try:
 except OSError:
     pass
 
-engine = create_engine('postgresql://postgres:thesis2021@localhost/postgres', echo=True)
+engine = create_engine('postgresql://postgres:thesis2021@localhost/postgres', echo=False)
 #Session = sessionmaker(bind=engine)
 Session = sessionmaker(engine) #as per https://docs.sqlalchemy.org/en/14/orm/session_basics.html#basics-of-using-a-session
 session = Session()
