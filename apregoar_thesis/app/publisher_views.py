@@ -228,20 +228,24 @@ def publisher_profile():
 
 @app.route("/addstory")
 def addstory():
-    return render_template("publisher/create.html")
+    with engine.connect() as conn:
+        SQL = text("SELECT web_link FROM apregoar.stories")
+        result = conn.execute(SQL)
+        existing_urls = []
+        for row in result:
+            existing_urls.append(row["web_link"])
+        print(existing_urls)
+    return render_template("publisher/create.html", urls=existing_urls)
 
 @app.route("/storyadd", methods=['POST'])
 def storyadd():
-        #solve this user issue -- apparently globals are staying global
-        #currentuser = "cwentling"
-        #current_uid=1
-        #title = "Jorge Romão, o artista que faz dos muros da graça telas para as suas pinturas"
     activeu = fsession.get("username")
     print("")
     print()
-    print("currentuser is: ",activeu)
+    print("current user is: ",activeu)
     u_id = users[activeu]["id"]
-    print("current user id: ",u_id)
+    u_org = users[activeu]["affiliation"]
+    print("current user id is: ",u_id)
     print()
     
     story = {
@@ -250,12 +254,22 @@ def storyadd():
         "pub_date": request.form["pubDate"],
         "web_link": request.form["webLink"],
         "publication": request.form["publication"],
-        ##Optional
+        ##Optional 
         "summary": request.form["summary"],
+            #Move these to review?
         "section" : request.form["section"],
         "tags": request.form["tags"],
         "author": request.form["author"]
     }
+
+    if story["web_link"] in existing_urls:
+        feedback = f"A história já existe no database: "+story["web_link"]
+        flash(feedback, "warning")
+        return render_template("publisher/create.html")
+    
+    return render_template("publisher/review.html", story=story)
+    #return render_template("publisher/localize.html")    
+            
     '''
     ##THIS MUST BE FIGURED OUT Pausing because first I need to redo the signin
     #Global value
@@ -275,4 +289,22 @@ def storyadd():
             global current_sid
             current_sid=s_id
     '''
-    return render_template("publisher/review.html", story=story)
+
+    '''
+    #Connect to database
+    with engine.connect() as conn:
+        SQL = text("SELECT s_id FROM apregoar.stories WHERE title =:t and publication =:p") #Should this be title per publication?
+        SQL = SQL.bindparams(t=story["title"], p=story["publication"])
+        result = conn.execute(SQL)
+        print("Result = ",result)
+        #If this story/publication combo already exists:
+        sametitle = []
+        for row in result:
+            sametitle.append(row["s_id"])
+        if len(sametitle) > 0:
+            s_ids = str(sametitle)
+            feedback = f"Já existe a manchete de '"+story["title"]+"': "+s_ids+"."
+            print(feedback)
+            flash(feedback, "warning")
+    '''
+    

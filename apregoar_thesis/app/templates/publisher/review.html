@@ -6,23 +6,35 @@
 
 <script src="{{ url_for('static', filename='js/create.js') }}"></script>
 
-
-
 <div class="container">
     <div class="row">
       <div class="col">
   
-        <h1>Review</h1>
+        <h1> {{ story["title"] }} </h1>
         <hr>
   
         <div class="card">
           <div class="card-body">
-              
+            <h2>Atributos Temáticos</h2>
             <p>Story: {{ story }}</p>
             
           </div>
         </div>
         
+        <div class="card">
+          <div class = "card-body">
+            <h2>Distribuição Geo-espacial/temporal</h2>
+            <a href="/publisher/localize"><button type="button" class="btn btn-primary">Associar localização</button></a>
+              <p>(This is where the map of existing instances will go)</p>
+          </div>
+        </div>
+
+        <div>
+          <a href="/publisher/localize"><button type="button" class="btn btn-primary">Ver</button></a>
+        </div>
+
+
+
       </div>
     </div>
   </div>

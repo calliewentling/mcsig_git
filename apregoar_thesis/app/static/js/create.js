@@ -1,6 +1,7 @@
 const form = document.getElementsbyTagName('addStory')[0];
 
 const vtitle = document.getElementbyId('title');
+
 const vtitleError = document.querySelector('#title + span.error');
 vtitle.addEventListener('input', function (event) {
     //Each time the user types something, we check if the form fields are valid
