@@ -1,3 +1,32 @@
 body {
     background-color: #f1f1f1;
 }
+
+input:required,
+textarea:required {
+    border-color: red !important;
+}
+
+input:required + label {
+    color: red;
+}
+
+form {
+    padding: 10px;
+    max-width: 500px;
+    
+}
+form div {
+    padding: 5px
+}
+input {
+    width: 100%
+}
+
+textarea {
+    width: 100%;
+}
+.align-right {
+    text-align:right;
+    border: 0;
+}

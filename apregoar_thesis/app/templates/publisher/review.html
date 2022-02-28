@@ -12,11 +12,16 @@
   
         <h1> {{ story["title"] }} </h1>
         <hr>
-  
-        <div class="card">
-          <div class="card-body">
-            <h2>Atributos Temáticos</h2>
-            <p>Story: {{ story }}</p>
+
+        <!-- THIS IS UNTESTED -->
+        <div class ="card">
+          <div class = "card-body">
+            <h2>{{ story["section"] }}, {{ story["pub_date"] }}</h2>
+            <h3>{{ story["publication"] }} </h3>
+            <p>{{ story["summary"] }}</p>
+            <div class="align-right">
+              <p><i>{{ story["tags"] }}</i> </p>
+            </div>
             
           </div>
         </div>

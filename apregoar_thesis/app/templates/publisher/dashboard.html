@@ -9,26 +9,74 @@
     <div class="col">
       <h1>Publisher dashboard</h1>
       <hr>
-      <div id="welcome"></div>
-      <script>
-        username = "{{ username }}";
-        const welcomeU = document.getElementById('welcome');
-        welcomeU.innerHTML = `<h2>Welcome, ${username}</h2>`;
-      </script>
-      <div>
-        <h4>Publicar uma notícia nova</h4>
-        <a href="/addstory"><button> Publicar </button></a> 
+
+      
+      <div class="card">
+        <div class="card-body" id="welcome"></div>
+        <script>
+          username = "{{ username }}";
+          const welcomeU = document.getElementById('welcome');
+          welcomeU.innerHTML = `<h2>Welcome, ${username}</h2>`;
+        </script>
+        <div class="align-right">
+          <a href="/sign-out"><button type="button" class="btn btn-primary">Sign out</button></a>
+        </div>
+      </div> 
+
+      <div class="card">
+        <div class="card-body">
+          <h4>Publicar uma notícia nova</h4>
+          <a href="/addstory"><button> Publicar </button></a> 
+        </div>
       </div>
-      <div>
-        <h4>Editar as notícias existentes</h4>
+
+      <div class="card">
+        <div class="card-body">
+          <h3> Os meus notícias</h3>
+
+          {% for uStory in userStories %}
+            {% for sID, attributes in uStory.items() %}
+
+            <script>
+              var storyID = "{{ sID }}";
+              console.log(storyID);
+              var storyRef = "/"+storyID+"/review" ;
+              console.log(storyRef)
+              //Apparently document.write is considered bad practice. Replace in the future with something better
+              document.write('<p> <a href="/'+storyID+'/review"> {{ attributes["title"] }} </a>- <i> {{ attributes["date"] }} </i></p>');
+            </script>
+            
+            {% endfor %}
+          {% endfor %}
+
+          <h3> As notícias de {{ organization }}</h3>
+          {% if orgStories|length > 0 %}
+            {% for oStory in orgStories %}
+              {% for sID, attributes in oStory.items() %}
+                <p>{{ attributes["title"] }} - <i> {{ attributes["date"] }} </i></p>
+              {% endfor %}
+            {% endfor %}
+          {% else %}
+            <p><i>No stories associated with this organization</i></p>
+          {% endif %}
+
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <h3>Ver todos as notícias no mapa</h3>
+          <p>(Put a sexy map here with all of the stories published by the publisher)</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <h3>Short cut to test "localize"</h3>
           <a href="/localize"><button> Draw Polygons </button></a>
+        </div>
       </div>
-      <div>
-        <h4>Ver todos as notícias no mapa</h4>
-      </div>
-      <div>
-        <a href="/sign-out"><button type="button" class="btn btn-primary">Sign out</button></a>
-      </div>
+
     </div>
   </div>
 </div>

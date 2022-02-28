@@ -6,6 +6,8 @@
 
 <script src="{{ url_for('static', filename='js/create.js') }}"></script>
 
+
+
 <div class="container">
   <div class="row">
     <div class="col">
@@ -14,16 +16,16 @@
 
         <div class="card">
             <div class="card-body">
-                <form name="addStory" action="{{ url_for('storyadd') }}" method="post">
-                    <h3>Enter the article details</h3>
+                <h3>Enter the article details</h3>
+                <form name="addStory" action="{{ url_for('review') }}" method="post">
+                    
                     <!-- Required fields -->
-                    <h5> Required fields </h5>
                     <div>
                         <input type="text" id="title" name="title" placeholder="Title" required minlength="6">
                         <span class="error" aria-live="polite"></span>
                     </div>
                     <div>
-                        <input type="date" id="pubDate" name="pubDate" placeholder="Date of Publish">
+                        <input type="date" id="pubDate" name="pubDate" placeholder="Date of Publish" required>
                         <span class="error" aria-live="polite"></span>
                     </div>
                     <div>
@@ -34,9 +36,10 @@
                         <input type="text" id ="publication" name="publication" placeholder="Revista" required minlength="4">
                         <span class="error" aria-live="polite"></span>
                     </div>
-                    <br>
                     <!-- Optional fields -->
-                    <h5> Recommended fields </h5>
+                    <div>
+                        <input type="text" name="author" placeholder="Author">
+                    </div>
                     <div>
                         <!-- <input type="text" name="summary" placeholder="Summary"> -->
                         <textarea name="summary" rows="5" placeholder = "Summary"></textarea>
@@ -47,14 +50,13 @@
                     <div>
                         <input type="text" name="tags" placeholder="Tags (separate by commas: ',')">
                     </div>
-                    <div>
-                        <input type="text" name="author" placeholder="Author">
-                    </div>
+
                     <br>
                     <div>
                         <button>Save</button>
                     </div>
                 </form>
+                
             </div>
             </div>
         </div>
@@ -63,6 +65,5 @@
 
 
 
-
-
 {% endblock %}
+
