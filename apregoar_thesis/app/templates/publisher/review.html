@@ -28,17 +28,17 @@
         
         <div class="card">
           <div class = "card-body">
-            <h2>Distribuição Geo-espacial/temporal</h2>
-            <a href="/publisher/localize"><button type="button" class="btn btn-primary">Associar localização</button></a>
-              <p>(This is where the map of existing instances will go)</p>
+            <h2>Localizações</h2>
+            <script>
+              var storyID = "{{ sID }}"; //Replace with a function to get the actual s_id
+              console.log(storyID);
+              //Apparently document.write is considered bad practice. Replace in the future with something better
+              document.write('<p> <a href="/publisher/'+storyID+'/localize"> <button type="button" class="btn btn-primary">Associar localização</button></a>');
+            </script>
+            
+            <p>(This is where the map of existing instances will go)</p>
           </div>
         </div>
-
-        <div>
-          <a href="/publisher/localize"><button type="button" class="btn btn-primary">Ver</button></a>
-        </div>
-
-
 
       </div>
     </div>

@@ -19,14 +19,14 @@
           welcomeU.innerHTML = `<h2>Welcome, ${username}</h2>`;
         </script>
         <div class="align-right">
-          <a href="/sign-out"><button type="button" class="btn btn-primary">Sign out</button></a>
+          <a href="/publisher/sign_out"><button type="button" class="btn btn-primary">Sign out</button></a>
         </div>
       </div> 
 
       <div class="card">
         <div class="card-body">
           <h4>Publicar uma notícia nova</h4>
-          <a href="/addstory"><button> Publicar </button></a> 
+          <a href="/publisher/addstory"><button> Publicar </button></a> 
         </div>
       </div>
 
@@ -40,10 +40,8 @@
             <script>
               var storyID = "{{ sID }}";
               console.log(storyID);
-              var storyRef = "/"+storyID+"/review" ;
-              console.log(storyRef)
               //Apparently document.write is considered bad practice. Replace in the future with something better
-              document.write('<p> <a href="/'+storyID+'/review"> {{ attributes["title"] }} </a>- <i> {{ attributes["date"] }} </i></p>');
+              document.write('<p> <a href="/publisher/'+storyID+'/review"> {{ attributes["title"] }} </a>- <i> {{ attributes["date"] }} </i></p>');
             </script>
             
             {% endfor %}
@@ -73,7 +71,7 @@
       <div class="card">
         <div class="card-body">
           <h3>Short cut to test "localize"</h3>
-          <a href="/localize"><button> Draw Polygons </button></a>
+          <a href="/publisher/localize"><button> Draw Polygons </button></a>
         </div>
       </div>
 

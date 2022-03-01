@@ -5,7 +5,7 @@ from app import app
 
 import os
 import flask
-from flask import Flask, g, render_template, request, flash, jsonify, make_response
+from flask import Flask, g, render_template, request, flash, jsonify, make_response, json
 #from flask_sqlalchemy import SQLAlchemy
 #from apregoar.models import Stories, UGazetteer, Instances, Users, EGazetteer, SpatialAssoc
 from sqlalchemy import text
@@ -62,7 +62,7 @@ def before_request_func():
             #print("username:",row['username'])
             #print("affiliation:",row['organization'])
             users[row['username']] = {
-                "id": row["u_id"],
+                "u_id": row["u_id"],
                 "username": row['username'],
                 "affiliation": row['organization'],
                 "email": row['email']
@@ -82,7 +82,7 @@ def before_request_func():
 ###### User login
 #########################
 
-@app.route("/sign-up", methods=["GET","POST"]) #Good to go!
+@app.route("/publisher/sign_up", methods=["GET","POST"])
 def sign_up():
     if request.method == "POST":
         req = request.form
@@ -141,7 +141,7 @@ def sign_up():
                 return render_template("publisher/sign_up.html", feedback=feedback)
     return render_template("publisher/sign_up.html")
 
-@app.route("/publisher/sign-in", methods=["GET", "POST"])
+@app.route("/publisher/sign_in", methods=["GET", "POST"])
 def sign_in():
     print("Signin")
     if request.method == "POST":
@@ -169,7 +169,7 @@ def sign_in():
                         "username": row['username'],
                         "affiliation": row['organization'],
                         "email": row['email'],
-                        "id": row['u_id']
+                        "u_id": row['u_id']
                     }
                 }
                 print("users dict: ",user)
@@ -182,14 +182,13 @@ def sign_in():
                 #print(result[0])
                 #g.username = username
                 fsession['username'] = username #!!!!
-                fsession['u_id'] = user[username]["id"]
+                fsession['u_id'] = user[username]["u_id"]
                 fsession['org'] = user[username]["affiliation"]
                 fsession['email'] = user[username]["email"]
                 print("fsession: ",fsession)
                 #session.modified = True
                 print("Session user assigned")
-                #return redirect(url_for("publisher/my_profile"))
-                return redirect(url_for("pub_profile"))    
+                return redirect(url_for("publisher_dashboard"))    
             else:
                 print("Combo not found")
                 feedback = f"Username/password combination not found. Please try again."
@@ -204,33 +203,33 @@ def pub_profile():
             "username": fsession["username"],
             "email": fsession["email"],
             "org": fsession["org"], 
-            "id": fsession["u_id"]
+            "u_id": fsession["u_id"]
         }
-        print("User id: ",user["id"])
+        print("User id: ",user["u_id"])
 
         return render_template("publisher/my_profile.html", user=user)
     else:
         print("No username found in fsession")
         return redirect(url_for("sign_in"))
 
-@app.route("/sign-out")
+@app.route("/publisher/sign_out")
 def sign_out():
     fsession.pop("username", None)
     fsession.pop("email", None)
-    fsession.pop("id", None)
+    fsession.pop("u_id", None)
     fsession.pop("org", None)
     print("fsession: ",fsession)
     return redirect(url_for("sign_in"))
-
+'''
 @app.route("/profile/<username>")
 def profile(username):
     user = None
     if username in users:
         user = users[username]
     return render_template("publisher/profile.html", username=username, user=user)
-
+'''
 #########################
-###### 
+###### Dashboard and Profile
 #########################
 
 @app.route("/publisher/dashboard")
@@ -252,7 +251,8 @@ def publisher_dashboard():
             for row in result:
                 u_story = {
                     row["s_id"] : {
-                        "title": row["title"],                            "date": row["pub_date"]
+                        "title": row["title"],                            
+                        "date": row["pub_date"]
                     } 
                 }
                 user_stories.append(u_story)
@@ -291,14 +291,18 @@ def publisher_dashboard():
 
 @app.route("/publisher/profile")
 def publisher_profile():
-    return render_template("publisher/profile.html")
+    return render_template("publisher/my_profile.html")
 
-@app.route("/addstory")
+#########################
+###### New Story
+#########################
+
+@app.route("/publisher/addstory")
 def addstory():
     return render_template("publisher/create.html")
 
 
-@app.route("/<s_id>/review")
+@app.route("/publisher/<s_id>/review")
 def review_e(s_id):
     print({s_id})
     try:
@@ -316,16 +320,19 @@ def review_e(s_id):
             story = row
         print(story)
         if story:
-            return render_template("publisher/review.html", story=story)
+            return render_template("publisher/review.html", story=story, sID = s_id)
+        else:
+            feedback = f"No valid story selected"
+            flash(feedback, "danger")
     
     return render_template("publisher/dashboard.html")
 
 
-@app.route("/review", methods=['POST'])
+@app.route("/publisher/review", methods=['POST'])
 def review():
     print()
     print("current user is: ",fsession["username"])
-    print("current user id is: ",fsession["id"])
+    print("current user id is: ",fsession["u_id"])
     print()
 
     try:
@@ -376,14 +383,173 @@ def review():
                     print("Story added to database")
             con.close()
         except psycopg2.Error as e:
+            #If not submitted, attempt to create again
             print(e.pgerror)
             print(e.diag.message_primary)
             feedback = f"Excepção: a história não ficou guardada. Erro: "+e.pgerror+", "+e.diag.message_primary
             flash(feedback, "danger")
             con.close()
+            return render_template("publisher/create.html")
         else:
-            return render_template("publisher/review.html",story=story)
+            #Get saved id (s_id)
+            try:
+                with engine.connect() as conn:
+                    SQL = text("SELECT * FROM apregoar.stories WHERE web_link = :x")
+                    SQL = SQL.bindparams(x=story["web_link"])
+                    result = conn.execute(SQL)
+            except:
+                #Go to dashboard to manually select the story for edit/development
+                print("Error in extracting desired story from database")
+                feedback=f"Erro"
+                flash(feedback,"danger")
+                return render_template("publisher/dashboard.html")
+            else:
+                #Go to story edit page
+                for row in result:
+                    story = row
+                if story:
+                    s_id = story["s_id"]
+                    print(s_id)
+                    return render_template("publisher/review.html", story=story, sID = s_id)
+                else:
+                    feedback = f"No valid story selected"
+                    flash(feedback, "danger")
     
-    return render_template("publisher/create.html")
+    return render_template("publisher/dashboard.html")
+
+#########################
+###### New Instance
+#########################
             
+@app.route("/publisher/<s_id>/localize", methods=["GET", "POST"])
+def localize(s_id):
+    print({s_id})
+    try:
+        with engine.connect() as conn:
+            SQL = text("SELECT * FROM apregoar.stories WHERE s_id = :x")
+            SQL = SQL.bindparams(x=s_id)
+            result = conn.execute(SQL)
+    except:
+        print("Error in extracting desired story from database")
+        feedback=f"Erro"
+        flash(feedback,"danger")
+    else:
+        story = {}
+        for row in result:
+            story = row
+        print(story)
+        if story:
+            return render_template("publisher/localize.html", story=story, sID = s_id)
+        else:
+            feedback = f"No valid story selected"
+            flash(feedback, "danger")
+    
+    return render_template("publisher/dashboard.html")
+
+
+
+@app.route("/publisher/<s_id>/save_instance", methods=["POST"])
+def save_instance(s_id):
+    #Results from user input on localize
+    req = request.get_json()
+    print()
+    print("Received info: ")
+    print(req)
+    print()
+    #res = make_response(jsonify(req), 200)
+
+    con = psycopg2.connect("dbname=postgres user=postgres password=thesis2021")
+    cur = con.cursor()
+
+    u_id = fsession["u_id"]
+    print("Story id: ",s_id,", User ID: ",u_id)
+    
+    #Transforming Temporal and descriptions from user input
+    #instance = req["properties"]
+    instance = req["properties"]
+    print()
+    print("instance: ",instance)
+    print()
+    p_name = instance["pName"]
+    p_desc = instance["pDesc"]
+    t_begin = instance["tBegin"]
+    t_end = instance["tEnd"]
+    t_type = instance["tType"]
+    t_desc = instance["tDesc"]
+    #Extract geometry in correct format from user input
+    idx=0
+    features = req['geometry']
+    features = json.loads(features)
+    print()
+    print("Features: ")
+    print(features)
+    print()
+    for idx, val in enumerate(features): #supports multiple polygons with the same temporal description
+        coords=features[idx]['geometry']['coordinates'][0] #extracting coordinates
+        print()
+        print("coords: ")
+        print(coords)
+        #Switch coordinate order here
+        shape=Polygon(coords)
+        print()
+        print("shape: ")
+        print(shape)
+        shapeWKT=shape.to_wkt()
+        print(shapeWKT)
+    return 200
+    
+'''
+        pentry = UGazetteer(p_name, shapeWKT, u_id)
+        print()
+        print("pentry: ")
+        print(pentry)
+            
+        session.add(pentry)
+        session.commit()
+        print("feature committed!")
+        #determine place ID to associate to instance
+        p_id=None
+        with engine.connect() as conn:
+            SQL = text("SELECT p_id FROM apregoar.ugazetteer WHERE p_name = :x AND u_id =:y ORDER BY p_id DESC LIMIT 1")
+            SQL = SQL.bindparams(x=p_name, y=u_id)
+            result = conn.execute(SQL)
+            print("current assigned p_id: ",p_id)
+            for row in result:
+                p_id=row['p_id']
+                print(p_id)
+        #Save instance for each geometry with associated p_id
+        ientry = Instances(t_begin, t_end, t_type, t_desc, p_desc, s_id, p_id, u_id)
+        session.add(ientry)
+        session.commit()
+        cur.execute("""
+            SELECT e_id, name
+            FROM apregoar.egazetteer AS egaz
+            WHERE ST_Intersects(
+                egaz.geom,
+                (
+                    SELECT geom
+                    FROM apregoar.ugazetteer
+                    WHERE p_id = %(pgeom)s
+                    ORDER BY p_id DESC LIMIT 1
+                )
+            );""",
+            {'pgeom':p_id,}
+        )
+        autoP = cur.fetchall()
+        print(autoP)
+
+        with engine.connect() as conn:
+            for i in autoP:
+                print(i[0])
+                cur.execute("""
+                    INSERT INTO apregoar.spatial_assoc (place_id, freguesia_id)
+                    VALUES (%(id)s,%(e_id)s)
+                    """,
+                    {'id':p_id,'e_id':i[0]}
+                )
+        conn.commit()
+        print("spatial association complete!")
+        print("Instance committed!!")
+    print("places and instances saved!")
+    '''
     

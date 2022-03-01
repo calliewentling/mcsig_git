@@ -66,8 +66,13 @@ body { margin: 0; padding: 0; }
 </div>
 
 <div class="instanceform-box" id="save_instance">
-    <h2>Definir uma instância da notícia</h2>
-
+    <h2>{{ story["title"] }}</h2>
+    <p>{{ sID }}</p>
+    <div id="testjs"></div>
+    
+    <h4> Definir uma instância (tempo e sítio) da notícia</h4>
+    <p>Cada "instância" é uma oportunidade de elaborar onde e quando uma coisa está a acontacer. Cada notícia pode ter algumas notícias, e cada instância pode ter alguns sítios (polígonos). Escreve um ou mas polígonos aqui, dar um nome (não precisa de ser "oficial") e uma descrição. Definir as datas do início e o fim, um tipo de interval temporal, e afinal um descrição.</p>
+    <br>
     <!-- <form method="post", action="/save_instance", method='post'> -->
     <div>   
         <div id="selectName">
@@ -147,6 +152,12 @@ body { margin: 0; padding: 0; }
         defaultMode: 'draw_polygon'
     });
 
+    var sID = '{{ sID }}';
+    const testjs = document.getElementById('testjs');
+    testjs.innerHTML = `<p>The sID is: ${sID}</p>`;
+    console.log("sID is: ");
+    console.log(sID);
+
     const answer = document.getElementById('calculated-area');
     const saveG = document.getElementById('selectGeom');
     const saveN = document.getElementById('selectName');
@@ -217,11 +228,12 @@ body { margin: 0; padding: 0; }
                 tType: tTypef.value,
                 tDesc: tDescf.value
             },
-            geometry: geom,
+            geometry: geom
         };
         console.log(entry)
-
-        fetch(`${window.origin}/save_instance`, {
+        
+        fetch(`${window.origin}/publisher/${sID}/save_instance`, {
+        //fetch(`${window.origin}/save_instance`, {
             method: "POST",
             credentials: "include",
             body: JSON.stringify(entry),
