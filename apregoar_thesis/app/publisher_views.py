@@ -14,14 +14,18 @@ from sqlalchemy.orm import sessionmaker
 from flask_table import Table, Col
 import json
 import geojson
-import shapely.wkt
+import shapely.wkt as wkt
+import shapely.wkb as wkb
 import psycopg2
-from shapely.geometry import shape
 import pandas as pd
 from sqlalchemy import *
 from sqlalchemy.orm import *
 from geoalchemy2 import *
-from shapely.geometry import Polygon
+from geoalchemy2.shape import from_shape
+import shapely
+import shapely.wkt
+#import osgeo.ogr
+from shapely.geometry import Polygon, MultiPolygon
 from flask import request, redirect, jsonify, make_response, render_template, session as fsession, redirect, url_for
 from app import engine, session, text
 #import geopandas as gpd
@@ -39,6 +43,7 @@ from app import engine, session, text
 app.secret_key = '2b3c4ee1b3eea60976f2d55163bbd0f88613657a9260e7de60d4b97c04273460'
 
 users = {} #is this necessary
+
 
 @app.before_request
 def before_request_func():
@@ -125,14 +130,19 @@ def sign_up():
                             cur.execute("""
                                 INSERT INTO apregoar.users (username, password, organization, email)
                                 VALUES (%(username)s,%(password)s,%(organization)s,%(email)s)
-                                """,
+                                RETURNING u_id
+                                ;""",
                                 {'username':username,'password':password, 'organization':organization, 'email':email}
                             )
+                            u_id = cur.fetchone()[0]
+                            print("New user id: ",u_id)
                             con.commit()
+                            cur.close()
                 except:
                     print("Error in saving new user")
                     feedback=f"Erro"
                     flash(feedback, "danger")
+                    cur.close()
                 else:
                     print("User added to database")
                     return redirect(url_for("sign_in"))
@@ -376,11 +386,13 @@ def review():
                     cur.execute("""
                         INSERT INTO apregoar.stories (title, summary, pub_date, web_link, section, tags, author, publication, u_id)
                         VALUES (%(title)s,%(summary)s,%(pub_date)s,%(web_link)s,%(section)s, %(tags)s, %(author)s,%(publication)s,%(u_id)s)
-                        """,
+                        RETURNING s_id
+                        ;""",
                         {'title':story["title"],'summary':story["summary"], 'pub_date':story["pub_date"], 'web_link': story["web_link"], 'section': story["section"], 'tags': story["tags"], 'author': story["author"], 'publication':story["publication"], 'u_id':fsession["u_id"]}
                     )
+                    s_id = cur.fetchone()[0]
                     con.commit()
-                    print("Story added to database")
+                    print("Story added to database. s_id: ",s_id)
             con.close()
         except psycopg2.Error as e:
             #If not submitted, attempt to create again
@@ -391,29 +403,8 @@ def review():
             con.close()
             return render_template("publisher/create.html")
         else:
-            #Get saved id (s_id)
-            try:
-                with engine.connect() as conn:
-                    SQL = text("SELECT * FROM apregoar.stories WHERE web_link = :x")
-                    SQL = SQL.bindparams(x=story["web_link"])
-                    result = conn.execute(SQL)
-            except:
-                #Go to dashboard to manually select the story for edit/development
-                print("Error in extracting desired story from database")
-                feedback=f"Erro"
-                flash(feedback,"danger")
-                return render_template("publisher/dashboard.html")
-            else:
-                #Go to story edit page
-                for row in result:
-                    story = row
-                if story:
-                    s_id = story["s_id"]
-                    print(s_id)
-                    return render_template("publisher/review.html", story=story, sID = s_id)
-                else:
-                    feedback = f"No valid story selected"
-                    flash(feedback, "danger")
+            story["s_id"] = s_id
+            return render_template("publisher/review.html", story=story, sID = s_id)
     
     return render_template("publisher/dashboard.html")
 
@@ -456,16 +447,12 @@ def save_instance(s_id):
     print("Received info: ")
     print(req)
     print()
-    #res = make_response(jsonify(req), 200)
-
-    con = psycopg2.connect("dbname=postgres user=postgres password=thesis2021")
-    cur = con.cursor()
+    res = make_response(jsonify(req), 200)
 
     u_id = fsession["u_id"]
     print("Story id: ",s_id,", User ID: ",u_id)
     
     #Transforming Temporal and descriptions from user input
-    #instance = req["properties"]
     instance = req["properties"]
     print()
     print("instance: ",instance)
@@ -476,6 +463,7 @@ def save_instance(s_id):
     t_end = instance["tEnd"]
     t_type = instance["tType"]
     t_desc = instance["tDesc"]
+
     #Extract geometry in correct format from user input
     idx=0
     features = req['geometry']
@@ -484,72 +472,62 @@ def save_instance(s_id):
     print("Features: ")
     print(features)
     print()
+    multiShape=[]
+    shapeP = None
     for idx, val in enumerate(features): #supports multiple polygons with the same temporal description
         coords=features[idx]['geometry']['coordinates'][0] #extracting coordinates
-        print()
+        print(idx)
         print("coords: ")
         print(coords)
-        #Switch coordinate order here
-        shape=Polygon(coords)
-        print()
-        print("shape: ")
-        print(shape)
-        shapeWKT=shape.to_wkt()
-        print(shapeWKT)
-    return 200
+        shapeP = Polygon(coords)
+        multiShape.append(shapeP) 
+    print()
+    print("Length of Multishape: ", len(multiShape))
+    print("shapeP Type: ",type(shapeP))
+    print("shapeP: ", shapeP)
+    print("shapeP wkt: ", shapeP.wkt)
+    print()
+    multiP = MultiPolygon(multiShape)
+    print("multiP type: ", type(multiP))
+    print("multiP: ", multiP)
+    print("multiP wkt: ",multiP.wkt)
     
-'''
-        pentry = UGazetteer(p_name, shapeWKT, u_id)
-        print()
-        print("pentry: ")
-        print(pentry)
-            
-        session.add(pentry)
-        session.commit()
-        print("feature committed!")
-        #determine place ID to associate to instance
-        p_id=None
-        with engine.connect() as conn:
-            SQL = text("SELECT p_id FROM apregoar.ugazetteer WHERE p_name = :x AND u_id =:y ORDER BY p_id DESC LIMIT 1")
-            SQL = SQL.bindparams(x=p_name, y=u_id)
-            result = conn.execute(SQL)
-            print("current assigned p_id: ",p_id)
-            for row in result:
-                p_id=row['p_id']
-                print(p_id)
-        #Save instance for each geometry with associated p_id
-        ientry = Instances(t_begin, t_end, t_type, t_desc, p_desc, s_id, p_id, u_id)
-        session.add(ientry)
-        session.commit()
-        cur.execute("""
-            SELECT e_id, name
-            FROM apregoar.egazetteer AS egaz
-            WHERE ST_Intersects(
-                egaz.geom,
-                (
-                    SELECT geom
-                    FROM apregoar.ugazetteer
-                    WHERE p_id = %(pgeom)s
-                    ORDER BY p_id DESC LIMIT 1
-                )
-            );""",
-            {'pgeom':p_id,}
-        )
-        autoP = cur.fetchall()
-        print(autoP)
+    
+    #Save to database
+ 
 
-        with engine.connect() as conn:
-            for i in autoP:
-                print(i[0])
-                cur.execute("""
-                    INSERT INTO apregoar.spatial_assoc (place_id, freguesia_id)
-                    VALUES (%(id)s,%(e_id)s)
-                    """,
-                    {'id':p_id,'e_id':i[0]}
-                )
-        conn.commit()
-        print("spatial association complete!")
-        print("Instance committed!!")
-    print("places and instances saved!")
-    '''
+    con = psycopg2.connect("dbname=postgres user=postgres password=thesis2021")
     
+    try:
+        with con:
+            with con.cursor() as cur:
+                print()
+                print("Trying to save: ")
+                #print("p_name: ",p_name,", geom: ",geom," and u_id: ",u_id)
+                print()
+                cur.execute("""
+                    INSERT INTO apregoar.ugazetteer (p_name, geom, u_id) 
+                    VALUES (%(p_name)s, ST_GeomFromEWKT(%(geom)s), %(u_id)s)
+                    RETURNING p_id
+                    ;""",
+                    {'p_name':p_name, 'geom':multiP.wkt, 'u_id':u_id}
+                )
+                p_id = cur.fetchone()[0]
+                con.commit()
+    except psycopg2.Error as e:
+        print("Error in saving new instance place")
+        print(e.pgerror)
+        print(e.diag.message_primary)
+        feedback = f"Erro: não consiguimos de guardar a nova instância."
+        flash(feedback, "danger")
+        con.close()
+        return res
+    else:
+        print("Place added to database. p_id: ",p_id)
+        con.close()
+        instance["p_id"] = p_id
+
+ 
+    return res
+
+    print("Why is this reaching here??") 
