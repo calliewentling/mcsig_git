@@ -18,6 +18,7 @@ import shapely.wkt as wkt
 import shapely.wkb as wkb
 import psycopg2
 import pandas as pd
+import datetime
 from sqlalchemy import *
 from sqlalchemy.orm import *
 from geoalchemy2 import *
@@ -444,89 +445,106 @@ def save_instance(s_id):
     #Results from user input on localize
     req = request.get_json()
     print()
-    print("Received info: ")
+    print("Received: ")
     print(req)
     print()
     res = make_response(jsonify(req), 200)
-
     u_id = fsession["u_id"]
     print("Story id: ",s_id,", User ID: ",u_id)
+    print()
     
     #Transforming Temporal and descriptions from user input
     instance = req["properties"]
-    print()
     print("instance: ",instance)
     print()
     p_name = instance["pName"]
     p_desc = instance["pDesc"]
+    all_day = instance["allDay"]
     t_begin = instance["tBegin"]
     t_end = instance["tEnd"]
-    t_type = instance["tType"]
     t_desc = instance["tDesc"]
 
     #Extract geometry in correct format from user input
     idx=0
     features = req['geometry']
     features = json.loads(features)
-    print()
     print("Features: ")
     print(features)
-    print()
     multiShape=[]
     shapeP = None
-    for idx, val in enumerate(features): #supports multiple polygons with the same temporal description
+    for idx,val in enumerate(features): #supports multiple polygons with the same temporal description
         coords=features[idx]['geometry']['coordinates'][0] #extracting coordinates
-        print(idx)
-        print("coords: ")
-        print(coords)
         shapeP = Polygon(coords)
         multiShape.append(shapeP) 
-    print()
-    print("Length of Multishape: ", len(multiShape))
-    print("shapeP Type: ",type(shapeP))
-    print("shapeP: ", shapeP)
-    print("shapeP wkt: ", shapeP.wkt)
-    print()
+    print("Length of Multishape (number of polygons): ", len(multiShape))
     multiP = MultiPolygon(multiShape)
-    print("multiP type: ", type(multiP))
-    print("multiP: ", multiP)
     print("multiP wkt: ",multiP.wkt)
-    
-    
-    #Save to database
- 
 
-    con = psycopg2.connect("dbname=postgres user=postgres password=thesis2021")
+    #Extract tempoarl element
+    print()
+    print("All day? ",all_day)
+    print("t_begin before: ",t_begin)
+    print("t_end before: ",t_end)
+    print()
+    if all_day in ["date"]:
+        t_begin = t_begin+"T00:00"
+        t_end = t_end+"T23:59"
+    print("t_begin type: ",type(t_begin))
+    print("t_begin: ",t_begin)
+    print("t_end type: ",type(t_end))
+    print("t_end: ",t_end)
     
+    
+    #Save place to database
+    con = psycopg2.connect("dbname=postgres user=postgres password=thesis2021")
     try:
         with con:
             with con.cursor() as cur:
-                print()
-                print("Trying to save: ")
-                #print("p_name: ",p_name,", geom: ",geom," and u_id: ",u_id)
-                print()
                 cur.execute("""
-                    INSERT INTO apregoar.ugazetteer (p_name, geom, u_id) 
-                    VALUES (%(p_name)s, ST_GeomFromEWKT(%(geom)s), %(u_id)s)
+                    INSERT INTO apregoar.ugazetteer (p_name, geom, u_id, p_desc) 
+                    VALUES (%(p_name)s, ST_GeomFromEWKT(%(geom)s), %(u_id)s, %(p_desc)s)
                     RETURNING p_id
                     ;""",
-                    {'p_name':p_name, 'geom':multiP.wkt, 'u_id':u_id}
+                    {'p_name':p_name, 'geom':multiP.wkt, 'u_id':u_id, 'p_desc':p_desc}
                 )
                 p_id = cur.fetchone()[0]
-                con.commit()
+                con.commit()            
     except psycopg2.Error as e:
-        print("Error in saving new instance place")
+        print("Error in saving new place")
         print(e.pgerror)
         print(e.diag.message_primary)
-        feedback = f"Erro: não consiguimos de guardar a nova instância."
+        feedback = f"Erro: não consiguimos de guardar o novo lugar. Se faz favor, tenta de novo."
         flash(feedback, "danger")
         con.close()
         return res
     else:
         print("Place added to database. p_id: ",p_id)
-        con.close()
         instance["p_id"] = p_id
 
+        #Save instance to database
+        try: 
+            with con:
+                with con.cursor() as cur:
+                    cur.execute("""
+                        INSERT INTO apregoar.instances (t_begin, t_end, t_desc, p_desc, s_id, p_id, u_id, t_type) 
+                        VALUES (%(t_begin)s, %(t_end)s, %(t_desc)s, %(p_desc)s, %(s_id)s, %(p_id)s, %(u_id)s, %(t_type)s)
+                        RETURNING i_id
+                        ;""",
+                        {'t_begin':t_begin, 't_end':t_end, 't_desc':t_desc, 'p_desc':p_desc, 's_id':s_id, 'p_id':p_id, 'u_id':u_id, 't_type':all_day}
+                    )
+                    i_id = cur.fetchone()[0]
+                    con.commit()
+                    con.close
+        except psycopg2.Error as e:
+            print("Error in saving new instance: ",e)
+            feedback = f"Erro: não consiguimos de guardar a nova instância. Se faz favor, tenta de novo."
+            flash(feedback, "danger")
+            con.close()
+            return res
+        else:
+            print("Instance added to database. i_id: ",i_id)
+            instance["i_id"]=i_id
+    
  
     return res
 

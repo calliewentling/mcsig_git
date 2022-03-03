@@ -67,39 +67,38 @@ body { margin: 0; padding: 0; }
 
 <div class="instanceform-box" id="save_instance">
     <h2>{{ story["title"] }}</h2>
-    <p>{{ sID }}</p>
-    <div id="testjs"></div>
     
     <h4> Definir uma instância (tempo e sítio) da notícia</h4>
     <p>Cada "instância" é uma oportunidade de elaborar onde e quando uma coisa está a acontacer. Cada notícia pode ter algumas notícias, e cada instância pode ter alguns sítios (polígonos). Escreve um ou mas polígonos aqui, dar um nome (não precisa de ser "oficial") e uma descrição. Definir as datas do início e o fim, um tipo de interval temporal, e afinal um descrição.</p>
     <br>
     <!-- <form method="post", action="/save_instance", method='post'> -->
     <div>   
-        <div id="selectName">
-            <input type="text" id="pName" name="pName" placeholder="Name" required>
-            <span class="error" aria-live="polite"></span>
-        </div>
-        <br>
-        <div id="selectDesc">
-            <input type="text" id="pDesc" name="pDesc" placeholder="Spatial description">
-        </div>
-        <br>
-        <div id="selectGeom"></div>
-        <br>
         <div>
-            <input type="date" id="tBegin" name="tBegin" placeholder="Begin day">
+            <h5>Localização/ões</h5>
+            <div id="selectName">
+                <input type="text" id="pName" name="pName" placeholder="Name" required>
+                <span class="error" aria-live="polite"></span>
+            </div>
+            <br>
+            <div id="selectDesc">
+                <input type="text" id="pDesc" name="pDesc" placeholder="Spatial description">
+            </div>
+            <br>
+            <div id="selectGeom"></div>
         </div>
-        <br>
         <div>
-            <input type="date" id="tEnd" name="tEnd" placeholder="End day">
-        </div>
-        <br>
-        <div>
-            <input type="text" id="tType" name="tType" placeholder="Type of Temporal Interval">
-        </div>
-        <br>
-        <div>
-            <input type="text" id="tDesc" name="tDesc" placeholder="Temporal description">
+            <h5>Hora(s)</h5>
+            <div>
+                <input type="radio" id="allday_y" name="allDay" value="allday_y" onClick="timeDefD()"> <!-- Default: checked="checked" -->
+                <label for="allday_y">Todo o dia</label>
+                <input type="radio" id="allday_n" name="allDay" value="allday_n" onClick="timeDefH()">
+                <label for="allday_n">Horas específicas</label>
+            </div>
+            <div id="optHours"></div>
+            <br>
+            <div>
+                <input type="text" id="tDesc" name="tDesc" placeholder="Temporal description">
+            </div>
         </div>
         <br>
         <div id="formButton"></div>
@@ -151,12 +150,22 @@ body { margin: 0; padding: 0; }
         // The user does not have to click the polygon control button first.
         defaultMode: 'draw_polygon'
     });
+    const optHours = document.getElementById('optHours')
+    
+    function timeDefH(){
+        optHours.innerHTML = "<input type='datetime-local' id='tBegin' name='tBegin'><input type='datetime-local' id='tEnd' name='tEnd'>";
+    }
+    function timeDefD(){
+        optHours.innerHTML = '<input type="date" id="tBegin" name="tBegin"> <input type="date" id="tEnd" name="tEnd">';
+    }
+    
+    
 
     var sID = '{{ sID }}';
-    const testjs = document.getElementById('testjs');
-    testjs.innerHTML = `<p>The sID is: ${sID}</p>`;
+    
     console.log("sID is: ");
     console.log(sID);
+    
 
     const answer = document.getElementById('calculated-area');
     const saveG = document.getElementById('selectGeom');
@@ -215,7 +224,6 @@ body { margin: 0; padding: 0; }
         var geom = geoPoly
         var tBeginf = document.getElementById("tBegin")
         var tEndf = document.getElementById("tEnd")
-        var tTypef = document.getElementById("tType")
         var tDescf = document.getElementById("tDesc")
 
         var entry = {
@@ -223,9 +231,9 @@ body { margin: 0; padding: 0; }
             properties : {
                 pName: pNamef.value,
                 pDesc: pDescf.value,
+                allDay: tBeginf.type,
                 tBegin: tBeginf.value,
                 tEnd: tEndf.value,
-                tType: tTypef.value,
                 tDesc: tDescf.value
             },
             geometry: geom
