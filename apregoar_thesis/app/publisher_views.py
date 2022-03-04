@@ -321,7 +321,10 @@ def review_e(s_id):
             SQL = text("SELECT * FROM apregoar.stories WHERE s_id = :x")
             SQL = SQL.bindparams(x=s_id)
             result = conn.execute(SQL)
+            conn.close()
+            
     except:
+        conn.close()
         print("Error in extracting desired story from database")
         feedback=f"Erro"
         flash(feedback,"danger")
@@ -331,7 +334,32 @@ def review_e(s_id):
             story = row
         print(story)
         if story:
-            return render_template("publisher/review.html", story=story, sID = s_id)
+            try:
+                with engine.connect() as conn:
+                    SQL = text("SELECT * FROM apregoar.instances i LEFT JOIN apregoar.ugazetteer u ON i.p_id = u.p_id WHERE s_id = :x")
+                    SQL = SQL.bindparams(x=s_id)
+                    print(SQL)
+                    result = conn.execute(SQL)
+                    
+                        
+            except:
+                print("Error in extracting instances for this story")
+                feedback=f"Não consiguimos de procurar as instâncias da história"
+                flash(feedback, "warning")
+                return render_template("publisher/review.html", story=story, sID = s_id, instances=[])
+            else:
+                instances = []
+                for row in result:
+                    instance = {
+                        row["i_id"] : {
+                            "p_name": row["p_name"],
+                            "t_begin": row["t_begin"].date(),
+                            "t_end": row["t_end"].date()
+                        }
+                    }
+                    instances.append(instance)
+                print(instances)
+                return render_template("publisher/review.html", story=story, sID = s_id, instances=instances) #
         else:
             feedback = f"No valid story selected"
             flash(feedback, "danger")
@@ -343,7 +371,7 @@ def review_e(s_id):
 def review():
     print()
     print("current user is: ",fsession["username"])
-    print("current user id is: ",fsession["u_id"])
+    print("current user id is: ",fsession["u_id"]) 
     print()
 
     try:
@@ -513,8 +541,8 @@ def save_instance(s_id):
         print("Error in saving new place")
         print(e.pgerror)
         print(e.diag.message_primary)
-        feedback = f"Erro: não consiguimos de guardar o novo lugar. Se faz favor, tenta de novo."
-        flash(feedback, "danger")
+        #feedback = f"Erro: não consiguimos de guardar o novo lugar. Se faz favor, tenta de novo."
+        #flash(feedback, "danger")
         con.close()
         return res
     else:
@@ -537,14 +565,15 @@ def save_instance(s_id):
                     con.close
         except psycopg2.Error as e:
             print("Error in saving new instance: ",e)
-            feedback = f"Erro: não consiguimos de guardar a nova instância. Se faz favor, tenta de novo."
-            flash(feedback, "danger")
+            #feedback = f"Erro: não consiguimos de guardar a nova instância. Se faz favor, tenta de novo."
+            #flash(feedback, "danger")
             con.close()
             return res
         else:
             print("Instance added to database. i_id: ",i_id)
             instance["i_id"]=i_id
-    
+            #feedback = f"Parabéns! A instância foi guardada com sucesso."
+            #flash(feedback, "success")
  
     return res
 

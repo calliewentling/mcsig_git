@@ -28,14 +28,27 @@
         
         <div class="card">
           <div class = "card-body">
-            <h2>Localizações</h2>
+            <h2>Localizações</h2> 
+
             <script>
               var storyID = "{{ sID }}"; //Replace with a function to get the actual s_id
               console.log(storyID);
               //Apparently document.write is considered bad practice. Replace in the future with something better
               document.write('<p> <a href="/publisher/'+storyID+'/localize"> <button type="button" class="btn btn-primary">Associar localização</button></a>');
             </script>
-            
+
+
+            {% if instances|length > 0 %}
+              {% for instance in instances %}
+                {% for iID, attributes in instance.items() %}
+                  <p>{{ attributes["p_name"] }} <i> {{ attributes["t_begin"] }} to {{ attributes["t_end"] }} </i></p>
+                {% endfor %}
+              {% endfor %}
+            {% else %}
+              <p><i>No instances associated with this story</i></p>
+            {% endif %}
+
+              
             <p>(This is where the map of existing instances will go)</p>
           </div>
         </div>
