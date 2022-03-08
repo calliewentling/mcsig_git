@@ -466,6 +466,42 @@ def localize(s_id):
     
     return render_template("publisher/dashboard.html")
 
+@app.route("/publisher/<i_id>/edit_instance", methods=["GET", "POST"])
+def edit_instance(i_id):
+    print("Instance ID: ",{i_id})
+    try:
+        with engine.connect() as conn:
+            SQL = text("""
+                SELECT * 
+                FROM ( SELECT *
+                        FROM apregoar.instances i
+                            LEFT JOIN apregoar.stories s ON i.s_id = s.s_id
+                        WHERE i_id = :x) AS si
+                    LEFT JOIN apregoar.ugazetteer u ON si.p_id = u.p_id;
+                """)
+            SQL = SQL.bindparams(x=i_id)
+            result = conn.execute(SQL)
+    except:
+        print("Error in extracting desired instance from database")
+        feedback=f"Erro"
+        flash(feedback,"danger")
+    else:
+        instance = {}
+        for row in result:
+            instance = row
+        print(instance)
+        if instance:
+            d_begin = instance["t_begin"].date()
+            d_end = instance["t_end"].date()
+            print(d_begin)
+            print(d_end)
+            return render_template("publisher/instance.html", instance=instance, dBegin = d_begin, dEnd = d_end)
+        else:
+            feedback = f"No valid instance selected"
+            flash(feedback, "danger")
+    
+    return render_template("publisher/dashboard.html")
+
 
 
 @app.route("/publisher/<s_id>/save_instance", methods=["POST"])

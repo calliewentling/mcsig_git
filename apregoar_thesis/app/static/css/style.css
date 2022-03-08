@@ -4,7 +4,14 @@ body {
 
 input:required,
 textarea:required {
-    border-color: red !important;
+    border-color:  red ; /*!important*/
+}
+input:required:invalid {
+     border-color: red;
+}
+
+input:required:valid {
+    border-color: green;
 }
 
 input:required + label {
