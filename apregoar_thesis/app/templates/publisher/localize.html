@@ -115,7 +115,9 @@
                         <label for="allday_n">Horas específicas</label><input type="radio" id="allday_n" name="allDay" value="allday_n" onClick="timeDefH()">
                         
                     </div>
-                    <div id="optHours"></div>
+                    <div>
+                        <input type="date" id="tBegin" name="tBegin" required> <input type="date" id="tEnd" name="tEnd"  required>
+                    </div>
                     <br>
                     <div>
                         <input type="text" id="tDesc" name="tDesc" placeholder="Temporal description">
@@ -190,14 +192,44 @@
         // The user does not have to click the polygon control button first.
         defaultMode: 'draw_polygon'
     });
-    const optHours = document.getElementById('optHours')
-    optHours.innerHTML = '<input type="date" id="tBegin" name="tBegin" required> <input type="date" id="tEnd" name="tEnd" required>';
+
+
+    const tBeginInput = document.getElementById("tBegin");
+    const tEndInput = document.getElementById("tEnd");
+    tBeginInput.type="date";
+    tEndInput.type="date";
+
+    tBeginInput.valueAsDate= new Date();
+    tEndInput.valueAsDate= new Date();
     
+    /* New time inputs */
     function timeDefH(){
-        optHours.innerHTML = "<input type='datetime-local' id='tBegin' name='tBegin' required><input type='datetime-local' id='tEnd' name='tEnd' required>";
+        var tBVal = new Date(document.getElementById("tBegin").value);
+        var tEVal = new Date(document.getElementById("tEnd").value);
+        tBText = tBVal.toISOString().substring(0,16);
+        tEText = tEVal.toISOString().substring(0,16);
+        console.log("tBText: ")
+        console.log(tBText);
+        var tBeginInput = document.getElementById("tBegin");
+        var tEndInput = document.getElementById("tEnd");
+        tBeginInput.type = 'datetime-local';
+        tEndInput.type = 'datetime-local';
+        tBeginInput.value = tBText;
+        tEndInput.value = tEText;
     }
     function timeDefD(){
-        optHours.innerHTML = '<input type="date" id="tBegin" name="tBegin" required> <input type="date" id="tEnd" name="tEnd" required>';
+        var tBVal = new Date(document.getElementById("tBegin").value);
+        var tEVal = new Date(document.getElementById("tEnd").value);
+        tBText = tBVal.toISOString().substring(0,10);
+        tEText = tEVal.toISOString().substring(0,10);
+        console.log("tBText");
+        console.log(tBText);
+        const tBeginInput = document.getElementById("tBegin");
+        const tEndInput = document.getElementById("tEnd");
+        tBeginInput.type = 'date';
+        tEndInput.type = 'date';
+        tBeginInput.value = tBText;
+        tEndInput.value = tEText;
     }
     
     

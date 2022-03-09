@@ -293,7 +293,7 @@ def publisher_dashboard():
             print("last added story: ",o_story)
             print("all stories associated with this organization: ",org_stories)
             print()
-            return render_template("publisher/dashboard.html", username=fsession["username"], organization=fsession["org"], userStories = user_stories, orgStories = org_stories)
+            return render_template("publisher/dashboard.html", username=fsession["username"], uID = fsession["u_id"], organization=fsession["org"], userStories = user_stories, orgStories = org_stories)
     else:
         print("No username found in fsession")
         feedback=f"Não há um user ativo."
@@ -313,16 +313,58 @@ def addstory():
     return render_template("publisher/create.html")
 
 
-@app.route("/publisher/<s_id>/review")
+
+
+@app.route("/publisher/<s_id>/review", methods=["GET","POST"])
 def review_e(s_id):
     print({s_id})
+    if request.method =="POST":
+        delete_req = request.form.to_dict()
+        print(delete_req)
+        delete_inst = []
+        for key in delete_req.keys():
+            key = int(key[8:])
+            delete_inst.append(key)
+        delete_inst
+        print(delete_inst)
+        try:
+            with engine.connect() as conn:
+                SQL = "SELECT p_id FROM apregoar.instances WHERE i_id IN %(delete_inst)s"
+                result = conn.execute(SQL, {
+                    'delete_inst': tuple(delete_inst),
+                })
+                delete_p = []
+                for i in result:
+                    delete_p.append(i["p_id"])
+                print("p_ids: ",delete_p)
+                SQL2 = "DELETE FROM apregoar.instances WHERE i_id IN %(delete_inst)s"
+                conn.execute(SQL2, {
+                    'delete_inst': tuple(delete_inst),
+                })
+                SQL3 = "DELETE FROM apregoar.ugazetteer WHERE p_id IN %(delete_p)s"
+                conn.execute(SQL3, {
+                    'delete_p': tuple(delete_p),
+                })
+                
+        except:
+            conn.close()
+            print("Error in finding related stories")
+            feedback=f"Erro na eliminação"
+            flash(feedback,"danger") 
+        else:
+            conn.close()
+            numInstDel = str(len(delete_inst))
+            feedback = numInstDel+" instâncias eliminadas"
+            flash(feedback, "success")
+            
+
+    # Normal behavior: load review
     try:
         with engine.connect() as conn:
             SQL = text("SELECT * FROM apregoar.stories WHERE s_id = :x")
             SQL = SQL.bindparams(x=s_id)
             result = conn.execute(SQL)
             conn.close()
-            
     except:
         conn.close()
         print("Error in extracting desired story from database")
@@ -340,8 +382,6 @@ def review_e(s_id):
                     SQL = SQL.bindparams(x=s_id)
                     print(SQL)
                     result = conn.execute(SQL)
-                    
-                        
             except:
                 print("Error in extracting instances for this story")
                 feedback=f"Não consiguimos de procurar as instâncias da história"
@@ -363,7 +403,7 @@ def review_e(s_id):
         else:
             feedback = f"No valid story selected"
             flash(feedback, "danger")
-    
+
     return render_template("publisher/dashboard.html")
 
 

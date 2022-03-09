@@ -26,7 +26,7 @@
       <div class="card">
         <div class="card-body">
           <h4>Publicar uma notícia nova</h4>
-          <a href="/publisher/addstory"><button> Publicar </button></a> 
+          <a href="/publisher/addstory"><button class="btn btn-primary"> Publicar </button></a> 
         </div>
       </div>
 
@@ -65,18 +65,30 @@
         <div class="card-body">
           <h3>Ver todos as notícias no mapa</h3>
           <p>(Put a sexy map here with all of the stories published by the publisher)</p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-body">
-          <h3>Short cut to test "localize"</h3>
-          <a href="/publisher/localize"><button> Draw Polygons </button></a>
+            <!-- THIS IS THE PUBLISHER NOTICIAS MAP -->
+            <div id="instanceMap" style="display:block">
+              <p>(This is where the map of existing instances will go)</p>
+              <div id="map" class="map"></div>
+              <!--<div id="info">&nbsp;</div>-->
+              <div id="popup" class="ol-popup">
+                <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+                <div id="popup-instances"></div>
+                <div id="popup-story"></div>
+              </div>
+              <div id="info"></div>
+            </div>
+        
         </div>
       </div>
 
     </div>
   </div>
 </div>
+
+<script>
+  var userID = "{{ uID }}";
+  console.log(userID);
+  var mapFilter = "u_id="+userID;
+</script>
 
 {% endblock %}

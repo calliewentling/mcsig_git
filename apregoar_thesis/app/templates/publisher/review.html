@@ -7,99 +7,8 @@
 <style>
 /* https://www.w3schools.com/howto/howto_js_collapsible.asp */
 /* Style the button that is used to open and close the collapsible content */
-.collapsible {
-background-color: #eee;
-  color: #444;
-  cursor: pointer;
-  padding: 18px;
-  width: 100%;
-  border: none;
-  text-align: left;
-  outline: none;
-  font-size: 15px;
-}
 
-/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
-.active, .collapsible:hover {
-  background-color: #ccc;
-}
-
-/* Style the collapsible content. Note: hidden by default */
-.ccontent {
-  padding: 0 18px;
-  display: none;
-  overflow: hidden;
-  background-color: #f1f1f1;
-}
-
-/* The switch - the box around the slider */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
-}
-
-/* Hide default HTML checkbox */
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-/* The slider */
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #21f344;
-  -webkit-transition: .4s;
-  transition: .4s;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
-}
-
-input:checked + .slider {
-  background-color: #2196F3; 
-  /*background-image: url(https://fonts.googleapis.com/icon?family=Material+Icons)*/
-}
-
-input:focus + .slider {
-  box-shadow: 0 0 1px #2196F3;
-}
-
-input:checked + .slider:before {
-  -webkit-transform: translateX(26px);
-  -ms-transform: translateX(26px);
-  transform: translateX(26px);
-}
-
-/* Rounded sliders */
-.slider.round {
-  border-radius: 34px;
-}
-
-.slider.round:before {
-  border-radius: 50%;
-}
-
-div.container1 {
-  text-align: center;
-}
-  </style>
+</style>
 </head>
 
   <!--<script src="{{ url_for('static', filename='js/create.js') }}"></script>-->
@@ -128,14 +37,7 @@ div.container1 {
           <div class = "card-body">
             <h2>Localizações</h2> 
 
-            <script>
-              var storyID = "{{ sID }}"; //Replace with a function to get the actual s_id
-              console.log(storyID);
-              //Apparently document.write is considered bad practice. Replace in the future with something better
-              document.write('<p> <a href="/publisher/'+storyID+'/localize"> <button type="button" class="btn btn-primary">Associar localização</button></a>');
-            </script>
-
-            <br>
+            
 
             <div class="container1">
               <label class="switch">
@@ -144,27 +46,69 @@ div.container1 {
               </label>
             </div>
 
+            
+            <!-- THIS IS THE INSTANCE LIST -->
             <div id="instanceList" style="display:none">
 
-              {% if instances|length > 0 %}
-                {% for instance in instances %}
-                  {% for iID, attributes in instance.items() %}
+              <script>
+                var storyID = "{{ sID }}"; //Replace with a function to get the actual s_id
+                console.log(storyID);
+                //Apparently document.write is considered bad practice. Replace in the future with something better
+                document.write('<p> <a href="/publisher/'+storyID+'/localize"> <button type="button" class="btn btn-primary">Associar localização</button></a>');
+              </script>
+  
+              <br>
 
-                    <script>
-                      var instanceID = "{{ iID }}";
-                      document.write('<p> <a href="/publisher/'+instanceID+'/edit_instance">{{ attributes["p_name"] }}</a> <i> {{ attributes["t_begin"] }} to {{ attributes["t_end"] }} </i></p>');
-                    </script>
+              <form action="review" method="POST">
+                {% if instances|length > 0 %}
+                  {% for instance in instances %}
+                    {% for iID, attributes in instance.items() %}
+                      {% set instanceID = "instance" ~ iID %}
+                      <label>
+                        <input id = "{{ instanceID }}" name = "{{ instanceID }}" type="checkbox" class = "listInstances"> {{ instanceID }} {{ attributes["p_name"] }} <i> {{ attributes["t_begin"] }} to {{ attributes["t_end"] }} </i>
+                      </label>
 
+                      <!--
+                      <script>
+                        var instanceID = "{{ iID }}";
+                        document.write('<input type="checkbox" class="listInstances" id="instance'+instanceID+'" name="instance'+instanceID+'"> {{ attributes["p_name"] }} <i> {{ attributes["t_begin"] }} to {{ attributes["t_end"] }} </i> ')
+                      </script>
+
+
+                        <label>
+                          <input type="checkbox" > {{ attributes["p_name"] }} <i> {{ attributes["t_begin"] }} to {{ attributes["t_end"] }} </i> 
+                        </label>
+                      <script>
+                          var instanceID = "{{ iID }}";
+                          document.write('<p> <a href="/publisher/'+instanceID+'/edit_instance">{{ attributes["p_name"] }}</a> <i> {{ attributes["t_begin"] }} to {{ attributes["t_end"] }} </i></p>');
+                      </script>
+                        -->
+                      
+                    {% endfor %}
                   {% endfor %}
-                {% endfor %}
-              {% else %}
-                <p><i>No instances associated with this story</i></p>
-              {% endif %}
+                {% else %}
+                  <p><i>No instances associated with this story</i></p>
+                {% endif %}
+                <br>
+                <button type="submit" class="btn btn-primary" id="submitDeleteI">Quer Eliminar</button>
+              </form>
             </div>
-
+              
+            <!-- THIS IS THE INSTANCE MAP -->
             <div id="instanceMap" style="display:block">
               <p>(This is where the map of existing instances will go)</p>
+              <div id="map" class="map"></div>
+              <!--<div id="info">&nbsp;</div>-->
+              <div id="popup" class="ol-popup">
+                <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+                <div id="popup-instances"></div>
+                <div id="popup-story" display="none"></div>
+              </div>
+              <div id="info"></div>
             </div>
+            
+
+
           </div>
 
         </div>
@@ -188,6 +132,11 @@ div.container1 {
         instanceMap.style.display = "block";
       }
     }
+
+    var mapFilter = "s_id="+storyID;
+
+    
+
   </script>
 
 {% endblock %}

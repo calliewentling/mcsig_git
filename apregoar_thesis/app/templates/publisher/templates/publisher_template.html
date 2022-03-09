@@ -11,10 +11,11 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
   <!-- Import our custom stylesheet -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/map_style.css') }}">
 
   <title>{% block title %}{% endblock title %}</title>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/css/ol.css" type="text/css">
 </head>
 
 <body>
@@ -101,8 +102,11 @@
   <script src="{{ url_for('static', filename='js/jquery.slim.min.js') }}"></script>
   <!-- Import Bootstrap bundle -->
   <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+  <!-- Import OpenLayers JavaScript -->
+  <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/build/ol.js"></script>
   <!-- Import our custom JavaScript -->
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/map.js') }}"></script>
   {% block script %}{% endblock %}
 </body>
 
