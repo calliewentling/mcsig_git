@@ -1,6 +1,6 @@
 {% extends "publisher/templates/publisher_template.html" %}
 
-{% block title %}Publisher dashboard{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block main %}
 
@@ -87,8 +87,11 @@
 
 <script>
   var userID = "{{ uID }}";
+  console.log("User ID: ");
   console.log(userID);
   var mapFilter = "u_id="+userID;
+  console.log("Map filter: ")
+  console.log(mapFilter);
 </script>
 
 {% endblock %}

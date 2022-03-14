@@ -20,7 +20,7 @@
         <h1> {{ story["title"] }} </h1>
         <hr>
 
-        <!-- THIS IS UNTESTED -->
+        <!-- SUMMARY  -->
         <div class ="card">
           <div class = "card-body">
             <h2>{{ story["section"] }}, {{ story["pub_date"] }}</h2>
@@ -33,12 +33,12 @@
           </div>
         </div>
         
+        <!-- INSTANCES -->
         <div class="card">
           <div class = "card-body">
             <h2>Localizações</h2> 
 
-            
-
+            <!-- TOGGLE -->
             <div class="container1">
               <label class="switch">
                 <input id ="tswitch" type="checkbox" onclick = "toggleMap()">
@@ -46,19 +46,19 @@
               </label>
             </div>
 
-            
-            <!-- THIS IS THE INSTANCE LIST -->
+            <!-- EDIT INSTANCES -->
             <div id="instanceList" style="display:none">
-
+              <!-- CREATE NEW INSTANCE -->
               <script>
                 var storyID = "{{ sID }}"; //Replace with a function to get the actual s_id
+                deleteStoryID = "deleteStory"+storyID;
                 console.log(storyID);
+                console.log(deleteStoryID);
                 //Apparently document.write is considered bad practice. Replace in the future with something better
                 document.write('<p> <a href="/publisher/'+storyID+'/localize"> <button type="button" class="btn btn-primary">Associar localização</button></a>');
               </script>
-  
               <br>
-
+              <!-- DELETE INSTANCES -->
               <form action="review" method="POST">
                 {% if instances|length > 0 %}
                   {% for instance in instances %}
@@ -66,56 +66,35 @@
                       {% set instanceID = "instance" ~ iID %}
                       <label>
                         <input id = "{{ instanceID }}" name = "{{ instanceID }}" type="checkbox" class = "listInstances"> {{ instanceID }} {{ attributes["p_name"] }} <i> {{ attributes["t_begin"] }} to {{ attributes["t_end"] }} </i>
-                      </label>
-
-                      <!--
-                      <script>
-                        var instanceID = "{{ iID }}";
-                        document.write('<input type="checkbox" class="listInstances" id="instance'+instanceID+'" name="instance'+instanceID+'"> {{ attributes["p_name"] }} <i> {{ attributes["t_begin"] }} to {{ attributes["t_end"] }} </i> ')
-                      </script>
-
-
-                        <label>
-                          <input type="checkbox" > {{ attributes["p_name"] }} <i> {{ attributes["t_begin"] }} to {{ attributes["t_end"] }} </i> 
-                        </label>
-                      <script>
-                          var instanceID = "{{ iID }}";
-                          document.write('<p> <a href="/publisher/'+instanceID+'/edit_instance">{{ attributes["p_name"] }}</a> <i> {{ attributes["t_begin"] }} to {{ attributes["t_end"] }} </i></p>');
-                      </script>
-                        -->
-                      
+                      </label>                      
                     {% endfor %}
                   {% endfor %}
                 {% else %}
                   <p><i>No instances associated with this story</i></p>
                 {% endif %}
                 <br>
-                <button type="submit" class="btn btn-primary" id="submitDeleteI">Quer Eliminar</button>
+                <label id="deleteStoryArea">
+                </label>
+                <button type="submit" class="btn btn-primary" id="submitDeleteI">Eliminar</button>
               </form>
             </div>
-              
-            <!-- THIS IS THE INSTANCE MAP -->
+            <!-- VIEW INSTANCS  -->
             <div id="instanceMap" style="display:block">
-              <p>(This is where the map of existing instances will go)</p>
               <div id="map" class="map"></div>
-              <!--<div id="info">&nbsp;</div>-->
               <div id="popup" class="ol-popup">
                 <a href="#" id="popup-closer" class="ol-popup-closer"></a>
                 <div id="popup-instances"></div>
                 <div id="popup-story" display="none"></div>
               </div>
-              <div id="info"></div>
+              <div id="info">&nbsp;</div>
             </div>
-            
-
-
           </div>
-
         </div>
       </div>
     </div>
   </div>
 
+  <!-- JAVASCRIPT -->
   <script>
     function toggleMap(){
       //Get the checkbox
@@ -134,9 +113,17 @@
     }
 
     var mapFilter = "s_id="+storyID;
+    console.log("Map filter: ")
+    console.log(mapFilter);
+
+    var deleteStory = document.getElementById("deleteStoryArea");
+    deleteStoryArea.innerHTML = '<input id = '+deleteStoryID+' name = '+ deleteStoryID+' type="checkbox" onclick=temCerteza() class = "deleteStory"> Eliminar notícia e todas as instâncias associadas.';
+
+    function temCerteza(){
+      console.log("Entered temCerteza")
+    }
 
     
-
   </script>
 
 {% endblock %}

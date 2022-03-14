@@ -35,11 +35,13 @@ const attributions =
     '<a href="https://www.maptiler.com/copyright/" target="_blank">&copy; MapTiler</a> ' +
     '<a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap contributors</a>';
  
+
+
 const wmsSource = new ol.source.ImageWMS({
     url: 'http://localhost:8080/geoserver/apregoar/wms',
     /*params: {"LAYERS":"apregoar:geonoticias"},*/ //OG
     params: {"LAYERS":"apregoar:geonoticias",
-        "cql_filter":mapFilter}, //test
+        "cql_filter":mapFilter}, //Set on each individual page
     serverType: 'geoserver',
     crossOrigin: 'anonymous',
 });
@@ -65,8 +67,9 @@ const map = new ol.Map({
     view: view,
    });
  
-wmsLayer.setOpacity(0.7)
+wmsLayer.setOpacity(0.7);
 map.addLayer(wmsLayer);
+console.log("We got to add layer part!");
  
  
  
@@ -113,7 +116,7 @@ map.on('singleclick', function (evt) {
                     sID = features[f].properties.s_id;
                     title = features[f].properties.title;
                     summary = features[f].properties.summary;
-                    pubDate = features[f].properties.pub_date;
+                    pubDate = new Date(features[f].properties.pub_date);
                     webLink = features[f].properties.web_link;
                     section = features[f].properties.section;
                     tags = features[f].properties.tags;
@@ -122,8 +125,9 @@ map.on('singleclick', function (evt) {
 
                     /* Preparing instance info */
                     iID = features[f].properties.i_id;
-                    tBegin = features[f].properties.t_begin;
-                    tEnd = features[f].properties.t_end;
+                    tBegin = new Date(features[f].properties.t_begin);
+                    tEnd = new Date(features[f].properties.t_end);
+                    //console.log("tBegin type: "+typeof(tBegin)+', value: '+tBegin);
                     tType = features[f].properties.t_type;
                     tDesc = features[f].properties.t_desc;
                     pDesc = features[f].properties.p_desc;
@@ -132,21 +136,32 @@ map.on('singleclick', function (evt) {
                     pGeom = features[f].properties.geom;
 
                     /* Publisher: All Stories Popup */
-                    var storyBlock = '<h3>' + title + '</h3>' +
-                    '<a href="' + webLink +'"> Notícia </a>';
+                    var storyBlock = 
+                        '<h3>' + title + '</h3>' +
+                        '<em>' + pubDate.toDateString() + '</em>'+
+                        '<p> <b>' + section + '</b>' + tags + '</p>' +  
+                        '<a href="' + webLink +'"> Notícia </a>';
+                    
+                    /* Publisher: Story Review Popup */
+                    var instanceBlock = 
+                        '<h3>' + pName + '</h3>' +
+                        '<p>'+pDesc+'</p>' +
+                        '<em> <p>'+tBegin.toDateString()+' - '+tEnd.toDateString()+'</p>'+
+                        '<p>'+tDesc+'</p></em>';
                     
 
-                    /* Publisher: Story Review Popup */
-                    var instanceBlock = '<h3>' + pName + '</h3> <p>'+tBegin+' - '+tEnd+'<p>';
-                    instContent.innerHTML = instanceBlock;
-                    notpop.innerHTML = instanceBlock; 
-
                     if (docTitle === "Review") {
+                        console.log("In Review if");
+                        console.log("docTitle: "+docTitle);
                         instContent.innerHTML = instanceBlock;
                         notpop.innerHTML = instanceBlock;
                     } else if (docTitle === "Dashboard") {
+                        console.log("In DASHBOARD if");
+                        console.log("docTitle: "+docTitle);
                         storyContent.innerHTML = storyBlock;
                     } else {
+                        console.log("In else");
+                        console.log("docTitle: "+docTitle);
                         storyContent.innerHTML = storyBlock;
                     }
 

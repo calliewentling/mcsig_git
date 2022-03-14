@@ -323,6 +323,21 @@ def review_e(s_id):
         print(delete_req)
         delete_inst = []
         for key in delete_req.keys():
+            if "deleteStory" in key:
+                print("We're deleting a story! Continue dev here!")
+                """
+                try:
+                    with engine.connect() as conn:
+                        SQL = "SELECT p_id FROM apregoar.instances WHERE s_id IN %(s_id)s"
+                        result = conn.execute(SQL, {
+                            's_id': tuple(s_id),
+                        })
+                        delete_p = []
+                        for i in result:
+                            delete_p.append(i["p_id"])
+                        print("p_ids: ", delete_p)
+                        SQL
+                """
             key = int(key[8:])
             delete_inst.append(key)
         delete_inst
