@@ -48,7 +48,7 @@
 
             <!-- EDIT INSTANCES -->
             <div id="instanceList" style="display:none">
-              <!-- CREATE NEW INSTANCE -->
+              <!-- MANAGE INSTANCES -->
               <script>
                 var storyID = "{{ sID }}"; //Replace with a function to get the actual s_id
                 deleteStoryID = "deleteStory"+storyID;
@@ -58,7 +58,7 @@
                 document.write('<p> <a href="/publisher/'+storyID+'/localize"> <button type="button" class="btn btn-primary">Associar localização</button></a>');
               </script>
               <br>
-              <!-- DELETE INSTANCES -->
+              <!-- DELETE INSTANCES/STORY -->
               <form action="review" method="POST">
                 {% if instances|length > 0 %}
                   {% for instance in instances %}

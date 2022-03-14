@@ -322,26 +322,62 @@ def review_e(s_id):
         delete_req = request.form.to_dict()
         print(delete_req)
         delete_inst = []
+        delete_story = []
         for key in delete_req.keys():
             if "deleteStory" in key:
-                print("We're deleting a story! Continue dev here!")
-                """
+                key = int(key[11:])
+                delete_story.append(key)
+                print("key type: ",type(key))
+                print("We're deleting a story (ID: ",key,")! Continue dev here!")
+                print("The story key of the page = ",s_id)
+                #Delete story and related instances
+                
                 try:
                     with engine.connect() as conn:
-                        SQL = "SELECT p_id FROM apregoar.instances WHERE s_id IN %(s_id)s"
+                        print("Arrived in try")
+                        SQL = "SELECT i_id FROM apregoar.instances WHERE s_id = %(s_id)s"
+                        #result = conn.execute(SQL)
+                        #SQL = "SELECT i_id FROM apregoar.instances WHERE s_id IN %(s_id)s"
                         result = conn.execute(SQL, {
-                            's_id': tuple(s_id),
+                            's_id': s_id
                         })
-                        delete_p = []
+                        print("Did we make it here?")
+                        delete_i = []
                         for i in result:
-                            delete_p.append(i["p_id"])
-                        print("p_ids: ", delete_p)
-                        SQL
-                """
-            key = int(key[8:])
-            delete_inst.append(key)
-        delete_inst
-        print(delete_inst)
+                            delete_i.append(i["i_id"])
+                        print("Related instances: ", delete_i, " Totalling: ", len(delete_i))
+                        print("Associated places not deleted... yet!")
+                        #Testing here
+                        SQL2 = "DELETE FROM apregoar.instances WHERE s_id = %(s_id)s"
+                        conn.execute(SQL2, {
+                            's_id': s_id,
+                        })
+                        print("Instances deleted")
+                        SQL3 = "DELETE FROM apregoar.stories WHERE s_id = %(s_id)s"
+                        conn.execute(SQL3, {
+                            's_id': s_id
+                        })
+                        print("Story deleted")
+                
+                except: 
+                    conn.close()
+                    print("Error in finding story, related instances and places")
+                    feedback=f"Erro na eliminação"
+                    flash(feedback,"danger")
+                else:
+                    conn.close()
+                    num_i_d=str(len(delete_i))
+                    print("Successfully deleted story and ",len(delete_i),"associated instances")
+                    feedback = "Notícia e "+num_i_d+" instâncias reletadas eliminadas"
+                    flash(feedback, "success")
+                    #We should go to the next scenario
+                    return redirect(url_for("publisher_dashboard")) 
+                
+            else: #Assuming that we're deleting an instance
+                key = int(key[8:]) #Extract instance key (ignore "instance", capture number)
+                delete_inst.append(key)
+                delete_inst
+                print(delete_inst)
         try:
             with engine.connect() as conn:
                 SQL = "SELECT p_id FROM apregoar.instances WHERE i_id IN %(delete_inst)s"
@@ -356,11 +392,14 @@ def review_e(s_id):
                 conn.execute(SQL2, {
                     'delete_inst': tuple(delete_inst),
                 })
+                #Functional... but should this remain, or should locations be deleted separately?
+                """
                 SQL3 = "DELETE FROM apregoar.ugazetteer WHERE p_id IN %(delete_p)s"
                 conn.execute(SQL3, {
                     'delete_p': tuple(delete_p),
                 })
-                
+                """
+                        
         except:
             conn.close()
             print("Error in finding related stories")
@@ -371,7 +410,7 @@ def review_e(s_id):
             numInstDel = str(len(delete_inst))
             feedback = numInstDel+" instâncias eliminadas"
             flash(feedback, "success")
-            
+                    
 
     # Normal behavior: load review
     try:
