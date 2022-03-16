@@ -1,6 +1,7 @@
 /**
 * Elements that make up the popup.
 */
+
 var docTitle = document.title;
 console.log(docTitle);
 const container = document.getElementById('popup');
@@ -24,11 +25,14 @@ const overlay = new ol.Overlay({
 * Add a click handler to hide the popup.
 * @return {boolean} Don't follow the href.
 */
-closer.onclick = function () {
-    overlay.setPosition(undefined);
-    closer.blur();
-    return false;
-};
+if (closer) {
+    closer.onclick = function () {
+        overlay.setPosition(undefined);
+        closer.blur();
+        return false;
+    };
+}
+
  
 const key = 'Jf5RHqVf6hGLR1BLCZRY';
 const attributions =
@@ -37,19 +41,32 @@ const attributions =
  
 
 
-const wmsSource = new ol.source.ImageWMS({
-    url: 'http://localhost:8080/geoserver/apregoar/wms',
-    /*params: {"LAYERS":"apregoar:geonoticias"},*/ //OG
-    params: {"LAYERS":"apregoar:geonoticias",
-        "cql_filter":mapFilter}, //Set on each individual page
-    serverType: 'geoserver',
-    crossOrigin: 'anonymous',
-});
- 
-const wmsLayer = new ol.layer.Image({
-    source: wmsSource,
-});
- 
+//Styling layers
+const styleStory = [
+    new ol.style.Style({
+        stroke: new ol.style.Stroke({
+            color: 'red',
+            width: '3',
+        }),
+        fill: new ol.style.Fill({
+            color: 'red',
+        }),
+    }),
+];
+
+const styleGazAdmin = [
+    new ol.style.Style({
+        stroke: new ol.style.Stroke({
+            color: 'blue',
+            width: '3',
+        }),
+        fill: new ol.style.Fill({
+            color: 'rgba(0,0, 255, 0.1)',
+        }),
+    }),
+];
+
+//Generic Map Setup
 const view = new ol.View({
     projection: 'EPSG:4326',
     center: [-9.150404956762742,38.72493479806579],
@@ -65,11 +82,34 @@ const map = new ol.Map({
     overlays: [overlay],
     target: 'map',
     view: view,
-   });
+});
+
+
+// Add Story shapes
+const wmsSourceStory = new ol.source.ImageWMS({
+    url: 'http://localhost:8080/geoserver/apregoar/wms',
+    /*params: {"LAYERS":"apregoar:geonoticias"},*/ //OG
+    params: {"LAYERS":"apregoar:geonoticias",
+        "cql_filter":mapStoryFilter}, //Set on each individual page
+    serverType: 'geoserver',
+    crossOrigin: 'anonymous',
+});
+const wmsLayerStory = new ol.layer.Image({
+    source: wmsSourceStory,
+    style: styleStory,
+});
+wmsLayerStory.setOpacity(0.7);
+map.addLayer(wmsLayerStory);
+console.log("Story instances added");
+
+
+
+
+
+
  
-wmsLayer.setOpacity(0.7);
-map.addLayer(wmsLayer);
-console.log("We got to add layer part!");
+
+
  
  
  
@@ -82,7 +122,7 @@ map.on('singleclick', function (evt) {
  
     document.getElementById('info').innerHTML = '';
     const viewResolution = /** @type {number} */ (view.getResolution());
-    const url = wmsSource.getFeatureInfoUrl(
+    const url = wmsSourceStory.getFeatureInfoUrl(
         evt.coordinate,
         viewResolution,
         'EPSG:4326',

@@ -544,16 +544,45 @@ def localize(s_id):
             SQL = SQL.bindparams(x=s_id)
             result = conn.execute(SQL)
     except:
+        conn.close()
         print("Error in extracting desired story from database")
         feedback=f"Erro"
         flash(feedback,"danger")
     else:
+        conn.close()
         story = {}
         for row in result:
             story = row
         print(story)
+        egaz = []
         if story:
-            return render_template("publisher/localize.html", story=story, sID = s_id)
+            try:
+                with engine.connect() as conn:
+                    SQL2 = text("SELECT * FROM apregoar.admin_gaz")
+                    result2 = conn.execute(SQL2)
+            except:
+                print("Extraction of admin gazetteer unsuccessful")
+                conn.close()
+                print("Error in extracting Existing Admin gazetteer from database")
+                feedback = f"Não conseguimos de carregar localizações existentes"
+                flash(feedback,"warning")
+                print("egaz: ",egaz)
+                return render_template("publisher/localize.html", story=story, sID = s_id, eAGaz=egaz)
+            else:
+                conn.close()
+                print("Successful extraction of egazetteer!")
+                for row in result2:
+                    
+                    entry_egaz = {
+                        "e_ids": row["e_ids"],
+                        "type": row["type"],
+                        "name": row["name"],
+                        "geom": row["t_geom"]
+                    }
+                    egaz.append(entry_egaz)
+                print("Number of egazetteer entries extracted: ",len(egaz))
+                
+                return render_template("publisher/localize.html", story=story, sID = s_id, eAGaz=egaz)
         else:
             feedback = f"No valid story selected"
             flash(feedback, "danger")

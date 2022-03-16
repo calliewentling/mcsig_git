@@ -64,7 +64,7 @@
                   {% for instance in instances %}
                     {% for iID, attributes in instance.items() %}
                       {% set instanceID = "instance" ~ iID %}
-                      <label>
+                      <label class="cozycheck">
                         <input id = "{{ instanceID }}" name = "{{ instanceID }}" type="checkbox" class = "listInstances"> {{ instanceID }} {{ attributes["p_name"] }} <i> {{ attributes["t_begin"] }} to {{ attributes["t_end"] }} </i>
                       </label>                      
                     {% endfor %}
@@ -73,7 +73,7 @@
                   <p><i>No instances associated with this story</i></p>
                 {% endif %}
                 <br>
-                <label id="deleteStoryArea">
+                <label id="deleteStoryArea" class="cozycheck">
                 </label>
                 <button type="submit" class="btn btn-primary" id="submitDeleteI">Eliminar</button>
               </form>
@@ -111,10 +111,10 @@
         instanceMap.style.display = "block";
       }
     }
-
-    var mapFilter = "s_id="+storyID;
+    var mapEAGazFilter = "";
+    var mapStoryFilter = "s_id="+storyID;
     console.log("Map filter: ")
-    console.log(mapFilter);
+    console.log(mapStoryFilter);
 
     var deleteStory = document.getElementById("deleteStoryArea");
     deleteStoryArea.innerHTML = '<input id = '+deleteStoryID+' name = '+ deleteStoryID+' type="checkbox" onclick=temCerteza() class = "deleteStory"> Eliminar notícia e todas as instâncias associadas.';
