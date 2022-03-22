@@ -2,6 +2,7 @@ body {
     background-color: #f1f1f1;
 }
 
+/* Inputs */
 input:required,
 textarea:required {
     border-color:  red ; /*!important*/
@@ -17,6 +18,8 @@ input:required:valid {
 input:required + label {
     color: red;
 }
+
+
 
 form {
     padding: 10px;

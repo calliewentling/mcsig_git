@@ -64,12 +64,10 @@
 
 {% block main %}
 
-
 <!--<script src="{{ url_for('static', filename='js/create.js') }}"></script> -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-
 
 <script>
     $(document).ready(function(){
@@ -83,8 +81,13 @@
     
         <h1>Localizar as Notícias</h1>
         <h3>{{ story["title"] }}</h3>
+        
+        <div id="mapDesign" style="display:none"></div>
+        <div id="eGazMap" style="display:block">
+            <div id="map" class="map"></div>
+        </div>
 
-        <div>
+        <div class="card" id="save_instance" >
             <p> Definir uma instância (tempo e sítio) da notícia
                 <a 
                     href="#" 
@@ -93,33 +96,15 @@
                     <span class="material-icons">info</span>
                 </a>
             </p>
-        </div>
-        
-        <div id="eGazMap" style="display:block">
-            <div id="map" class="map"></div>
-        </div>
-        <br> 
-        <div class="card" id="save_instance" >             
+            <br>   
             <h4>Localização/ões</h4>
-            <form method="POST" action="review">
-                {% if eGazF|length > 0 %}
-                    <div id="list1" class="dropdown-check-list" tabindex="100">
-                        <span class="anchor">Carregar freguesias existentes</span>
-                        <ul id="items" class="items">
-                            {% for eGazItem in eGazF %}
-                                <li><input type="checkbox" name="eGazFreg" value="{{ eGazItem.e_ids }}">{{ eGazItem.name }}</li>
-                            {% endfor %}
-                        </ul>
-                        
-                    </div>
-                {% else %}
-                    <p><em>Desculpa, as áreas existentes não carregeram.</em></p>
-                {% endif %}
-
-                <button type="button" class="btn btn-primary" onclick="vizEgaz('eGazFreg')">Prever</button>
-                  
-            </form>
-            
+            <!-- TOGGLE -->
+            <div class="container1">
+                <label class="switch">
+                    <input id ="tswitch" type="checkbox" onclick = "toggleLocalization()">
+                    <span class="slider round"></span>
+                </label>
+            </div>
 
             <!-- USE EGAZ (EXISTING) -->
             <div id="useEgaz" style="display:block">
@@ -158,7 +143,6 @@
             </div>    
                 
             <!-- DESIGN NEW (UGAZ) -->
-            <div id="mapDesign" style="display:none"></div>
             
             <div id="newUgaz" style="display:none">
                 <h5>Desenhar uns localizações novos</h5>
@@ -200,24 +184,12 @@
             <div id="btnReturn"></div>
             <button type="button" class="btn btn-primary" onclick=limparTudo()>Limpar tudo</button>
         </div>
-
-        <!-- TOGGLE -->
-        <div class="container1">
-            <label class="switch">
-                <input id ="tswitch" type="checkbox" onclick = "toggleLocalization()">
-                <span class="slider round"></span>
-            </label>
-        </div>
-
     </div>
 </div>
 
 <!-- Load the `mapbox-gl-geocoder` plugin. -->
 <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
 <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css" type="text/css">
-
-
-
 
 <script>
 
@@ -295,45 +267,6 @@
 
     // Visualize selection of eGaz item on the map
     function vizEgaz(typeGaz) {
-        console.log("Entering vizEgaz");
-        var selectedFreg = document.getElementsByName("eGazFreg");
-        var numberOfFreg = 0;
-        var selectedP = [];
-        for (var i = 0; i < selectedFreg.length; i++) {
-            if(selectedFreg[i].checked) {
-                numberOfFreg++;
-                var place = String(selectedFreg[i].value);
-                var placeString = `\'${place}\'`
-                console.log("place: ",placeString);
-                selectedP.push(placeString);
-            }
-        }
-        console.log("selectedP: ",selectedP);
-        
-        mapEAGazFilter = "e_ids IN ("+selectedP+")";
-        console.log("mapFilter: ",mapEAGazFilter);
-
-
-        // Add eGaz shapes
-        const wmsSourceEAGaz = new ol.source.ImageWMS({
-            url: 'http://localhost:8080/geoserver/apregoar/wms',
-            params: {"LAYERS":"apregoar:admin_gaz",
-                "cql_filter":mapEAGazFilter}, //Set on each individual page
-            serverType: 'geoserver',
-            crossOrigin: 'anonymous',
-        });
-        const wmsLayerEAGaz = new ol.layer.Image({
-            source: wmsSourceEAGaz,
-            style: styleGazAdmin,
-        });
-        wmsLayerEAGaz.setOpacity(0.9);
-        map.addLayer(wmsLayerEAGaz);
-        console.log("Egaz added to map")
-
-    }
-
-        /*
-
         selectedPNames = []; //Should be removed when handling multiples
         console.log("test of input type",typeGaz);
         console.log("We entered the onclick of the datalist");
@@ -363,11 +296,11 @@
             }
         }
         selectedEgaz.innerHTML = selectedPNames;
-        
 
         // Add eGaz shapes
         const wmsSourceEAGaz = new ol.source.ImageWMS({
             url: 'http://localhost:8080/geoserver/apregoar/wms',
+            /*params: {"LAYERS":"apregoar:geonoticias"},*/ //OG
             params: {"LAYERS":"apregoar:admin_gaz",
                 "cql_filter":mapEAGazFilter}, //Set on each individual page
             serverType: 'geoserver',
@@ -383,7 +316,6 @@
 
     
     }
-    */
 
     //Return to previous story button
     const btnReturn = document.getElementById("btnReturn");

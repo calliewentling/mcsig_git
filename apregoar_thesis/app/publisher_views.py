@@ -554,7 +554,10 @@ def localize(s_id):
         for row in result:
             story = row
         print(story)
-        egaz = []
+        egaz_area = []
+        egaz_freguesia = []
+        egaz_concelho = []
+        egaz_extra = []
         if story:
             try:
                 with engine.connect() as conn:
@@ -566,23 +569,29 @@ def localize(s_id):
                 print("Error in extracting Existing Admin gazetteer from database")
                 feedback = f"Não conseguimos de carregar localizações existentes"
                 flash(feedback,"warning")
-                print("egaz: ",egaz)
-                return render_template("publisher/localize.html", story=story, sID = s_id, eAGaz=egaz)
+                print("No egaz")
+                return render_template("publisher/localize.html", story=story, sID = s_id, eGazF=egaz_freguesia)
             else:
                 conn.close()
                 print("Successful extraction of egazetteer!")
-                for row in result2:
-                    
+                for row in result2:                  
                     entry_egaz = {
                         "e_ids": row["e_ids"],
-                        "type": row["type"],
+                        #"type": row["type"],
                         "name": row["name"],
-                        "geom": row["t_geom"]
+                        #"geom": row["t_geom"]
                     }
-                    egaz.append(entry_egaz)
-                print("Number of egazetteer entries extracted: ",len(egaz))
+                    if row["type"] == "freguesia":
+                        egaz_freguesia.append(entry_egaz)
+                    elif row["type"] == "Concelho":
+                        egaz_concelho.append(entry_egaz)
+                    elif row["type"] == "Área Administrativa":
+                        egaz_area.append(entry_egaz)
+                    else:
+                        egaz_extra.append(entry_egaz)
+                print("Number of egazetteer freguesia entries extracted: ",len(egaz_freguesia))
                 
-                return render_template("publisher/localize.html", story=story, sID = s_id, eAGaz=egaz)
+                return render_template("publisher/localize.html", story=story, sID = s_id, eGazF=egaz_freguesia, eGazC=egaz_concelho, eGazA = egaz_area, eGazX = egaz_extra)
         else:
             feedback = f"No valid story selected"
             flash(feedback, "danger")
