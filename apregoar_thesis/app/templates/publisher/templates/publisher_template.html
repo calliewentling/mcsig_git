@@ -94,6 +94,8 @@
       {% endwith %}
     </div>
   </div>
+  <!-- Import OpenLayers JavaScript -->
+  <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/build/ol.js"></script>
 
   <main>
     {% block main %}{% endblock main %}
@@ -103,8 +105,7 @@
   <script src="{{ url_for('static', filename='js/jquery.slim.min.js') }}"></script>
   <!-- Import Bootstrap bundle -->
   <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
-  <!-- Import OpenLayers JavaScript -->
-  <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/build/ol.js"></script>
+  
   <!-- Import our custom JavaScript -->
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
   <script src="{{ url_for('static', filename='js/map.js') }}"></script>

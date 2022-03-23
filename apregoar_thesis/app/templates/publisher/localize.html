@@ -60,7 +60,7 @@
 
 {% extends "publisher/templates/publisher_template.html" %}
 
-{% block title %}Notícia Nova{% endblock %}
+{% block title %}Localize{% endblock %}
 
 {% block main %}
 
@@ -102,60 +102,44 @@
         <div class="card" id="save_instance" >             
             <h4>Localização/ões</h4>
             <form method="POST" action="review">
+                <button type="button" class="btn btn-primary" onclick="vizEgaz('eGazFreg')">Prever</button>
+                <!--
                 {% if eGazF|length > 0 %}
-                    <div id="list1" class="dropdown-check-list" tabindex="100">
+                    <div id="listGazF" class="dropdown-check-list" tabindex="100">
                         <span class="anchor">Carregar freguesias existentes</span>
-                        <ul id="items" class="items">
+                        <ul id="itemsF" class="items">
                             {% for eGazItem in eGazF %}
                                 <li><input type="checkbox" name="eGazFreg" value="{{ eGazItem.e_ids }}">{{ eGazItem.name }}</li>
                             {% endfor %}
                         </ul>
-                        
                     </div>
                 {% else %}
-                    <p><em>Desculpa, as áreas existentes não carregeram.</em></p>
+                    <p><em>Desculpa, as freguesias não estão carregadas.</em></p>
+                {% endif %}
+                -->
+
+                {% if eGazC|length > 0 %}
+                    <div id="listGazC" class="dropdown-check-list" tabindex="100">
+                        <span class="anchor">Carregar Concelhos existentes</span>
+                        <ul id="itemsC" class="items">
+                            {% for eGazItem in eGazC %}
+                                <li><input type="checkbox" name="eGazConcelho" value="{{ eGazItem.e_ids }}">{{ eGazItem.name }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% else %}
+                    <p><em>Desculpa, as freguesias não estão carregadas.</em></p>
                 {% endif %}
 
-                <button type="button" class="btn btn-primary" onclick="vizEgaz('eGazFreg')">Prever</button>
+                <label for="type">Geometry type &nbsp;</label>
+                <select id="type">
+                  <option value="Point">Point</option>
+                  <option value="LineString">LineString</option>
+                  <option value="Polygon">Polygon</option>
+                  <option value="Circle">Circle</option>
+                </select>    
                   
             </form>
-            
-
-            <!-- USE EGAZ (EXISTING) -->
-            <div id="useEgaz" style="display:block">
-                <h5>Carregar localizações existentes</h5>
-                <div id="gazAdmin">
-                    {% if eGazF|length > 0 %}
-                    <!--
-                        <input list="listEGaz" id="entryEGaz" name="entryEGaz" placeholder="Gazetteer Administrativa" required>
-                        <datalist id="listEGaz">
-                            {% for eGazItem in eAGaz %}
-                                <option value="{{ eGazItem.name }}">({{ eGazItem.type }})</option> 
-                            {% endfor %}
-                        </datalist>
-                    -->
-                        <p><b>Freguesias</b></p>
-                        <select id="entryEGaz" name="entryEGaz" multiple>
-                            {% for eGazItem in eGazF %}
-                                <option value="{{ eGazItem.e_ids }}">{{ eGazItem.name }}</option>
-                            {% endfor %}
-                        </select>
-                        
-                    
-                    {% else %}
-                        <p><em>Desculpa, as áreas existentes não carregeram.</em></p>
-                    {% endif %}
-                </div>
-                <br>
-                <button type="button" class="btn btn-primary" onclick="vizEgaz('freguesia')">Junta-lhes à instância</button>
-                <br>
-                <div id="selectedEgaz"></div>
-                   
-            </div>
-            <br>
-            <div id="futureDev">
-                <p><em>Coming soon:</em> Implementation of selection between gazetteers (community, organizational, personal)</p>
-            </div>    
                 
             <!-- DESIGN NEW (UGAZ) -->
             <div id="mapDesign" style="display:none"></div>
@@ -290,100 +274,63 @@
     const eGazAll = "{{ eGazF }}";
     console.log("eGazAll: ",eGazAll)
     let selectedPNames = [];
-
-       
+    
+    
 
     // Visualize selection of eGaz item on the map
     function vizEgaz(typeGaz) {
         console.log("Entering vizEgaz");
         var selectedFreg = document.getElementsByName("eGazFreg");
+        var selectedConcelho = document.getElementsByName("eGazConcelho");
         var numberOfFreg = 0;
         var selectedP = [];
-        for (var i = 0; i < selectedFreg.length; i++) {
-            if(selectedFreg[i].checked) {
+        for (var i = 0; i < selectedConcelho.length; i++) {
+            if(selectedConcelho[i].checked) {
                 numberOfFreg++;
-                var place = String(selectedFreg[i].value);
+                var place = String(selectedConcelho[i].value);
                 var placeString = `\'${place}\'`
                 console.log("place: ",placeString);
                 selectedP.push(placeString);
             }
         }
         console.log("selectedP: ",selectedP);
-        
-        mapEAGazFilter = "e_ids IN ("+selectedP+")";
-        console.log("mapFilter: ",mapEAGazFilter);
-
-
-        // Add eGaz shapes
-        const wmsSourceEAGaz = new ol.source.ImageWMS({
-            url: 'http://localhost:8080/geoserver/apregoar/wms',
-            params: {"LAYERS":"apregoar:admin_gaz",
-                "cql_filter":mapEAGazFilter}, //Set on each individual page
-            serverType: 'geoserver',
-            crossOrigin: 'anonymous',
-        });
-        const wmsLayerEAGaz = new ol.layer.Image({
-            source: wmsSourceEAGaz,
-            style: styleGazAdmin,
-        });
-        wmsLayerEAGaz.setOpacity(0.9);
-        map.addLayer(wmsLayerEAGaz);
-        console.log("Egaz added to map")
-
-    }
-
-        /*
-
-        selectedPNames = []; //Should be removed when handling multiples
-        console.log("test of input type",typeGaz);
-        console.log("We entered the onclick of the datalist");
-        var eaGazItem = document.getElementById("entryEGaz");
-        console.log("eaGazItem.value: ",eaGazItem.value)
-        eaID = eaGazItem.value;
-        console.log("eaID is type ",typeof(eaID));
-        mapEAGazLayers = "apregoar:admin_gaz";
-        mapEAGazFilter = "e_ids = '"+eaID+"'";
-        console.log("mapFilter: ");
-        console.log(mapEAGazFilter);
-        selectedP.push(eaID);
-        console.log("selectedP = ",selectedP," of type ",typeof(selectedP));
-        
-
-        //List selected places
-        for (place in selectedP){
-            console.log("Place type: ",typeof(place));
-            for (gaz in eGazAll) {
-                if (gaz.e_ids == place) {
-                    console.log("match! ",place);
-                    selectedPNames.push(gaz);   
-                }
-                else {
-                    console.log("no match");
-                }
-            }
+        if (selectedP.length > 0){
+            mapEAGazFilter = "e_ids IN ("+selectedP+")";
+            console.log("mapFilter: ",mapEAGazFilter);
+            //Zoom to selected Extent
+            const vectorSource = new ol.source.Vector();
+            var wfs_url = 'http://localhost:8080/geoserver/wfs?service=wfs&version=2.0.0&request=GetFeature&typeNames=apregoar:admin_gaz&cql_filter='+mapEAGazFilter+'&outputFormat=application/json';
+            fetch(wfs_url).then(function (response) {
+                json = response.json();
+                console.log("JSON: ",json);
+                return json;
+            })
+            .then(function (json) {
+                const features = new ol.format.GeoJSON().readFeatures(json);
+                console.log("Features: ",features);
+                vectorSource.addFeatures(features);
+                layerExtent = vectorSource.getExtent();
+                map.getView().fit(ol.extent.buffer(layerExtent, .01)); //What does this number mean??
+            });
+            // Add eGaz shapes     
+            wmsLayerEAGaz.setOpacity(0.5);
+            wmsSourceEAGaz.updateParams({
+                "LAYERS": "apreagoar:admin_gaz",
+                "cql_filter": mapEAGazFilter
+            });
+            console.log("source updated")
+            console.log("Egaz added to map")
+        } else {
+            wmsSourceEAGaz.updateParams({
+                "LAYERS": "apreagoar:admin_gaz",
+                "cql_filter": "e_ids = 0"
+            });
+            console.log("replaced layer with empty");
         }
-        selectedEgaz.innerHTML = selectedPNames;
-        
-
-        // Add eGaz shapes
-        const wmsSourceEAGaz = new ol.source.ImageWMS({
-            url: 'http://localhost:8080/geoserver/apregoar/wms',
-            params: {"LAYERS":"apregoar:admin_gaz",
-                "cql_filter":mapEAGazFilter}, //Set on each individual page
-            serverType: 'geoserver',
-            crossOrigin: 'anonymous',
-        });
-        const wmsLayerEAGaz = new ol.layer.Image({
-            source: wmsSourceEAGaz,
-            style: styleGazAdmin,
-        });
-        wmsLayerEAGaz.setOpacity(0.9);
-        map.addLayer(wmsLayerEAGaz);
-        console.log("Egaz added to map")
+    }
 
     
-    }
-    */
+
 
     //Return to previous story button
     const btnReturn = document.getElementById("btnReturn");
