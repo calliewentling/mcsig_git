@@ -89,9 +89,10 @@
   var userID = "{{ uID }}";
   console.log("User ID: ");
   console.log(userID);
-  var mapFilter = "u_id="+userID;
+  var mapStoryFilter = "u_id="+userID;
   console.log("Map filter: ")
-  console.log(mapFilter);
+  console.log(mapStoryFilter);
 </script>
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
 
 {% endblock %}

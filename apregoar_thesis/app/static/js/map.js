@@ -54,17 +54,6 @@ const styleStory = [
     }),
 ];
 
-const styleGazAdmin = [
-    new ol.style.Style({
-        stroke: new ol.style.Stroke({
-            color: 'blue',
-            width: '3',
-        }),
-        fill: new ol.style.Fill({
-            color: 'rgba(0,0, 255, 0.1)',
-        }),
-    }),
-];
 
 //Generic Map Setup
 const view = new ol.View({
@@ -73,7 +62,7 @@ const view = new ol.View({
     zoom: 12
 });
  
-const map = new ol.Map({
+var map = new ol.Map({
     layers: [
         new ol.layer.Tile({
             source: new ol.source.OSM()
@@ -102,91 +91,6 @@ wmsLayerStory.setOpacity(0.7);
 map.addLayer(wmsLayerStory);
 console.log("Story instances added");
 
-
-
-// Add Localize EGaz
-//Define map layers for future update
-const wmsSourceEAGaz = new ol.source.ImageWMS({
-    url: 'http://localhost:8080/geoserver/apregoar/wms',
-    serverType: 'geoserver',
-    crossOrigin: 'anonymous',
-});
-console.log("Source defined")
-const wmsLayerEAGaz = new ol.layer.Image({
-    source: wmsSourceEAGaz,
-    style: styleGazAdmin,
-});
-map.addLayer(wmsLayerEAGaz);
-console.log("Layer added");
-
-
- 
-
-
- 
- // Add Custome Localize
- if (docTitle === "Localize") {
-     //Draw new areas on the map
-    const drawSource = new ol.source.Vector({
-        format: new ol.format.GeoJSON(),
-        wrapX: false,
-    });
-    const drawVector = new ol.layer.Vector({
-        source: drawSource,
-        style: new ol.style.Style({
-            fill: new ol.style.Fill({
-                color: 'rgba(255,255,255,0.2)',
-            }),
-            stroke: new ol.style.Stroke({
-                color: '#ffcc33',
-                width: 2,
-            }),
-            image: new ol.style.Circle({
-                radius: 7,
-                fill: new ol.style.Fill({
-                    color: '#ffcc33',
-                }),
-            }),
-        }),
-    });
-
-    const modSelect = new ol.interaction.Select({
-        wrapX: false,
-    });
-    
-
-    const modModify = new ol.interaction.Modify({
-        features: modSelect.getFeatures(),
-    });
-
-    map.addLayer(drawVector);
-
-    const drawModify = new ol.interaction.Modify({source: drawSource});
-    map.addInteraction(drawModify);
-
-    let snapDraw; //
-    let drawDraw;
-    const typeSelect = document.getElementById('type');
-
-    function addInteractions() {
-        drawDraw = new ol.interaction.Draw({
-            source: drawSource,
-            type: typeSelect.value,
-        });
-        map.addInteraction(drawDraw);
-        snapDraw = new ol.interaction.Snap({source: drawSource});
-        map.addInteraction(snapDraw);
-        map.addInteraction(modSelect);
-        map.addInteraction(modModify);
-    };
-    typeSelect.onchange = function() {
-        map.removeInteraction(drawDraw);
-        map.removeInteraction(snapDraw);
-        addInteractions();
-    };
-    addInteractions();
- };
- 
 /**
 * Add a click handler to the map to render the popup
 */
@@ -195,7 +99,7 @@ map.on('singleclick', function (evt) {
     const hdms = ol.coordinate.toStringHDMS(ol.proj.toLonLat(coordinate));
  
     //document.getElementById('info').innerHTML = '';
-    const viewResolution = /** @type {number} */ (view.getResolution());
+    const viewResolution = /** @type {number} */ (viewGaz.getResolution());
     const url = wmsSourceStory.getFeatureInfoUrl(
         evt.coordinate,
         viewResolution,
