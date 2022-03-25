@@ -57,6 +57,53 @@ const drawVector = new ol.layer.Vector({
 });     
 mapGaz.addLayer(drawVector);
 
+///// Preparation for select and delete /////////
+let selectedF;
+var featureID = 0;
+let select= null; //select and delete
+const selectSingleClick = new ol.interaction.Select();
+const selectClick = new ol.interaction.Select({
+    condition: ol.events.condition.click,
+});
+const selectPointerMove = new ol.interaction.Select({
+    condition: ol.events.condition.pointerMove,
+});
+const selectAltClick = new ol.interaction.Select({
+    condition: function (mapBrowserEvent){
+        return click(mapBrowserEvent) && ol.events.condition.altKeyOnly(mapBrowserEvent);
+    },
+});
+const selectElement = document.getElementById('clickType');
+const deleteButton = document.getElementById("deletedFeatures");
+const changeInteraction = function() {
+    if (select !== null) {
+        mapGaz.removeInteraction(selectClick);
+    }
+    const valueClick = selectElement.value;
+    if (valueClick == 'singleclick'){
+        select = selectSingleClick;
+    } else if (valueClick == 'click') {
+        select  = selectClick;
+    } else if (valueClick == 'pointermove') {
+        select = selectPointerMove;
+    } else if (valueClick == 'altclick') {
+        select = selectAltClick;
+    } else {
+        select = null;
+    }
+    if (select !== null) {
+        mapGaz.addInteraction(selectClick);
+        select.on('select', function (e) {
+            var numFeatures = e.target.getFeatures().getLength();            
+            console.log(numFeatures,' selected features (last operation selected ',e.selected.length,' and deselected ',e.deselected.length,' features.');
+        });
+    }
+};
+selectElement.onchange = changeInteraction;
+changeInteraction();
+
+
+
 ///// TOGGLE TO UGAZ /////////////
 //Toggle Map Views (using existing gaz vs. design new place)
 function toggleLocalization(){
@@ -68,8 +115,7 @@ function toggleLocalization(){
     var toggleMode = document.getElementById("toggleMode");
     //If the checkbox is checked, display the output text
     if (tswitch.checked == true){
-        console.log("Should show Ugaz");
-        newUgaz.style.display = "block";
+        console.log("CREATE NEW UGAZ MODE");
         toggleMode.innerHTML = "Desenhar localização";
         //Draw new areas on the map
         const modifyDraw = new ol.interaction.Modify({
@@ -81,6 +127,12 @@ function toggleLocalization(){
                 source: drawSource,
                 type: "Polygon"
             });
+            drawDraw.on('drawend',function(event) {
+                featureID = featureID + 1;
+                event.feature.setProperties({
+                    'id': featureID
+                })
+            })
             mapGaz.addInteraction(drawDraw);
             snapDraw = new ol.interaction.Snap({source: drawSource});
             mapGaz.addInteraction(snapDraw);
@@ -91,9 +143,9 @@ function toggleLocalization(){
             mapGaz.removeInteraction(modifyDraw);
         };
         addInteractions();
+        deleteButton.style.display = "none";
     } else {
-        console.log("Should show Egaz");
-        newUgaz.style.display = "none";
+        console.log("UGAZ MODIFY MODE");
         toggleMode.innerHTML = "Ver localizações";
         //remove interactivity
         mapGaz.removeInteraction(drawDraw);
@@ -101,32 +153,92 @@ function toggleLocalization(){
         mapGaz.removeInteraction(modifyDraw);
         // Show geometry results in console
         drawResults();
+        select.on('select', function (e) {
+            var selFeatures = e.target.getFeatures();
+            var numFeatures = selFeatures.getLength();
+            console.log(numFeatures,' selected features (last operation selected ',e.selected.length,' and deselected ',e.deselected.length,' features.');
+            console.log("e",e);
+            console.log("selFeatures ",selFeatures);
+            if (numFeatures == 0) {
+                deleteButton.style.display = "none";
+            } else {
+                if (numFeatures == 1) {
+                    dButtonText = "Eliminar um elemento.";
+                } else {
+                    dButtonText = "Eliminar "+numFeatures+" elementos.";
+                }
+                deleteButton.innerHTML = `<button type ="button" class="btn btn-primary" id="buttonDeleteUgazF">`+dButtonText+`</button>`;
+                deleteButton.style.display = "block";
+                var buttonDeleteUgazF = document.getElementById("buttonDeleteUgazF");
+                buttonDeleteUgazF.onclick = function() {
+                    console.log("arrived in deleteUgazFeatures");
+                    console.log("numFeatures: ",numFeatures);
+                    console.log("drawSource features before: ",drawSource.getFeatures());
+                    selFeatures.forEach(function(feature){
+                        drawSource.removeFeature(feature)
+                    });
+                    console.log("drawSource features after: ",drawSource.getFeatures());
+                    deleteButton.innerHTML = `<p> ${numFeatures} elementos eliminados.`;
+                }; 
+            }
+        });
     }
-}
+};
 function drawResults() {
     console.log("Begin drawResults");
     drawFeatures = drawSource.getFeatures();
     console.log("drawFeatures: ",drawFeatures);
-    var allCoords = [];
-    for (let i = 0; i < drawFeatures.length; i++) {
-        geom = drawFeatures[i].getGeometry();
-        console.log("geom ",geom);
-        coords = geom.getCoordinates();
-        console.log("coords: ",coords);
-        poly = [coords];
-        allCoords.push(poly);
-    }
-    var multiPoly = {
-        "type": "MultiPolygon",
-        "coordiantes": [
-            allCoords
-        ]
+    if (drawFeatures.length > 0){
+        var allCoords = [];
+        for (let i = 0; i < drawFeatures.length; i++) {
+            geom = drawFeatures[i].getGeometry();
+            console.log("geom ",geom);
+            coords = geom.getCoordinates()[0];
+            console.log("coords: ",coords);
+            poly = coords
+            allCoords.push(poly);
+        }
+        var multiPoly = {
+            "type": "MultiPolygon",
+            "coordinates": allCoords
+        };
+        console.log("number of polygons: ",drawFeatures.length);
+        //console.log("multiPoly: ",multiPoly);
+        polyJson = JSON.stringify(multiPoly);
+        console.log("polyJson: ",polyJson);        
+    } else {
+        console.log("No polygons drawn");
     };
-    console.log("multiPoly: ",multiPoly);
-    console.log("string: ", String(multiPoly));
     console.log("End drawResults");
 }
 
+//On added feature adjustments:
+drawSource.on('addfeature',function(evt){
+    console.log("addfeature begin",evt);
+    var feature = evt.feature;
+    console.log("added feature: ",feature.getGeometry().getCoordinates());
+    drawResults();
+});
+drawSource.on('changefeature',function(evt){
+    console.log("changefeature begin",evt);
+    var feature = evt.feature;
+    console.log("changed feature: ",feature.getGeometry().getCoordinates());
+    drawResults();
+});
+drawSource.on('removefeature',function(evt){
+    console.log("remove feature begin",evt);
+    var feature = evt.feature;
+    console.log("removed feature: ",feature.getGeometry().getCoordinates());
+    drawResults();
+});
+drawSource.on('clear',function(evt){
+    console.log("clear begin",evt);
+    var feature = evt.feature;
+    console.log("all cleared ",feature.getGeometry().getCoordinates());
+    drawResults();
+});
+
+/*
 drawSource.on('addfeature', function(evt){
     console.log("after feature begin")
     var feature = evt.feature;
@@ -136,6 +248,7 @@ drawSource.on('addfeature', function(evt){
     console.log("coords: ",coords);
     console.log("after feature end");
 })
+*/
 
 
 // Add Localize EGaz
@@ -292,7 +405,7 @@ function limparTudo() {
     document.getElementById("tDesc").value = '';
 }
 
-
+/*
 ///// MAPBOX DRAW /////////////
 // Loading mapbox background    
 mapboxgl.accessToken = 'pk.eyJ1IjoiY3dlbnRsaW5nIiwiYSI6ImNqd2F0cmVvajA5bHAzemx6NDF3bmZ6NGsifQ.2qy1Q4WfMf4XFllp2v96HQ';
@@ -370,6 +483,7 @@ function updateArea(e) {
     
 }; 
 
+
 /////SUBMIT FORM ///////
 function submit_poly() {
     const successA = document.getElementById('successAnnouncement');
@@ -445,3 +559,4 @@ function submit_poly() {
         });
     }
 }
+*/
