@@ -93,8 +93,22 @@
         </div>
         <br> 
         <div class="card" id="save_instance" >             
-            <h4>Localização/ões</h4>
+            <h3>Localização/ões</h3>
             <form method="POST" action="review">
+                <div id="totalGazSummary">
+                    
+                    <!--Summary of associated places-->
+                    <p id="totalNumGaz" style="color:red;font-size:24px;">0 </p>
+                    <p>localizações associadas</p>
+                    <em id="alertPoly" style="color:rgb(117, 5, 5)">Associar e/ou desenhar pelo menos um localização de notícia.</em>
+                    <br><br>
+                    <p id = "totalUGaz" style="color:rgb(255, 166, 0);font-size:18px">0</p>
+                    <p> áreas desinhadas. </p>
+                    <p id = "totalEGaz" style="color:rgb(255, 166, 0);font-size:18px">0</p>
+                    <p> áreas existentes. </p>
+                </div>
+                <br>
+                <!-- Name of instance place group -->
                 <div id="selectName">
                     <input type="text" id="pName" name="pName" placeholder="Nome do sítio" required>
                     <span class="error" aria-live="polite"></span>
@@ -113,13 +127,15 @@
                             <input id ="tswitch" type="checkbox" onclick = "toggleLocalization()">
                             <span class="slider round"></span>
                         </label>
-                        <div id="toggleMode"><p>Ver localizações</p></div>
+                        <div id="toggleMode"><p>Ativar modo do desenho</p></div>
                     </div>
+                    <em>Pode desenhar um ou mais polígonos para representar a localização customizada onde a notícia acontece (no passado, presente, ou futuro). Pode modificar os polígonos depois ou deleter e começer outra vez.</em>
                     <!-- UGAZ INFO -->
-                    <p>Número dos polígonos:</p>
-                    <div id="calculated-area" style="color:red"></div> 
-                    
-                    <div id="selectGeom" style="color:red" ></div>
+                    <div style="display:none">
+                        <p>Número dos polígonos:</p>
+                        <div id="calculated-area" style="color:red"></div> 
+                        <div id="selectGeom" style="color:red" ></div>
+                    </div>
                     <!--<label for="type">Geometry type &nbsp;</label> -->
                     <select id="type" style="display:none">
                         <option value="Polygon" select="selected">Polygon</option>
@@ -136,37 +152,64 @@
 
                 <!-- EGAZ --> 
                 <h3>Escolher sítios existentes</h3> 
-                <button type="button" class="btn btn-primary" onclick="vizEgaz('eGazFreg')">Prever</button>
-                <!--
-                {% if eGazF|length > 0 %}
-                    <div id="listGazF" class="dropdown-check-list" tabindex="100">
-                        <span class="anchor">Carregar freguesias existentes</span>
-                        <ul id="itemsF" class="items">
-                            {% for eGazItem in eGazF %}
-                                <li><input type="checkbox" name="eGazFreg" value="{{ eGazItem.e_ids }}">{{ eGazItem.name }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                {% else %}
-                    <p><em>Desculpa, as freguesias não estão carregadas.</em></p>
-                {% endif %}
-                -->
+                <!-- TOGGLE -->
+                <div class="container1">
+                    <label class="switch">
+                        <input id ="eSwitch" type="checkbox" onclick = "eGazOpts()">
+                        <span class="slider round"></span>
+                    </label>
+                    <div id="eToggleMode"><p>Ativar associação das áreas definidas</p></div>
+                </div>
+                <em>Pode associar um ou mais áreas já existentes de gazetteer geral (com áreas administrativas), ou reutilizar áreas desenhada do seu próprio gazetteer, ou da sua organização.</em>
+                <!-- SUMARIO DE EGAZ -->
+                <div id="summaryEGaz">
+                </div>
+                <!-- ESCOLHER DE EGAZ -->
+                <div id="chooseEGaz" style="display:none">
+                    <button type="button" class="btn btn-primary" onclick="vizEgaz()">Prever</button>
+                    
+                    {% if eGazC|length > 0 %}
+                        <div id="listGazC" class="dropdown-check-list" tabindex="100">
+                            <span class="anchor">Carregar Concelhos existentes</span>
+                            <ul id="itemsC" class="items">
+                                {% for eGazItem in eGazC %}
+                                    <li><input type="checkbox" name="eGazConcelho" value="{{ eGazItem.e_ids }}">{{ eGazItem.name }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% else %}
+                        <p><em>Desculpa, as concelhos não estão carregadas.</em></p>
+                    {% endif %}
 
-                {% if eGazC|length > 0 %}
-                    <div id="listGazC" class="dropdown-check-list" tabindex="100">
-                        <span class="anchor">Carregar Concelhos existentes</span>
-                        <ul id="itemsC" class="items">
-                            {% for eGazItem in eGazC %}
-                                <li><input type="checkbox" name="eGazConcelho" value="{{ eGazItem.e_ids }}">{{ eGazItem.name }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                {% else %}
-                    <p><em>Desculpa, as freguesias não estão carregadas.</em></p>
-                {% endif %}
+                    {% if eGazF|length > 0 %}
+                        <div id="listGazF" class="dropdown-check-list" tabindex="100">
+                            <span class="anchor">Carregar freguesias existentes</span>
+                            <ul id="itemsF" class="items">
+                                {% for eGazItem in eGazF %}
+                                    <li><input type="checkbox" name="eGazFreg" value="{{ eGazItem.e_ids }}">{{ eGazItem.name }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% else %}
+                        <p><em>Desculpa, as freguesias não estão carregadas.</em></p>
+                    {% endif %}
+
+                    {% if eGazA|length > 0 %}
+                        <div id="listGazA" class="dropdown-check-list" tabindex="100">
+                            <span class="anchor">Carregar áreas administrativas existentes</span>
+                            <ul id="itemsA" class="items">
+                                {% for eGazItem in eGazA %}
+                                    <li><input type="checkbox" name="eGazAreaAdmin" value="{{ eGazItem.e_ids }}">{{ eGazItem.name }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% else %}
+                        <p><em>Desculpa, as áreas administrativas não estão carregadas.</em></p>
+                    {% endif %}
+                </div>
 
                 <!-- TEMPORAL -->
-                <h3>Associar A Altura</h3>
+                <h3>Associar uma altura</h3>
                 <div>
                     <label for="allday_y">Todo o dia</label><input type="radio" id="allday_y" name="allDay" value="allday_y" onClick="timeDefD()" checked="checked">
                     <label for="allday_n">Horas específicas</label><input type="radio" id="allday_n" name="allDay" value="allday_n" onClick="timeDefH()">
@@ -192,6 +235,7 @@
         </div>
         <br>
         <div class="card">
+            <button type="button" class="btn btn-primary" onclick = submitInstance()> Associar instáncia</button>
             <div id="btnReturn"></div>
             <br>
             <button type="button" class="btn btn-primary" onclick=limparTudo()>Limpar tudo</button>

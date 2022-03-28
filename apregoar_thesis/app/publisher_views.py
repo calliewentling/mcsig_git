@@ -1,3 +1,4 @@
+from pytz import NonExistentTimeError
 from app import app
 
 #https://exploreflask.com/en/latest/configuration.html
@@ -659,22 +660,13 @@ def save_instance(s_id):
     t_begin = instance["tBegin"]
     t_end = instance["tEnd"]
     t_desc = instance["tDesc"]
+    e_ids = instance["eIds"]
 
     #Extract geometry in correct format from user input
+    #UGaz
     idx=0
     features = req['geometry']
-    features = json.loads(features)
-    print("Features: ")
-    print(features)
-    multiShape=[]
-    shapeP = None
-    for idx,val in enumerate(features): #supports multiple polygons with the same temporal description
-        coords=features[idx]['geometry']['coordinates'][0] #extracting coordinates
-        shapeP = Polygon(coords)
-        multiShape.append(shapeP) 
-    print("Length of Multishape (number of polygons): ", len(multiShape))
-    multiP = MultiPolygon(multiShape)
-    print("multiP wkt: ",multiP.wkt)
+    print("Features1: ",features)
 
     #Extract tempoarl element
     print()
@@ -689,59 +681,108 @@ def save_instance(s_id):
     print("t_begin: ",t_begin)
     print("t_end type: ",type(t_end))
     print("t_end: ",t_end)
-    
-    
-    #Save place to database
-    con = psycopg2.connect("dbname=postgres user=postgres password=thesis2021")
-    try:
-        with con:
-            with con.cursor() as cur:
-                cur.execute("""
-                    INSERT INTO apregoar.ugazetteer (p_name, geom, u_id, p_desc) 
-                    VALUES (%(p_name)s, ST_GeomFromEWKT(%(geom)s), %(u_id)s, %(p_desc)s)
-                    RETURNING p_id
-                    ;""",
-                    {'p_name':p_name, 'geom':multiP.wkt, 'u_id':u_id, 'p_desc':p_desc}
-                )
-                p_id = cur.fetchone()[0]
-                con.commit()            
-    except psycopg2.Error as e:
-        print("Error in saving new place")
-        print(e.pgerror)
-        print(e.diag.message_primary)
-        #feedback = f"Erro: não consiguimos de guardar o novo lugar. Se faz favor, tenta de novo."
-        #flash(feedback, "danger")
-        con.close()
-        return res
-    else:
-        print("Place added to database. p_id: ",p_id)
-        instance["p_id"] = p_id
 
-        #Save instance to database
-        try: 
+    #Extract e_ids
+    print("e_ids: ",e_ids)
+
+    #Define connection
+    con = psycopg2.connect("dbname=postgres user=postgres password=thesis2021")
+
+    #Extract and Save UGaz (if exists)
+    if features:
+        print("There are UGaz features")
+        features = json.loads(features)
+        print("Features2: ")
+        print(features)
+        multiShape=[]
+        shapeP = None
+        for idx,val in enumerate(features): #supports multiple polygons with the same temporal description
+            coords=features[idx]['geometry']['coordinates'][0] #extracting coordinates
+            shapeP = Polygon(coords)
+            multiShape.append(shapeP) 
+        print("Length of Multishape (number of polygons): ", len(multiShape))
+        multiP = MultiPolygon(multiShape)
+        print("multiP wkt: ",multiP.wkt)
+
+        #Save place to database
+        try:
             with con:
                 with con.cursor() as cur:
                     cur.execute("""
-                        INSERT INTO apregoar.instances (t_begin, t_end, t_desc, p_desc, s_id, p_id, u_id, t_type) 
-                        VALUES (%(t_begin)s, %(t_end)s, %(t_desc)s, %(p_desc)s, %(s_id)s, %(p_id)s, %(u_id)s, %(t_type)s)
-                        RETURNING i_id
+                        INSERT INTO apregoar.ugazetteer (p_name, geom, u_id, p_desc) 
+                        VALUES (%(p_name)s, ST_GeomFromEWKT(%(geom)s), %(u_id)s, %(p_desc)s)
+                        RETURNING p_id
                         ;""",
-                        {'t_begin':t_begin, 't_end':t_end, 't_desc':t_desc, 'p_desc':p_desc, 's_id':s_id, 'p_id':p_id, 'u_id':u_id, 't_type':all_day}
+                        {'p_name':p_name, 'geom':multiP.wkt, 'u_id':u_id, 'p_desc':p_desc}
                     )
-                    i_id = cur.fetchone()[0]
-                    con.commit()
-                    con.close
+                    p_id = cur.fetchone()[0]
+                    con.commit()            
         except psycopg2.Error as e:
-            print("Error in saving new instance: ",e)
-            #feedback = f"Erro: não consiguimos de guardar a nova instância. Se faz favor, tenta de novo."
+            print("Error in saving new place")
+            print(e.pgerror)
+            print(e.diag.message_primary)
+            #feedback = f"Erro: não consiguimos de guardar o novo lugar. Se faz favor, tenta de novo."
             #flash(feedback, "danger")
             con.close()
             return res
         else:
-            print("Instance added to database. i_id: ",i_id)
-            instance["i_id"]=i_id
-            #feedback = f"Parabéns! A instância foi guardada com sucesso."
-            #flash(feedback, "success")
+            print("Place added to database. p_id: ",p_id)
+            instance["p_id"] = p_id
+    else:
+        print("No UGAZ features assigned")
+        p_id = None
+
+    #Save instance to database
+    try: 
+        with con:
+            with con.cursor() as cur:
+                cur.execute("""
+                    INSERT INTO apregoar.instances (t_begin, t_end, t_desc, p_desc, s_id, p_id, u_id, t_type, p_name) 
+                    VALUES (%(t_begin)s, %(t_end)s, %(t_desc)s, %(p_desc)s, %(s_id)s, %(p_id)s, %(u_id)s, %(t_type)s, %(p_name)s)
+                    RETURNING i_id
+                    ;""",
+                    {'t_begin':t_begin, 't_end':t_end, 't_desc':t_desc, 'p_desc':p_desc, 's_id':s_id, 'p_id':p_id, 'u_id':u_id, 't_type':all_day,'p_name':p_name}
+                )
+                i_id = cur.fetchone()[0]
+                con.commit()
+                con.close
+    except psycopg2.Error as e:
+        print("Error in saving new instance: ",e)
+        #feedback = f"Erro: não consiguimos de guardar a nova instância. Se faz favor, tenta de novo."
+        #flash(feedback, "danger")
+        con.close()
+        return res
+    else:
+        print("Instance added to database. i_id: ",i_id)
+        instance["i_id"]=i_id
+        print(e_ids)
+        if e_ids:
+            print("e_ids: ",e_ids)
+            for e_id in e_ids:
+                e_id.strip("'")
+                print("e_id",e_id)
+                try:
+                    with con:
+                        with con.cursor() as cur:
+                            cur.execute("""
+                                INSERT INTO apregoar.instance_positioning (i_id, e_id, explicit)
+                                VALUES (%(i_id)s, %(e_id)s, %(explicit)s)
+                                ;""",
+                                {'i_id':i_id, 'e_id':e_id,'explicit':True}
+                            )
+                            #result = cur.fetchone()[0]
+                            #print("result of save: ",result)
+                    con.commit()
+                except psycopg2.Error as e:
+                    print("Error in saving new instance to EGaz: ",e)
+                    con.close()
+                    return res
+                else:    
+                    print("instance associated with explicit existing gazetteers")
+            con.close()
+            print("saving of instance positioning complete!")
+        else:
+            print("no e_ids")
  
     return res
 

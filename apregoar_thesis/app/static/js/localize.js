@@ -57,6 +57,11 @@ const drawVector = new ol.layer.Vector({
 });     
 mapGaz.addLayer(drawVector);
 
+//DEFINE LOCALIZATION TOTALS
+let tGaz = 0;
+let uGaz = 0;
+let eGaz = 0;
+
 ///// Preparation for select and delete /////////
 let selectedF;
 var featureID = 0;
@@ -109,6 +114,7 @@ changeInteraction();
 function toggleLocalization(){
     //Get the checkbox
     var tswitch = document.getElementById("tswitch");
+    var eSwitch = document.getElementById("eSwitch");
     //Get output text
     var newUgaz = document.getElementById("newUgaz");
     var eGazMap = document.getElementById("eGazMap");
@@ -117,6 +123,8 @@ function toggleLocalization(){
     if (tswitch.checked == true){
         console.log("CREATE NEW UGAZ MODE");
         toggleMode.innerHTML = "Desenhar localização";
+        // De-toggle egazetteer association switch
+        eSwitch.checked = false;
         //Draw new areas on the map
         const modifyDraw = new ol.interaction.Modify({
             source: drawSource,
@@ -184,6 +192,8 @@ function toggleLocalization(){
         });
     }
 };
+
+let polyJson = {};
 function drawResults() {
     console.log("Begin drawResults");
     drawFeatures = drawSource.getFeatures();
@@ -209,7 +219,9 @@ function drawResults() {
     } else {
         console.log("No polygons drawn");
     };
-    console.log("End drawResults");
+    //Update total Gaz Numbers
+    uGaz = drawFeatures.length;
+    updateGazTotals();
 }
 
 //On added feature adjustments:
@@ -237,18 +249,6 @@ drawSource.on('clear',function(evt){
     console.log("all cleared ",feature.getGeometry().getCoordinates());
     drawResults();
 });
-
-/*
-drawSource.on('addfeature', function(evt){
-    console.log("after feature begin")
-    var feature = evt.feature;
-    var geom = feature.getGeometry();
-    console.log("geom: ",geom);
-    var coords = feature.getGeometry().getCoordinates();
-    console.log("coords: ",coords);
-    console.log("after feature end");
-})
-*/
 
 
 // Add Localize EGaz
@@ -279,6 +279,28 @@ mapGaz.addLayer(wmsLayerEAGaz);
 console.log("Layer added");
 
 
+// See eGaz selection options
+function eGazOpts(){
+    //Get the checkbox
+    var eSwitch = document.getElementById("eSwitch");
+    var tSwitch = document.getElementById("tswitch");
+    var eToggleMode = document.getElementById("eToggleMode");
+    var chooseEGaz = document.getElementById("chooseEGaz");
+    var summaryEGaz = document.getElementById("summaryEGaz");
+    // If toggle activated, show selection of Gazetteers
+    if (eSwitch.checked == true){
+        console.log("Select EGAZ mode");
+        tSwitch.checked = false;
+        eToggleMode.innerHTML = "Escolher Gazetteers";
+        chooseEGaz.style.display = "block";
+        summaryEGaz.style.display = "none";
+    } else {
+        console.log("Summary EGAZ mdoe");
+        eToggleMode.innerHTML = "Sumário das escolhas";
+        chooseEGaz.style.display = "none";
+        summaryEGaz.style.display = "block";
+    }
+};
 
 // Visualize selection of eGaz item on the map
 const selectedEgaz = document.getElementById("selectedEgaz");
@@ -287,23 +309,69 @@ let selectedP = [];
 //console.log("eGazAll: ",eGazAll)
 let selectedPNames = [];
 
-function vizEgaz(typeGaz) {
-    console.log("Entering vizEgaz");
-    drawResults();
+function calcEGaz() {
     var selectedFreg = document.getElementsByName("eGazFreg");
     var selectedConcelho = document.getElementsByName("eGazConcelho");
+    var selectedAreaAdmin = document.getElementsByName("eGazAreaAdmin");
     var numberOfFreg = 0;
+    var numberOfConcelho = 0;
+    var numberOfAreaAdmin = 0;
     var selectedP = [];
+    var selectedPBasic = [];
+    var eGazVals = [];
     for (var i = 0; i < selectedConcelho.length; i++) {
         if(selectedConcelho[i].checked) {
+            numberOfConcelho++;
+            var placeC = String(selectedConcelho[i].value);
+            var placeCString = `\'${placeC}\'`
+            console.log("Concelho place: ",placeCString);
+            selectedP.push(placeCString);
+            selectedPBasic.push(selectedConcelho[i].value);
+        }
+    }
+    
+    for (var i = 0; i < selectedFreg.length; i++) {
+        if(selectedFreg[i].checked) {
             numberOfFreg++;
-            var place = String(selectedConcelho[i].value);
-            var placeString = `\'${place}\'`
-            console.log("place: ",placeString);
-            selectedP.push(placeString);
+            var placeF = String(selectedFreg[i].value);
+            var placeFString = `\'${placeF}\'`
+            console.log("Freguesia place: ",placeFString);
+            selectedP.push(placeFString);
+            //Just Int Values
+            console.log("selectedFreg value ",selectedFreg[i].value)
+            var fregVal = selectedFreg[i].value;
+            for (j in fregVal) {
+                var eGazVal = Number(j);
+                eGazVals.push(eGazVal); 
+            }
+            console.log("eGazVals: ",eGazVals);
+            selectedPBasic.push(selectedFreg[i].value);
+        }
+    }
+    for (var i = 0; i < selectedAreaAdmin.length; i++) {
+        if(selectedAreaAdmin[i].checked) {
+            numberOfAreaAdmin++;
+            var placeA = String(selectedAreaAdmin[i].value);
+            var placeAString = `\'${placeA}\'`
+            console.log("Freguesia place: ",placeAString);
+            selectedP.push(placeAString);
+            selectedPBasic.push(selectedAreaAdmin[i].value);
         }
     }
     console.log("selectedP: ",selectedP);
+    //update total gaz values
+    eGaz = selectedP.length;
+    updateGazTotals();
+    return {selectedP, selectedPBasic};
+}
+
+function vizEgaz() {
+    console.log("Entering vizEgaz");
+    drawResults();
+    results=calcEGaz();
+    selectedP = results.selectedP;
+    console.log("selectedP: ",selectedP);
+    //Draw EGaz
     if (selectedP.length > 0){
         mapEAGazFilter = "e_ids IN ("+selectedP+")";
         console.log("mapFilter: ",mapEAGazFilter);
@@ -337,8 +405,29 @@ function vizEgaz(typeGaz) {
         });
         console.log("replaced layer with empty");
     }
+
+    
 }
 
+//Update Gaz Totals
+function updateGazTotals() {
+    var totalEGaz = document.getElementById("totalEGaz");
+    var totalUGaz = document.getElementById("totalUGaz");
+    var totalNumGaz = document.getElementById("totalNumGaz");
+    var alertPoly = document.getElementById("alertPoly");
+    tGaz = uGaz + eGaz;
+    totalEGaz.innerHTML = eGaz;
+    totalUGaz.innerHTML = uGaz;
+    totalNumGaz.innerHTML = tGaz;
+    if (totalNumGaz == 0) {
+        alertPoly.style.display="block";
+        alertPoly.style.color="red";
+        totalNumGaz.style.color="red";
+    } else {
+        alertPoly.style.display="none";
+        totalNumGaz.style.color="green";
+    }
+}
 
 //Return to previous story button
 const btnReturn = document.getElementById("btnReturn");
@@ -404,6 +493,114 @@ function limparTudo() {
     document.getElementById("tEnd").value = '';
     document.getElementById("tDesc").value = '';
 }
+
+function submitInstance() {
+    // Get all checked values
+    var results = calcEGaz();
+    var selectedP = results.selectedP;
+    console.log("selectedP: ",selectedP);
+    var stringP = "";
+    for (p in selectedP) {
+        stringP.concat(String(selectedP[p]));
+    }
+    console.log("stringP: ",stringP);
+    
+    selectedPBasic = results.selectedPBasic;
+    console.log("selectedPBasic",selectedPBasic);
+    // Get form values for validation
+    var pNamef = document.getElementById("pName");
+    var pDescf = document.getElementById("pDesc");
+    var tBeginf = document.getElementById("tBegin");
+    var tEndf = document.getElementById("tEnd");
+    var tDescf = document.getElementById("tDesc");
+    // Geovalues: polyJson is UGaz definition. selectedP is EGaz definition.
+    // Get validation announcement areas
+    var successAnnouncement = document.getElementById("successAnnouncement");
+    var validation = document.getElementById("validation");
+    //Check for places assigned
+    var faltas = [];
+    console.log("tGaz: ",tGaz);
+    if (tGaz == 0){
+        console.log("No geometry associated");
+        faltas.push("Geometria");
+    }
+    if (! pNamef.value){
+        console.log('pNamef: ');
+        console.log(pNamef);
+        faltas.push(" "+pNamef.placeholder);
+        console.log('faltas: ');
+        console.log(faltas);
+    }
+    if (! tBeginf.value) {
+        console.log('tBeginf: ');
+        console.log(tBeginf);
+        faltas.push(" Tempo do início");
+    }
+    if (! tEndf.value) {
+        console.log('tEndf: ');
+        console.log(tEndf);
+        faltas.push(" Tempo do fim");
+    }
+    if (tEndf.value < tBeginf.value){
+        console.log("Ending before beginning");
+        faltas.push(" Altura fecha antes o início")
+    }
+    if (faltas.length > 0){
+        window.alert("Falta alguns campos requeridos");
+        validation.style.display="block";
+        successAnnouncement.style.display="block";
+        successAnnouncement.innerHTML = `<em style="color:red">Falta: ${faltas}</em>`;
+        return
+    } else {
+        //Remove validation commentary
+        validation.style.display="none";
+        successAnnouncement.style.display="none";
+        //Prepare data for sending to flask
+        console.log("selectedPBasic: ",selectedPBasic)
+        var entry = {
+            type: "Feature",
+            properties: {
+                pName: pNamef.value,
+                pDesc: pDescf.value,
+                allDay: tBeginf.type,
+                tBegin: tBeginf.value,
+                tEnd: tEndf.value,
+                tDesc: tDescf.value,
+                eIds: selectedPBasic
+            },
+            geometry: polyJson
+        };
+        console.log(entry);
+        //Send to flask
+        fetch(`${window.origin}/publisher/${sID}/save_instance`, {
+            //fetch(`${window.origin}/save_instance`, {
+                method: "POST",
+                credentials: "include",
+                body: JSON.stringify(entry),
+                cache: "no-cache",
+                headers: new Headers({
+                    "content-type": "application/json"
+                })
+            })
+            .then(function(response) {
+                if (response.status !== 200) {
+                    window.alert("Error");
+                    console.log(`Looks like there was a problem. Status code: ${response.status}`);
+                    return;
+                }
+                response.json().then(function(data) {
+                    console.log(data);
+                    successAnnouncement.innerHTML = `<p> Parabéns! Os dados ficam guardados. </p>`;
+                    //window.location.href = 'https://www.google.com';
+                }
+                );
+            })
+            .catch(function(error) {
+            console.log("Fetch error: " + error);
+            });
+    }
+}
+
 
 /*
 ///// MAPBOX DRAW /////////////
