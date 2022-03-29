@@ -167,6 +167,7 @@ function toggleLocalization(){
             console.log(numFeatures,' selected features (last operation selected ',e.selected.length,' and deselected ',e.deselected.length,' features.');
             console.log("e",e);
             console.log("selFeatures ",selFeatures);
+            console.log("numFeatures: ",numFeatures);
             if (numFeatures == 0) {
                 deleteButton.style.display = "none";
             } else {
@@ -306,9 +307,8 @@ function eGazOpts(){
 const selectedEgaz = document.getElementById("selectedEgaz");
 let selectedP = [];
 
-//console.log("eGazAll: ",eGazAll)
-let selectedPNames = [];
 
+// Prepare EGaz inputs for visualization and saving
 function calcEGaz() {
     var selectedFreg = document.getElementsByName("eGazFreg");
     var selectedConcelho = document.getElementsByName("eGazConcelho");
@@ -365,6 +365,7 @@ function calcEGaz() {
     return {selectedP, selectedPBasic};
 }
 
+// See EGAZ selection on the map
 function vizEgaz() {
     console.log("Entering vizEgaz");
     drawResults();
@@ -590,7 +591,15 @@ function submitInstance() {
                 }
                 response.json().then(function(data) {
                     console.log(data);
-                    successAnnouncement.innerHTML = `<p> Parabéns! Os dados ficam guardados. </p>`;
+                    let maisUm = confirm("Parabéns! A instância foi guardada com sucesso. Quer associar mais uma instância?")
+                    if (maisUm) {
+                        location.reload();
+                    } else {
+                        window.location.href = "review";
+                    }
+
+
+                    
                     //window.location.href = 'https://www.google.com';
                 }
                 );

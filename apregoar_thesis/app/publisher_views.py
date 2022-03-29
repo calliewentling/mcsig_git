@@ -130,8 +130,8 @@ def sign_up():
                     with con:
                         with con.cursor() as cur:
                             cur.execute("""
-                                INSERT INTO apregoar.users (username, password, organization, email)
-                                VALUES (%(username)s,%(password)s,%(organization)s,%(email)s)
+                                INSERT INTO apregoar.users (username, password, organization, email,created,edited)
+                                VALUES (%(username)s,%(password)s,%(organization)s,%(email)s,NOW(),NOW())
                                 RETURNING u_id
                                 ;""",
                                 {'username':username,'password':password, 'organization':organization, 'email':email}
@@ -508,8 +508,8 @@ def review():
             with con:
                 with con.cursor() as cur:
                     cur.execute("""
-                        INSERT INTO apregoar.stories (title, summary, pub_date, web_link, section, tags, author, publication, u_id)
-                        VALUES (%(title)s,%(summary)s,%(pub_date)s,%(web_link)s,%(section)s, %(tags)s, %(author)s,%(publication)s,%(u_id)s)
+                        INSERT INTO apregoar.stories (title, summary, pub_date, web_link, section, tags, author, publication, u_id, created, edited)
+                        VALUES (%(title)s,%(summary)s,%(pub_date)s,%(web_link)s,%(section)s, %(tags)s, %(author)s,%(publication)s,%(u_id)s, NOW(), NOW())
                         RETURNING s_id
                         ;""",
                         {'title':story["title"],'summary':story["summary"], 'pub_date':story["pub_date"], 'web_link': story["web_link"], 'section': story["section"], 'tags': story["tags"], 'author': story["author"], 'publication':story["publication"], 'u_id':fsession["u_id"]}
@@ -692,25 +692,39 @@ def save_instance(s_id):
     if features:
         print("There are UGaz features")
         features = json.loads(features)
-        print("Features2: ")
+        print("Features: ")
         print(features)
         multiShape=[]
         shapeP = None
+        #Original save
+        """
         for idx,val in enumerate(features): #supports multiple polygons with the same temporal description
             coords=features[idx]['geometry']['coordinates'][0] #extracting coordinates
             shapeP = Polygon(coords)
             multiShape.append(shapeP) 
+        """
+        #Test save
+        all_coords = features['coordinates']
+        print("all_coords",all_coords)
+        #for idx in enumerate(all_coords):
+        for i in range(len(all_coords)):
+            shape_coords = all_coords[i]
+            print(shape_coords)
+            shapeP = Polygon(shape_coords)
+            multiShape.append(shapeP)
         print("Length of Multishape (number of polygons): ", len(multiShape))
         multiP = MultiPolygon(multiShape)
+        print("# polys in MultiP: ",len(multiP.geoms))
         print("multiP wkt: ",multiP.wkt)
+
 
         #Save place to database
         try:
             with con:
                 with con.cursor() as cur:
                     cur.execute("""
-                        INSERT INTO apregoar.ugazetteer (p_name, geom, u_id, p_desc) 
-                        VALUES (%(p_name)s, ST_GeomFromEWKT(%(geom)s), %(u_id)s, %(p_desc)s)
+                        INSERT INTO apregoar.ugazetteer (p_name, geom, u_id, p_desc,created,edited) 
+                        VALUES (%(p_name)s, ST_GeomFromEWKT(%(geom)s), %(u_id)s, %(p_desc)s,NOW(),NOW())
                         RETURNING p_id
                         ;""",
                         {'p_name':p_name, 'geom':multiP.wkt, 'u_id':u_id, 'p_desc':p_desc}
@@ -737,8 +751,8 @@ def save_instance(s_id):
         with con:
             with con.cursor() as cur:
                 cur.execute("""
-                    INSERT INTO apregoar.instances (t_begin, t_end, t_desc, p_desc, s_id, p_id, u_id, t_type, p_name) 
-                    VALUES (%(t_begin)s, %(t_end)s, %(t_desc)s, %(p_desc)s, %(s_id)s, %(p_id)s, %(u_id)s, %(t_type)s, %(p_name)s)
+                    INSERT INTO apregoar.instances (t_begin, t_end, t_desc, p_desc, s_id, p_id, u_id, t_type, p_name,created,edited) 
+                    VALUES (%(t_begin)s, %(t_end)s, %(t_desc)s, %(p_desc)s, %(s_id)s, %(p_id)s, %(u_id)s, %(t_type)s, %(p_name)s,NOW(),NOW())
                     RETURNING i_id
                     ;""",
                     {'t_begin':t_begin, 't_end':t_end, 't_desc':t_desc, 'p_desc':p_desc, 's_id':s_id, 'p_id':p_id, 'u_id':u_id, 't_type':all_day,'p_name':p_name}
@@ -765,8 +779,8 @@ def save_instance(s_id):
                     with con:
                         with con.cursor() as cur:
                             cur.execute("""
-                                INSERT INTO apregoar.instance_positioning (i_id, e_id, explicit)
-                                VALUES (%(i_id)s, %(e_id)s, %(explicit)s)
+                                INSERT INTO apregoar.instance_positioning (i_id, e_id, explicit,last_edited)
+                                VALUES (%(i_id)s, %(e_id)s, %(explicit)s,NOW())
                                 ;""",
                                 {'i_id':i_id, 'e_id':e_id,'explicit':True}
                             )

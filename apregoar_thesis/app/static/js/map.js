@@ -61,6 +61,8 @@ const view = new ol.View({
     center: [-9.150404956762742,38.72493479806579],
     zoom: 12
 });
+
+
  
 var map = new ol.Map({
     layers: [
@@ -74,7 +76,10 @@ var map = new ol.Map({
 });
 
 
+
+
 // Add Story shapes
+
 const wmsSourceStory = new ol.source.ImageWMS({
     url: 'http://localhost:8080/geoserver/apregoar/wms',
     /*params: {"LAYERS":"apregoar:geonoticias"},*/ //OG
@@ -91,15 +96,33 @@ wmsLayerStory.setOpacity(0.7);
 map.addLayer(wmsLayerStory);
 console.log("Story instances added");
 
+//Zoom to instances
+const vectorSource = new ol.source.Vector();
+var wfs_url = 'http://localhost:8080/geoserver/wfs?service=wfs&version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&cql_filter='+mapStoryFilter+'&outputFormat=application/json';
+        fetch(wfs_url).then(function (response) {
+            json = response.json();
+            console.log("JSON: ",json);
+            return json;
+        })
+        .then(function (json) {
+            const features = new ol.format.GeoJSON().readFeatures(json);
+            console.log("Features: ",features);
+            vectorSource.addFeatures(features);
+            layerExtent = vectorSource.getExtent();
+            map.getView().fit(ol.extent.buffer(layerExtent, .01)); //What does this number mean??
+        });
+///
+
 /**
 * Add a click handler to the map to render the popup
 */
+
 map.on('singleclick', function (evt) {
     const coordinate = evt.coordinate;
     const hdms = ol.coordinate.toStringHDMS(ol.proj.toLonLat(coordinate));
  
     //document.getElementById('info').innerHTML = '';
-    const viewResolution = /** @type {number} */ (viewGaz.getResolution());
+    const viewResolution = /** @type {number} */ (view.getResolution());
     const url = wmsSourceStory.getFeatureInfoUrl(
         evt.coordinate,
         viewResolution,
@@ -194,3 +217,154 @@ map.on('singleclick', function (evt) {
         });
     }
 });
+
+
+/* Geonoticias code
+ SELECT si.s_id,
+    si.title,
+    si.summary,
+    si.pub_date,
+    si.web_link,
+    si.section,
+    si.tags,
+    si.author,
+    si.publication,
+    si.u_id,
+    si.i_id,
+    si.t_begin,
+    si.t_end,
+    si.t_type,
+    si.t_desc,
+    si.p_desc,
+    si.p_id,
+    u.p_name,
+    u.geom
+   FROM ( SELECT s.s_id,
+            s.title,
+            s.summary,
+            s.pub_date,
+            s.web_link,
+            s.section,
+            s.tags,
+            s.author,
+            s.publication,
+            s.u_id,
+            i.i_id,
+            i.t_begin,
+            i.t_end,
+            i.t_type,
+            i.t_desc,
+            i.p_desc,
+            i.p_id
+           FROM apregoar.stories s
+             LEFT JOIN apregoar.instances i ON s.s_id = i.s_id
+          ORDER BY s.s_id) si
+     RIGHT JOIN apregoar.ugazetteer u ON si.p_id = u.p_id
+  ORDER BY si.s_id;
+  */
+
+  /*
+  SELECT ugaz.s_id,
+    ugaz.title,
+    ugaz.summary,
+    ugaz.pub_date,
+    ugaz.web_link,
+    ugaz.section,
+    ugaz.tags,
+    ugaz.author,
+    ugaz.publication,
+    ugaz.u_id,
+    ugaz.i_id,
+    ugaz.t_begin,
+    ugaz.t_end,
+    ugaz.t_type,
+    ugaz.t_desc,
+    ugaz.p_id,
+    ugaz.p_name,
+    ugaz.geom AS ugaz_geom,
+    egaz.e_id,
+    egaz.explicit,
+    egaz.name,
+    egaz.type,
+    egaz.t_geom AS egaz_geom,
+    st_collect(ugaz.geom, egaz.t_geom) AS all_geom
+   FROM ( SELECT si.s_id,
+            si.title,
+            si.summary,
+            si.pub_date,
+            si.web_link,
+            si.section,
+            si.tags,
+            si.author,
+            si.publication,
+            si.u_id,
+            si.i_id,
+            si.t_begin,
+            si.t_end,
+            si.t_type,
+            si.t_desc,
+            si.p_desc,
+            si.p_id,
+            u.p_name,
+            u.geom
+           FROM ( SELECT s.s_id,
+                    s.title,
+                    s.summary,
+                    s.pub_date,
+                    s.web_link,
+                    s.section,
+                    s.tags,
+                    s.author,
+                    s.publication,
+                    s.u_id,
+                    i.i_id,
+                    i.t_begin,
+                    i.t_end,
+                    i.t_type,
+                    i.t_desc,
+                    i.p_desc,
+                    i.p_id
+                   FROM apregoar.stories s
+                     LEFT JOIN apregoar.instances i ON s.s_id = i.s_id
+                  ORDER BY s.s_id) si
+             RIGHT JOIN apregoar.ugazetteer u ON si.p_id = u.p_id
+          ORDER BY si.s_id) ugaz
+     LEFT JOIN ( SELECT inst.i_id,
+            inst.t_begin,
+            inst.t_end,
+            inst.t_type,
+            inst.t_desc,
+            inst.p_desc,
+            inst.s_id,
+            inst.p_id,
+            inst.p_name,
+            inst.created,
+            inst.edited,
+            inst.e_id,
+            inst.explicit,
+            inst.last_edited,
+            agaz.e_ids,
+            agaz.name,
+            agaz.type,
+            agaz.t_geom
+           FROM ( SELECT i.i_id,
+                    i.t_begin,
+                    i.t_end,
+                    i.t_type,
+                    i.t_desc,
+                    i.p_desc,
+                    i.s_id,
+                    i.p_id,
+                    i.p_name,
+                    i.created,
+                    i.edited,
+                    place.e_id,
+                    place.explicit,
+                    place.last_edited
+                   FROM apregoar.instances i
+                     LEFT JOIN apregoar.instance_positioning place ON i.i_id = place.i_id
+                  ORDER BY i.i_id) inst
+             LEFT JOIN apregoar.admin_gaz agaz ON inst.e_id = agaz.e_ids
+          ORDER BY inst.i_id) egaz ON ugaz.s_id = egaz.s_id
+  ORDER BY ugaz.s_id;
+  */

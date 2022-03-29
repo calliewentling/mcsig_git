@@ -1,6 +1,6 @@
-const form = document.getElementsbyTagName('addStory')[0];
+const form = document.getElementsByTagName('addStory')[0];
 
-const vtitle = document.getElementbyId('title');
+const vtitle = document.getElementById('title');
 
 const vtitleError = document.querySelector('#title + span.error');
 vtitle.addEventListener('input', function (event) {
