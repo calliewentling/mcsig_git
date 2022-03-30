@@ -599,6 +599,54 @@ def localize(s_id):
     
     return render_template("publisher/dashboard.html")
 
+@app.route("/publisher/<s_id>/gazetteer", methods=["GET", "POST"])
+def loadGaz(s_id):
+    #Prepare fetch response
+    req = request.get_json()
+    print("Received: ")
+    print(req)
+    print()
+    gazetteer = req["gazetteer"]
+    print(gazetteer)
+    #Load relevant user and story info
+    u_id = fsession["u_id"]
+    print("Story id: ",s_id,", User ID: ",u_id)
+    #Access relevant queries
+    if gazetteer == "ugaz_personal":
+        try:
+            with engine.connect() as conn:
+                SQL = text("""
+                    SELECT
+                        p_id,
+                        p_name,
+                        u_id
+                    FROM apregoar.access_ugaz
+                    WHERE u_id = :x
+                """)
+                SQL = SQL.bindparams(x=u_id)
+                result = conn.execute(SQL)
+        except:
+            print("Error in accessing personal gazetteer")
+        else:
+            personal_gaz=[]
+            for row in result:
+                print(row)
+                ugaz_entry = {
+                    "p_id": row["p_id"],
+                    "p_name": row["p_name"]
+                }
+                personal_gaz.append(ugaz_entry)
+            print(personal_gaz)
+            res = make_response(jsonify(personal_gaz), 200)
+    else:
+        res = make_response(jsonify("No valid gazetteer selected"))
+    return res
+    
+    
+    
+    
+    
+
 @app.route("/publisher/<i_id>/edit_instance", methods=["GET", "POST"])
 def edit_instance(i_id):
     print("Instance ID: ",{i_id})
@@ -779,7 +827,7 @@ def save_instance(s_id):
                     with con:
                         with con.cursor() as cur:
                             cur.execute("""
-                                INSERT INTO apregoar.instance_positioning (i_id, e_id, explicit,last_edited)
+                                INSERT INTO apregoar.instance_egaz (i_id, e_id, explicit,last_edited)
                                 VALUES (%(i_id)s, %(e_id)s, %(explicit)s,NOW())
                                 ;""",
                                 {'i_id':i_id, 'e_id':e_id,'explicit':True}

@@ -302,6 +302,36 @@ function eGazOpts(){
         summaryEGaz.style.display = "block";
     }
 };
+// Adding fetches to get access to gazetteers
+const loadingGaz = document.getElementById("loadingGaz");
+
+function loadGaz(gazetteer) {
+    fetch(`${window.origin}/publisher/${sID}/gazetteer`, {
+        method: "POST",
+        credentials: "include",
+        body: JSON.stringify({"gazetteer": gazetteer}),
+        cache: "no-cache",
+        headers: new Headers({
+            "content-type":"application/json"
+        })
+    })
+    .then(function(response) {
+        if (response.status !== 200) {
+            window.alert("Erro no carragemento do gazetteer");
+            console.log(`Error status code: ${response.status}`);
+            return;
+        }
+        response.json().then(function(data){
+            console.log(data);
+            loadingGaz.innerHTML = data;
+        })
+    })
+    .catch(function(error){
+        console.log("Fetch error: "+error);
+    });
+}
+
+
 
 // Visualize selection of eGaz item on the map
 const selectedEgaz = document.getElementById("selectedEgaz");
