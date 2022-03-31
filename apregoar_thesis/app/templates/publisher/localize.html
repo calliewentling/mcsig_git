@@ -9,7 +9,15 @@
     /*Control the left side*/
     .left {
         left: 0;
-        width: 38%;
+        width: 30%;
+        position: fixed;
+        z-index: 1;
+        overflow-x: hidden;
+    }
+    /*Control the right side*/
+    .center {
+        right: 30%;
+        width: 30%;
         position: fixed;
         z-index: 1;
         overflow-x: hidden;
@@ -18,7 +26,7 @@
     /*Control the right side*/
     .right {
         right: 0;
-        width: 60%;
+        width: 30%;
         position: fixed;
         z-index: 1;
         overflow-x: hidden;
@@ -228,17 +236,51 @@
                 <h3 id="validation" style="display:none">Validação</h3>
                 <div id="successAnnouncement" style="display:none"></div>
                 <div id="formButton" style="display:none"></div>
-            </form>
 
-            
-            
+                <h1>Use for debugging fetches</h1>
+                <div id="containerGaz">
+                    <div id="left">
+                        <button type="button" class="btn btn-primary" onclick="loadGaz('ugaz_personal')">Sítios Pessoais</button>
+                        <br>
+                        <select id='select_ugaz_personal' multiple style="display:none"></select>
+                    </div>
+                    <div id="center">
+                        <button type="button" class="btn btn-primary" onclick="loadGaz('ugaz_empresa')">Sítios Empresiais</button>
+                        <br>
+                        <select id='select_ugaz_empresa' multiple style="display:none"></select>
+                    </div>
+                    <div id="right">
+                        <button type="button" class="btn btn-primary" onclick="loadGaz('ugaz_all')">Sítios Empresiais</button>
+                        <br>
+                        <select id='select_ugaz_all' multiple style="display:none"></select>
+                    </div>
+                </div>
+                <br>
+                <div id="containerGaz">
+                    <div id="left">
+                        <button type="button" class="btn btn-primary" onclick="loadGaz('egaz_freguesia')">Freguesias</button>
+                        <br>
+                        <select id='select_egaz_freguesia' name="selectEgazFreguesia" multiple style="display:none"></select>
+                    </div>
+                    <div id="center">
+                        <button type="button" class="btn btn-primary" onclick="loadGaz('egaz_concelho')">Concelhos</button>
+                        <br>
+                        <select id='select_egaz_concelho' name="selectEgazConcelho" multiple style="display:none"></select>
+                    </div>
+                    <div id="right">
+                        <button type="button" class="btn btn-primary" onclick="loadGaz('egaz_extra')">Grupos Administrativos</button>
+                        <br>
+                        <select id='select_egaz_extra' name="selectEgazExtra" multiple style="display:none"></select>
+                    </div>
+                </div>
+                <br><br>
+                <button type="button" class="btn btn-primary" onclick="vizGaz()">Prever</button>
+            </form>
             
         </div>
         <br>
         <div class="card">
-            <h1>Use for debugging fetches</h1>
-            <button type="button" class="btn btn-primary" onclick="loadGaz('ugaz_personal')">Load gaz</button>
-            <div id="loadingGaz">Loading gaz responses should go here</div>
+            
         </div>
         <br>
         <div class="card">

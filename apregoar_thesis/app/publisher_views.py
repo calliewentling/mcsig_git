@@ -613,33 +613,111 @@ def loadGaz(s_id):
     print("Story id: ",s_id,", User ID: ",u_id)
     #Access relevant queries
     if gazetteer == "ugaz_personal":
+        SQL = text("""
+            SELECT
+                p_id AS gaz_id,
+                p_name AS gaz_name,
+                p_desc AS gaz_desc,
+                u_id
+            FROM apregoar.access_ugaz
+            WHERE u_id = :x
+            ;
+        """)
+        SQL = SQL.bindparams(x=u_id)
+    elif gazetteer == "ugaz_empresa":
+        #Get Publisher
         try:
             with engine.connect() as conn:
-                SQL = text("""
-                    SELECT
-                        p_id,
-                        p_name,
-                        u_id
-                    FROM apregoar.access_ugaz
-                    WHERE u_id = :x
-                """)
-                SQL = SQL.bindparams(x=u_id)
+                SQL = text("SELECT * FROM apregoar.stories WHERE s_id = :x")
+                SQL = SQL.bindparams(x=s_id)
                 result = conn.execute(SQL)
         except:
-            print("Error in accessing personal gazetteer")
+            conn.close()
+            print("Error in extracting desired story from database")
+            res = make_response(jsonify("Não conseguimos carregar os dados"))
         else:
-            personal_gaz=[]
+            conn.close()
+            #Extract publication to use in query
             for row in result:
-                print(row)
-                ugaz_entry = {
-                    "p_id": row["p_id"],
-                    "p_name": row["p_name"]
-                }
-                personal_gaz.append(ugaz_entry)
-            print(personal_gaz)
-            res = make_response(jsonify(personal_gaz), 200)
+                publication = row["publication"]
+            #Define query
+            SQL = text("""
+                SELECT
+                    p_id AS gaz_id,
+                    p_name AS gaz_name,
+                    p_desc AS gaz_desc,
+                    publication AS gaz_pub
+                FROM apregoar.access_ugaz
+                WHERE publication = :x
+                ;
+            """)
+            SQL = SQL.bindparams(x=publication)
+    elif gazetteer == "ugaz_all":
+        SQL = text("""
+            SELECT
+                p_id AS gaz_id,
+                p_name AS gaz_name,
+                p_desc AS gaz_desc,
+                u_id
+            FROM apregoar.access_ugaz
+            ;
+        """)
+    elif gazetteer == "egaz_freguesia":
+        SQL = text("""
+            SELECT
+                e_ids AS gaz_id,
+                name AS gaz_name,
+                type AS gaz_desc
+            FROM apregoar.admin_gaz
+            WHERE type = 'freguesia'
+            ORDER BY gaz_name
+            ;
+        """)
+    elif gazetteer == "egaz_concelho":
+        SQL = text("""
+            SELECT
+                e_ids AS gaz_id,
+                name AS gaz_name,
+                type AS gaz_desc
+            FROM apregoar.admin_gaz
+            WHERE type = 'Concelho'
+            ORDER BY gaz_name
+            ;
+        """)
+    elif gazetteer == "egaz_extra":
+        SQL = text("""
+            SELECT
+                e_ids AS gaz_id,
+                name AS gaz_name,
+                type AS gaz_desc
+            FROM apregoar.admin_gaz
+            WHERE type NOT IN ('Concelho','freguesia')
+            ORDER BY gaz_name
+            ;
+        """)
     else:
+        #If no valid gazetteer selected
         res = make_response(jsonify("No valid gazetteer selected"))
+    #Call query for gazetteer
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(SQL)
+    except:
+        print("Error in accessing gazetteer",gazetteer)
+        res = make_response(jsonify("Error in accessing the gazetteer"))
+    else:
+        gaz_options=[]
+        for row in result:
+            print(row)
+            ugaz_entry = {
+                "gaz_id": row["gaz_id"],
+                "gaz_name": row["gaz_name"],
+                "gaz_desc": row["gaz_desc"]
+            }
+            gaz_options.append(ugaz_entry)
+        print(gaz_options)
+        res = make_response(jsonify(gaz_options), 200)
+
     return res
     
     

@@ -17,6 +17,10 @@
   <title>{% block title %}{% endblock title %}</title>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/css/ol.css" type="text/css">
+
+  <!-- codefixup.com/multiselect-dropdown-with-checkbox-->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/example-styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/demo-styles.css') }}">
 </head>
 
 <body>
@@ -101,15 +105,19 @@
     {% block main %}{% endblock main %}
   </main>
 
-  <!-- Import jquery 3.3.1 slim min -->
+    <!-- Import jquery 3.3.1 slim min -->
   <script src="{{ url_for('static', filename='js/jquery.slim.min.js') }}"></script>
   <!-- Import Bootstrap bundle -->
   <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
   
   <!-- Import our custom JavaScript -->
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-  
 
+  <!-- codefixup.com/multiselect-dropdown-with-checkbox-->
+  <script src="{{ url_for('static', filename='js/jquery-2.2.4.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/jquery.multi-select.js') }}"></script>
+  
+  
   {% block script %}{% endblock %}
 
 </body>

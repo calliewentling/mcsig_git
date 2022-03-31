@@ -214,3 +214,25 @@ input:checked + .slider:before {
 div.container1 {
     text-align: center;
 }
+
+/*Align horizontall */
+#containerGaz {
+    width:100%;
+    text-align:center;
+}
+
+#left {
+    float:left;
+    width:32%;
+}
+
+#center {
+    display: inline-block;
+    margin:0 auto;
+    width:32%;
+}
+
+#right {
+    float:right;
+    width:32%;
+}

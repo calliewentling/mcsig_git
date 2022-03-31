@@ -304,8 +304,8 @@ function eGazOpts(){
 };
 // Adding fetches to get access to gazetteers
 const loadingGaz = document.getElementById("loadingGaz");
-
 function loadGaz(gazetteer) {
+    //const loadingGaz = document.getElementById(gazetteer);
     fetch(`${window.origin}/publisher/${sID}/gazetteer`, {
         method: "POST",
         credentials: "include",
@@ -323,7 +323,16 @@ function loadGaz(gazetteer) {
         }
         response.json().then(function(data){
             console.log(data);
-            loadingGaz.innerHTML = data;
+            var select = document.getElementById(`select_${gazetteer}`)
+            for (var i=0; i < data.length; i++) {
+                var option = document.createElement("option");
+                option.textContent = data[i]["gaz_name"];
+                option.value = data[i]["gaz_id"];
+                select.appendChild(option);
+            }
+            $(function(){
+                $(`#select_${gazetteer}`).multiSelect();
+            });
         })
     })
     .catch(function(error){
@@ -332,79 +341,102 @@ function loadGaz(gazetteer) {
 }
 
 
-
+/*
 // Visualize selection of eGaz item on the map
 const selectedEgaz = document.getElementById("selectedEgaz");
 let selectedP = [];
 
 
-// Prepare EGaz inputs for visualization and saving
-function calcEGaz() {
-    var selectedFreg = document.getElementsByName("eGazFreg");
-    var selectedConcelho = document.getElementsByName("eGazConcelho");
-    var selectedAreaAdmin = document.getElementsByName("eGazAreaAdmin");
-    var numberOfFreg = 0;
-    var numberOfConcelho = 0;
-    var numberOfAreaAdmin = 0;
+
+
+var selectEgazFreguesia = document.getElementsByName("selectEgazFreguesia")[0];
+// new calc vals 
+function calcEGaz(selectGaz) {
+    // Resetting base values
+    var numberPlace = 0;
     var selectedP = [];
     var selectedPBasic = [];
     var eGazVals = [];
-    for (var i = 0; i < selectedConcelho.length; i++) {
-        if(selectedConcelho[i].checked) {
-            numberOfConcelho++;
-            var placeC = String(selectedConcelho[i].value);
-            var placeCString = `\'${placeC}\'`
-            console.log("Concelho place: ",placeCString);
-            selectedP.push(placeCString);
-            selectedPBasic.push(selectedConcelho[i].value);
-        }
-    }
-    
-    for (var i = 0; i < selectedFreg.length; i++) {
-        if(selectedFreg[i].checked) {
-            numberOfFreg++;
-            var placeF = String(selectedFreg[i].value);
-            var placeFString = `\'${placeF}\'`
+    // Reworking for new dropdowns
+    console.log("Freguesias: ",selectEgazFreguesia)
+    var numberFreg = 0;
+    for (var i = 0; i < selectGaz.length; i++) {
+        if(selectEgazFreguesia[i].selected) {
+            numberFreg++;
+            console.log("Value checked: ",selectEgazFreguesia[i].value);
+            var placeF = String(selectEgazFreguesia[i].value);
+            var placeFString = `\'${placeF}\'`;
             console.log("Freguesia place: ",placeFString);
             selectedP.push(placeFString);
             //Just Int Values
-            console.log("selectedFreg value ",selectedFreg[i].value)
-            var fregVal = selectedFreg[i].value;
+            console.log("selectedFreg value ",selectEgazFreguesia[i].value)
+            var fregVal = selectEgazFreguesia[i].value;
             for (j in fregVal) {
                 var eGazVal = Number(j);
                 eGazVals.push(eGazVal); 
             }
             console.log("eGazVals: ",eGazVals);
-            selectedPBasic.push(selectedFreg[i].value);
+            selectedPBasic.push(selectEgazFreguesia[i].value);
         }
     }
-    for (var i = 0; i < selectedAreaAdmin.length; i++) {
-        if(selectedAreaAdmin[i].checked) {
-            numberOfAreaAdmin++;
-            var placeA = String(selectedAreaAdmin[i].value);
-            var placeAString = `\'${placeA}\'`
-            console.log("Freguesia place: ",placeAString);
-            selectedP.push(placeAString);
-            selectedPBasic.push(selectedAreaAdmin[i].value);
+}
+*/
+
+
+function prepGaz(selectedGaz,selectedStr,selectedInt) {
+    console.log("selectedGaz",selectedGaz); //New selected Gazetteer values
+    // Reset iterim counter vals
+    var numberPlaces = 0;
+    for (var i=0; i<selectedGaz.length; i++) {
+        if (selectedGaz[i].selected){
+            numberPlaces++;
+            console.log("Value checked: ",selectedGaz[i].value);
+            var place = String(selectedGaz[i].value);
+            var placeString = `\'${place}\'`;
+            selectedStr.push(placeString);
+            selectedInt.push(selectedGaz[i].value);
+            console.log("selectedStr: ",selectedStr);
         }
     }
-    console.log("selectedP: ",selectedP);
-    //update total gaz values
-    eGaz = selectedP.length;
-    updateGazTotals();
-    return {selectedP, selectedPBasic};
+    return {selectedStr, selectedInt}
 }
 
-// See EGAZ selection on the map
-function vizEgaz() {
-    console.log("Entering vizEgaz");
-    drawResults();
-    results=calcEGaz();
-    selectedP = results.selectedP;
-    console.log("selectedP: ",selectedP);
-    //Draw EGaz
-    if (selectedP.length > 0){
-        mapEAGazFilter = "e_ids IN ("+selectedP+")";
+function vizGaz(){
+    console.log("Entering vizGaz");
+    // Initializing values
+    var selectedStrE = [];
+    var selectedIntE = [];
+    var selectedStrU = [];
+    var selectedIntU = [];
+    let selectedGaz;
+    // Preparing freguesias
+    var selectEgazFreguesia = document.getElementsByName("selectEgazFreguesia")[0];
+    console.log("vizGaz selectEgazFreguesia: ",selectEgazFreguesia);
+    var result = prepGaz(selectedGaz = selectEgazFreguesia,selectedStr = selectedStrE,selectedInt = selectedIntE);
+    selectedIntE = result.selectedInt;
+    selectedStrE = result.selectedStr;
+    console.log("selectedStrE after Freguesia: ",selectedIntE);
+    // Preparing concelhos
+    var selectEgazConcelho = document.getElementsByName("selectEgazConcelho")[0];
+    result = prepGaz(selectedGaz = selectEgazConcelho, selectStr = selectedStrE, selectedInt = selectedIntE);
+    selectedIntE = result.selectedInt;
+    selectedStrE = result.selectedStr;
+    console.log("selectedStrE after Concelho: ",selectedIntE);
+    // Preparing other administrative areas
+    var selectEgazExtra = document.getElementsByName("selectEgazExtra")[0];
+    console.log("selectEgazExtra: ",selectEgazExtra);
+    result = prepGaz(selectedGaz = selectEgazExtra, selectStr = selectedStrE, selectedInt = selectedIntE);
+    selectedIntE = result.selectedInt;
+    selectedStrE = result.selectedStr;
+    console.log("selectedStrE after Extra: ",selectedIntE);
+    //Update Gaz Totals
+    var gazL = selectedStrE.length;
+    //gazL = selectedStrE.length + selectedStrU.length;
+    updateGazTotals(gazL);
+    // Get EGaz map images
+    if (selectedStrE.length > 0){
+        console.log("selectedStrE for Filter: ",selectedStrE);
+        mapEAGazFilter = "e_ids IN ("+selectedStrE+")";
         console.log("mapFilter: ",mapEAGazFilter);
         //Zoom to selected Extent
         const vectorSource = new ol.source.Vector();
@@ -436,18 +468,18 @@ function vizEgaz() {
         });
         console.log("replaced layer with empty");
     }
-
-    
+    return {selectedStrE, selectedIntE, selectedStrU, selectedIntU}
 }
 
+
 //Update Gaz Totals
-function updateGazTotals() {
+function updateGazTotals(gazL) {
     var totalEGaz = document.getElementById("totalEGaz");
     var totalUGaz = document.getElementById("totalUGaz");
     var totalNumGaz = document.getElementById("totalNumGaz");
     var alertPoly = document.getElementById("alertPoly");
-    tGaz = uGaz + eGaz;
-    totalEGaz.innerHTML = eGaz;
+    tGaz = uGaz + gazL;
+    totalEGaz.innerHTML = gazL;
     totalUGaz.innerHTML = uGaz;
     totalNumGaz.innerHTML = tGaz;
     if (totalNumGaz == 0) {
