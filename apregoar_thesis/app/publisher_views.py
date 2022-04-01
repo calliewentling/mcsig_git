@@ -555,11 +555,12 @@ def localize(s_id):
         for row in result:
             story = row
         print(story)
-        egaz_area = []
-        egaz_freguesia = []
-        egaz_concelho = []
-        egaz_extra = []
+        #egaz_area = []
+        #egaz_freguesia = []
+        #egaz_concelho = []
+        #egaz_extra = []
         if story:
+            """
             try:
                 with engine.connect() as conn:
                     SQL2 = text("SELECT * FROM apregoar.admin_gaz")
@@ -591,8 +592,10 @@ def localize(s_id):
                     else:
                         egaz_extra.append(entry_egaz)
                 print("Number of egazetteer freguesia entries extracted: ",len(egaz_freguesia))
+                """
                 
-                return render_template("publisher/localize.html", story=story, sID = s_id, eGazF=egaz_freguesia, eGazC=egaz_concelho, eGazA = egaz_area, eGazX = egaz_extra)
+            return render_template("publisher/localize.html", story=story, sID = s_id)
+                #return render_template("publisher/localize.html", story=story, sID = s_id, eGazF=egaz_freguesia, eGazC=egaz_concelho, eGazA = egaz_area, eGazX = egaz_extra)
         else:
             feedback = f"No valid story selected"
             flash(feedback, "danger")
@@ -787,6 +790,7 @@ def save_instance(s_id):
     t_end = instance["tEnd"]
     t_desc = instance["tDesc"]
     e_ids = instance["eIds"]
+    p_ids = instance["pIds"]
 
     #Extract geometry in correct format from user input
     #UGaz
@@ -810,6 +814,9 @@ def save_instance(s_id):
 
     #Extract e_ids
     print("e_ids: ",e_ids)
+
+    #Extract p_ids
+    print("p_ids: ",p_ids)
 
     #Define connection
     con = psycopg2.connect("dbname=postgres user=postgres password=thesis2021")

@@ -161,61 +161,44 @@
 
                 <!-- EGAZ --> 
                 <h3>Escolher sítios existentes</h3> 
-                <!-- TOGGLE -->
-                <div class="container1">
-                    <label class="switch">
-                        <input id ="eSwitch" type="checkbox" onclick = "eGazOpts()">
-                        <span class="slider round"></span>
-                    </label>
-                    <div id="eToggleMode"><p>Ativar associação das áreas definidas</p></div>
+                
+                <div id="containerGaz">
+                    <div id="left">
+                        <button type="button" class="btn btn-primary" onclick="loadGaz('ugaz_personal')">Sítios Pessoais</button>
+                        <br>
+                        <select id='select_ugaz_personal' name="selectUgazPersonal" multiple style="display:none"></select>
+                    </div>
+                    <div id="center">
+                        <button type="button" class="btn btn-primary" onclick="loadGaz('ugaz_empresa')">Sítios Empresiais</button>
+                        <br>
+                        <select id='select_ugaz_empresa' name="selectUgazEmpresa" multiple style="display:none"></select>
+                    </div>
+                    <div id="right">
+                        <button type="button" class="btn btn-primary" onclick="loadGaz('ugaz_all')">Sítios (Totais)</button>
+                        <br>
+                        <select id='select_ugaz_all' name="selectUgazAll" multiple style="display:none"></select>
+                    </div>
                 </div>
-                <em>Pode associar um ou mais áreas já existentes de gazetteer geral (com áreas administrativas), ou reutilizar áreas desenhada do seu próprio gazetteer, ou da sua organização.</em>
-                <!-- SUMARIO DE EGAZ -->
-                <div id="summaryEGaz">
+                <br><br><br>
+                <div id="containerGaz">
+                    <div id="left">
+                        <button type="button" class="btn btn-primary" onclick="loadGaz('egaz_freguesia')">Freguesias</button>
+                        <br>
+                        <select id='select_egaz_freguesia' name="selectEgazFreguesia" multiple style="display:none"></select>
+                    </div>
+                    <div id="center">
+                        <button type="button" class="btn btn-primary" onclick="loadGaz('egaz_concelho')">Concelhos</button>
+                        <br>
+                        <select id='select_egaz_concelho' name="selectEgazConcelho" multiple style="display:none"></select>
+                    </div>
+                    <div id="right">
+                        <button type="button" class="btn btn-primary" onclick="loadGaz('egaz_extra')">Grupos Administrativos</button>
+                        <br>
+                        <select id='select_egaz_extra' name="selectEgazExtra" multiple style="display:none"></select>
+                    </div>
                 </div>
-                <!-- ESCOLHER DE EGAZ -->
-                <div id="chooseEGaz" style="display:none">
-                    <button type="button" class="btn btn-primary" onclick="vizEgaz()">Prever</button>
-                    
-                    {% if eGazC|length > 0 %}
-                        <div id="listGazC" class="dropdown-check-list" tabindex="100">
-                            <span class="anchor">Carregar Concelhos existentes</span>
-                            <ul id="itemsC" class="items">
-                                {% for eGazItem in eGazC %}
-                                    <li><input type="checkbox" name="eGazConcelho" value="{{ eGazItem.e_ids }}">{{ eGazItem.name }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    {% else %}
-                        <p><em>Desculpa, as concelhos não estão carregadas.</em></p>
-                    {% endif %}
-
-                    {% if eGazF|length > 0 %}
-                        <div id="listGazF" class="dropdown-check-list" tabindex="100">
-                            <span class="anchor">Carregar freguesias existentes</span>
-                            <ul id="itemsF" class="items">
-                                {% for eGazItem in eGazF %}
-                                    <li><input type="checkbox" name="eGazFreg" value="{{ eGazItem.e_ids }}">{{ eGazItem.name }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    {% else %}
-                        <p><em>Desculpa, as freguesias não estão carregadas.</em></p>
-                    {% endif %}
-
-                    {% if eGazA|length > 0 %}
-                        <div id="listGazA" class="dropdown-check-list" tabindex="100">
-                            <span class="anchor">Carregar áreas administrativas existentes</span>
-                            <ul id="itemsA" class="items">
-                                {% for eGazItem in eGazA %}
-                                    <li><input type="checkbox" name="eGazAreaAdmin" value="{{ eGazItem.e_ids }}">{{ eGazItem.name }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    {% else %}
-                        <p><em>Desculpa, as áreas administrativas não estão carregadas.</em></p>
-                    {% endif %}
-                </div>
+                <br><br>
+                <button type="button" class="btn btn-primary" onclick="initGaz()">Prever</button>
 
                 <!-- TEMPORAL -->
                 <h3>Associar uma altura</h3>
@@ -236,45 +219,6 @@
                 <h3 id="validation" style="display:none">Validação</h3>
                 <div id="successAnnouncement" style="display:none"></div>
                 <div id="formButton" style="display:none"></div>
-
-                <h1>Use for debugging fetches</h1>
-                <div id="containerGaz">
-                    <div id="left">
-                        <button type="button" class="btn btn-primary" onclick="loadGaz('ugaz_personal')">Sítios Pessoais</button>
-                        <br>
-                        <select id='select_ugaz_personal' multiple style="display:none"></select>
-                    </div>
-                    <div id="center">
-                        <button type="button" class="btn btn-primary" onclick="loadGaz('ugaz_empresa')">Sítios Empresiais</button>
-                        <br>
-                        <select id='select_ugaz_empresa' multiple style="display:none"></select>
-                    </div>
-                    <div id="right">
-                        <button type="button" class="btn btn-primary" onclick="loadGaz('ugaz_all')">Sítios Empresiais</button>
-                        <br>
-                        <select id='select_ugaz_all' multiple style="display:none"></select>
-                    </div>
-                </div>
-                <br>
-                <div id="containerGaz">
-                    <div id="left">
-                        <button type="button" class="btn btn-primary" onclick="loadGaz('egaz_freguesia')">Freguesias</button>
-                        <br>
-                        <select id='select_egaz_freguesia' name="selectEgazFreguesia" multiple style="display:none"></select>
-                    </div>
-                    <div id="center">
-                        <button type="button" class="btn btn-primary" onclick="loadGaz('egaz_concelho')">Concelhos</button>
-                        <br>
-                        <select id='select_egaz_concelho' name="selectEgazConcelho" multiple style="display:none"></select>
-                    </div>
-                    <div id="right">
-                        <button type="button" class="btn btn-primary" onclick="loadGaz('egaz_extra')">Grupos Administrativos</button>
-                        <br>
-                        <select id='select_egaz_extra' name="selectEgazExtra" multiple style="display:none"></select>
-                    </div>
-                </div>
-                <br><br>
-                <button type="button" class="btn btn-primary" onclick="vizGaz()">Prever</button>
             </form>
             
         </div>

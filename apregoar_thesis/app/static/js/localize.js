@@ -33,6 +33,41 @@ wmsLayerStory.setOpacity(0.7);
 mapGaz.addLayer(wmsLayerStory);
 console.log("Story instances added");
 
+//General Zoom Function
+let layerExtent;
+function zoomGaz(vectorSource){
+    console.log("layerExtent (in zoomGaz): ",vectorSource.getExtent());
+    var layerExtent = vectorSource.getExtent();
+    mapGaz.getView().fit(ol.extent.buffer(layerExtent, .01)); //What does this number mean??
+    return layerExtent;
+}
+
+//Zoom to Story instances (already associated)
+const vectorSourceStories = new ol.source.Vector();
+var wfs_url_story = 'http://localhost:8080/geoserver/wfs?service=wfs&version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&cql_filter='+mapStoryFilter+'&outputFormat=application/json';
+fetch(wfs_url_story).then(function (response) {
+    jsonS = response.json();
+    console.log("JSON: ",jsonS);
+    return jsonS;
+})
+.then(function (jsonS) {
+    const featuresS = new ol.format.GeoJSON().readFeatures(jsonS);
+    console.log("Features: ",featuresS);
+    vectorSourceStories.addFeatures(featuresS);
+    if (featuresS.length > 0) {
+        layerExtent = zoomGaz(vectorSource = vectorSourceStories);
+    }
+    return vectorSourceStories;
+    //layerExtent = vectorSource.getExtent();
+    //map.getView().fit(ol.extent.buffer(layerExtent, .01)); //What does this number mean??
+});
+
+//DEFINE LOCALIZATION TOTALS
+let tGaz = 0;
+let uGaz = 0;
+let eGaz = 0;
+let gazL = 0;
+
 //// Preparation for map interaction ///
 let snapDraw, drawDraw, modifyDraw; //
 var typeSelect = document.getElementById('type');
@@ -57,10 +92,7 @@ const drawVector = new ol.layer.Vector({
 });     
 mapGaz.addLayer(drawVector);
 
-//DEFINE LOCALIZATION TOTALS
-let tGaz = 0;
-let uGaz = 0;
-let eGaz = 0;
+
 
 ///// Preparation for select and delete /////////
 let selectedF;
@@ -114,8 +146,7 @@ changeInteraction();
 function toggleLocalization(){
     //Get the checkbox
     var tswitch = document.getElementById("tswitch");
-    var eSwitch = document.getElementById("eSwitch");
-    //Get output text
+    //Get output text //
     var newUgaz = document.getElementById("newUgaz");
     var eGazMap = document.getElementById("eGazMap");
     var toggleMode = document.getElementById("toggleMode");
@@ -123,8 +154,6 @@ function toggleLocalization(){
     if (tswitch.checked == true){
         console.log("CREATE NEW UGAZ MODE");
         toggleMode.innerHTML = "Desenhar localização";
-        // De-toggle egazetteer association switch
-        eSwitch.checked = false;
         //Draw new areas on the map
         const modifyDraw = new ol.interaction.Modify({
             source: drawSource,
@@ -222,7 +251,7 @@ function drawResults() {
     };
     //Update total Gaz Numbers
     uGaz = drawFeatures.length;
-    updateGazTotals();
+    tGaz = updateGazTotals(uGaz, gazL);
 }
 
 //On added feature adjustments:
@@ -266,42 +295,35 @@ const styleGazAdmin = [
     }),
 ];
 
-const wmsSourceEAGaz = new ol.source.ImageWMS({
+// Initialize Egaz map layers
+const wmsSourceEGaz = new ol.source.ImageWMS({
     url: 'http://localhost:8080/geoserver/apregoar/wms',
     serverType: 'geoserver',
     crossOrigin: 'anonymous',
 });
 console.log("Source defined")
-const wmsLayerEAGaz = new ol.layer.Image({
-    source: wmsSourceEAGaz,
+const wmsLayerEGaz = new ol.layer.Image({
+    source: wmsSourceEGaz,
     style: styleGazAdmin,
 });
-mapGaz.addLayer(wmsLayerEAGaz);
-console.log("Layer added");
+mapGaz.addLayer(wmsLayerEGaz);
+console.log("EGaz Layer added");
+
+// Initialize Ugaz map layers
+const wmsSourceUGaz = new ol.source.ImageWMS({
+    url: 'http://localhost:8080/geoserver/apregoar/wms',
+    serverType: 'geoserver',
+    crossOrigin: 'anonymous',
+});
+console.log("Source defined")
+const wmsLayerUGaz = new ol.layer.Image({
+    source: wmsSourceUGaz,
+    style: styleGazAdmin,
+});
+mapGaz.addLayer(wmsLayerUGaz);
+console.log("UGaz Layer added");
 
 
-// See eGaz selection options
-function eGazOpts(){
-    //Get the checkbox
-    var eSwitch = document.getElementById("eSwitch");
-    var tSwitch = document.getElementById("tswitch");
-    var eToggleMode = document.getElementById("eToggleMode");
-    var chooseEGaz = document.getElementById("chooseEGaz");
-    var summaryEGaz = document.getElementById("summaryEGaz");
-    // If toggle activated, show selection of Gazetteers
-    if (eSwitch.checked == true){
-        console.log("Select EGAZ mode");
-        tSwitch.checked = false;
-        eToggleMode.innerHTML = "Escolher Gazetteers";
-        chooseEGaz.style.display = "block";
-        summaryEGaz.style.display = "none";
-    } else {
-        console.log("Summary EGAZ mdoe");
-        eToggleMode.innerHTML = "Sumário das escolhas";
-        chooseEGaz.style.display = "none";
-        summaryEGaz.style.display = "block";
-    }
-};
 // Adding fetches to get access to gazetteers
 const loadingGaz = document.getElementById("loadingGaz");
 function loadGaz(gazetteer) {
@@ -383,26 +405,35 @@ function calcEGaz(selectGaz) {
 */
 
 
-function prepGaz(selectedGaz,selectedStr,selectedInt) {
+function prepGaz(selectedGaz,selectedStr,selectedInt,gazType) {
     console.log("selectedGaz",selectedGaz); //New selected Gazetteer values
     // Reset iterim counter vals
-    var numberPlaces = 0;
+    //var numberPlaces = 0;
     for (var i=0; i<selectedGaz.length; i++) {
         if (selectedGaz[i].selected){
-            numberPlaces++;
+            //numberPlaces++;
             console.log("Value checked: ",selectedGaz[i].value);
             var place = String(selectedGaz[i].value);
             var placeString = `\'${place}\'`;
             selectedStr.push(placeString);
-            selectedInt.push(selectedGaz[i].value);
-            console.log("selectedStr: ",selectedStr);
+            if (gazType == "eGaz") {
+                selectedInt.push(selectedGaz[i].value);
+            }
+            else if (gazType == "uGaz") {
+                selectedInt.push(Number(selectedGaz[i].value));
+            }
+            else {
+                console.log("No valid gazType selected");
+                console.log("gazType: ",gazType);
+            }
+            console.log("selectedInt: ",selectedInt);
         }
     }
     return {selectedStr, selectedInt}
 }
 
-function vizGaz(){
-    console.log("Entering vizGaz");
+function initGaz(){
+    console.log("Entering initGaz");
     // Initializing values
     var selectedStrE = [];
     var selectedIntE = [];
@@ -410,70 +441,140 @@ function vizGaz(){
     var selectedIntU = [];
     let selectedGaz;
     // Preparing freguesias
+    var testEgazFreg = document.getElementsByName("selectEgazFreguesia");
+    console.log();
+    console.log("testEgazFreg: ",testEgazFreg);
+    console.log();
     var selectEgazFreguesia = document.getElementsByName("selectEgazFreguesia")[0];
-    console.log("vizGaz selectEgazFreguesia: ",selectEgazFreguesia);
-    var result = prepGaz(selectedGaz = selectEgazFreguesia,selectedStr = selectedStrE,selectedInt = selectedIntE);
+    console.log("initGaz selectEgazFreguesia: ",selectEgazFreguesia);
+    var result = prepGaz(selectedGaz = selectEgazFreguesia,selectedStr = selectedStrE,selectedInt = selectedIntE, gazType = "eGaz");
     selectedIntE = result.selectedInt;
     selectedStrE = result.selectedStr;
-    console.log("selectedStrE after Freguesia: ",selectedIntE);
+    console.log("selectedIntE after Freguesia: ",selectedIntE);
     // Preparing concelhos
     var selectEgazConcelho = document.getElementsByName("selectEgazConcelho")[0];
-    result = prepGaz(selectedGaz = selectEgazConcelho, selectStr = selectedStrE, selectedInt = selectedIntE);
+    result = prepGaz(selectedGaz = selectEgazConcelho, selectedStr = selectedStrE, selectedInt = selectedIntE, gazType = "eGaz");
     selectedIntE = result.selectedInt;
     selectedStrE = result.selectedStr;
-    console.log("selectedStrE after Concelho: ",selectedIntE);
+    console.log("selectedIntE after Concelho: ",selectedIntE);
     // Preparing other administrative areas
     var selectEgazExtra = document.getElementsByName("selectEgazExtra")[0];
     console.log("selectEgazExtra: ",selectEgazExtra);
-    result = prepGaz(selectedGaz = selectEgazExtra, selectStr = selectedStrE, selectedInt = selectedIntE);
+    result = prepGaz(selectedGaz = selectEgazExtra, selectedStr = selectedStrE, selectedInt = selectedIntE, gazType = "eGaz");
     selectedIntE = result.selectedInt;
     selectedStrE = result.selectedStr;
-    console.log("selectedStrE after Extra: ",selectedIntE);
+    console.log("selectedIntE after Extra: ",selectedIntE);
+    // Preparing Sítios pessoais
+    var selectUgazPersonal = document.getElementsByName("selectUgazPersonal")[0];
+    console.log("selectUgazPersonal: ",selectUgazPersonal);
+    result = prepGaz(selectedGaz = selectUgazPersonal, selectedStr = selectedStrU, selectedInt = selectedIntU, gazType = "uGaz");
+    selectedIntU = result.selectedInt;
+    selectedStrU = result.selectedStr;
+    console.log("selectedIntU after Ugaz Personal: ",selectedIntU);
+    // Preparing Sítios Empresiais
+    var selectUgazEmpresa = document.getElementsByName("selectUgazEmpresa")[0];
+    console.log("selectUgazEmpresa: ",selectUgazEmpresa);
+    result = prepGaz(selectedGaz = selectUgazEmpresa, selectedStr = selectedStrU, selectedInt = selectedIntU, gazType = "uGaz");
+    selectedIntU = result.selectedInt;
+    selectedStrU = result.selectedStr;
+    console.log("selectedIntU after Ugaz Empresa: ",selectedIntU);
+    // Preparing Sítios Empresiais
+    var selectUgazAll = document.getElementsByName("selectUgazAll")[0];
+    console.log("selectUgazAll: ",selectUgazAll);
+    result = prepGaz(selectedGaz = selectUgazAll, selectedStr = selectedStrU, selectedInt = selectedIntU, gazType = "uGaz");
+    selectedIntU = result.selectedInt;
+    selectedStrU = result.selectedStr;
+    console.log("selectedIntU after Ugaz All: ",selectedIntU);
+    gazL = selectedStrE.length + selectedStrU.length;
+    tGaz = updateGazTotals(uGaz, gazL);
+    results = vizGaz(selectedStrE,selectedIntU);
+    results["tGaz"] = tGaz;
+    results["selectedIntE"] = selectedIntE;
+    results["selectedStrU"] = selectedStrU;
+    console.log(results);
+    return results;
+}
+
+function vizGaz(selectedStrE,selectedIntU){
     //Update Gaz Totals
-    var gazL = selectedStrE.length;
-    //gazL = selectedStrE.length + selectedStrU.length;
-    updateGazTotals(gazL);
+    var vectorSource = vectorSourceStories;
     // Get EGaz map images
     if (selectedStrE.length > 0){
         console.log("selectedStrE for Filter: ",selectedStrE);
-        mapEAGazFilter = "e_ids IN ("+selectedStrE+")";
-        console.log("mapFilter: ",mapEAGazFilter);
-        //Zoom to selected Extent
-        const vectorSource = new ol.source.Vector();
-        var wfs_url = 'http://localhost:8080/geoserver/wfs?service=wfs&version=2.0.0&request=GetFeature&typeNames=apregoar:admin_gaz&cql_filter='+mapEAGazFilter+'&outputFormat=application/json';
-        fetch(wfs_url).then(function (response) {
-            json = response.json();
-            console.log("JSON: ",json);
-            return json;
+        mapEgazFilter = "e_ids IN ("+selectedStrE+")";
+        console.log("mapFilter: ",mapEgazFilter);
+        //Get Egaz extent
+        var wfs_url_E = 'http://localhost:8080/geoserver/wfs?service=wfs&version=2.0.0&request=GetFeature&typeNames=apregoar:admin_gaz&cql_filter='+mapEgazFilter+'&outputFormat=application/json';
+        fetch(wfs_url_E).then(function (response) {
+            jsonE = response.json();
+            console.log("JSON: ",jsonE);
+            return jsonE;
         })
-        .then(function (json) {
-            const features = new ol.format.GeoJSON().readFeatures(json);
-            console.log("Features: ",features);
-            vectorSource.addFeatures(features);
-            layerExtent = vectorSource.getExtent();
-            mapGaz.getView().fit(ol.extent.buffer(layerExtent, .01)); //What does this number mean??
+        .then(function (jsonE) {
+            const featuresE = new ol.format.GeoJSON().readFeatures(jsonE);
+            console.log("Features: ",featuresE);
+            vectorSource.addFeatures(featuresE);
+            console.log("layerExtent: in Egaz",vectorSource.getExtent());
+            layerExtent = zoomGaz(vectorSource);
+            return vectorSource;
         });
         // Add eGaz shapes     
-        wmsLayerEAGaz.setOpacity(0.5);
-        wmsSourceEAGaz.updateParams({
+        wmsLayerEGaz.setOpacity(0.5);
+        wmsSourceEGaz.updateParams({
             "LAYERS": "apreagoar:admin_gaz",
-            "cql_filter": mapEAGazFilter
+            "cql_filter": mapEgazFilter
         });
         console.log("source updated")
         console.log("Egaz added to map")
     } else {
-        wmsSourceEAGaz.updateParams({
+        wmsSourceEGaz.updateParams({
             "LAYERS": "apreagoar:admin_gaz",
             "cql_filter": "e_ids = 0"
         });
-        console.log("replaced layer with empty");
+        console.log("replaced Egaz layer with empty");
     }
-    return {selectedStrE, selectedIntE, selectedStrU, selectedIntU}
+    if(selectedIntU.length > 0){
+        console.log("selectedStrU for Filter: ",selectedIntU);
+        mapUgazFilter = "p_id IN ("+selectedIntU+")";
+        console.log("mapFilter: ",mapUgazFilter);
+        // Get Ugaz extent
+        var wfs_url_U= 'http://localhost:8080/geoserver/wfs?service=wfs&version=2.0.0&request=GetFeature&typeNames=apregoar:access_ugaz&cql_filter='+mapUgazFilter+'&outputFormat=application/json';
+        fetch(wfs_url_U).then(function (response) {
+            jsonU = response.json();
+            console.log("JSON: ",jsonU);
+            return jsonU;
+        })
+        .then(function (jsonU) {
+            const featuresU = new ol.format.GeoJSON().readFeatures(jsonU);
+            console.log("Features: ",featuresU);
+            vectorSource.addFeatures(featuresU);
+            console.log("layerExtent: in get Ugaz",vectorSource.getExtent());
+            layerExtent = zoomGaz(vectorSource);
+            return vectorSource;
+        });
+        // Add eGaz shapes     
+        wmsLayerUGaz.setOpacity(0.5);
+        wmsSourceUGaz.updateParams({
+            "LAYERS": "apreagoar:access_ugaz",
+            "cql_filter": mapUgazFilter
+        });
+        console.log("source updated")
+        console.log("Ugaz added to map")
+    } else {
+        wmsSourceUGaz.updateParams({
+            "LAYERS": "apreagoar:access_ugaz",
+            "cql_filter": "p_id = 0"
+        });
+        console.log("replaced Ugaz layer with empty");
+    }
+    return {selectedStrE,selectedIntU}
 }
 
 
+
+
 //Update Gaz Totals
-function updateGazTotals(gazL) {
+function updateGazTotals(uGaz,gazL) {
     var totalEGaz = document.getElementById("totalEGaz");
     var totalUGaz = document.getElementById("totalUGaz");
     var totalNumGaz = document.getElementById("totalNumGaz");
@@ -490,6 +591,8 @@ function updateGazTotals(gazL) {
         alertPoly.style.display="none";
         totalNumGaz.style.color="green";
     }
+    console.log("total gaz features selected: ", tGaz)
+    return tGaz;
 }
 
 //Return to previous story button
@@ -541,35 +644,65 @@ const saveG = document.getElementById('selectGeom');
 const saveN = document.getElementById('selectName');
 const saveD = document.getElementById('selectDesc');
 const saveB = document.getElementById('formButton');
-
-
 saveG.innerHTML = `Desenhar um ou mais áreas.`;
-
-
 const numPoly = 0;
 answer.innerHTML = `<strong>${numPoly}</strong>`;
 
+function limparGazSelect(selectGaz) {
+    for (var i = 0; i < selectGaz.length; i++) {
+        selectGaz[i].selected = false;
+    }
+}
+
+// Clear the existing values
 function limparTudo() {
+    /*
     document.getElementById("pName").value = '';
     document.getElementById("pDesc").value = '';
     document.getElementById("tBegin").value = '';
     document.getElementById("tEnd").value = '';
     document.getElementById("tDesc").value = '';
+    // Reset loaded gazetteer selections
+    var selectUgazPersonal = document.getElementsByName("selectUgazPersonal");
+    console.log("selectUgazPersonal for deconstructing: ",selectUgazPersonal);
+    limparGazSelect(selectGaz = selectUgazPersonal[0]);  
+    limparGazSelect(selectGaz = document.getElementsByName("selectUgazEmpresa")[0]);
+    limparGazSelect(selectGaz = document.getElementsByName("selectUgazAll")[0]);
+    limparGazSelect(selectGaz = document.getElementsByName("selectEgazFreguesia")[0]);
+    limparGazSelect(selectGaz = document.getElementsByName("selectEgazConcelho")[0]);
+    limparGazSelect(selectGaz = document.getElementsByName("selectEgazExtra")[0]);
+    initGaz();
+    
+
+    // Delete custom features
+    var allCustomFeatures = drawSource.getFeatures();
+    allCustomFeatures.forEach(function(feature){
+        drawSource.removeFeature(feature)
+    });
+    */
+    location.reload();
+    console.log("should be clean");
+
 }
 
 function submitInstance() {
     // Get all checked values
-    var results = calcEGaz();
-    var selectedP = results.selectedP;
-    console.log("selectedP: ",selectedP);
-    var stringP = "";
-    for (p in selectedP) {
-        stringP.concat(String(selectedP[p]));
-    }
-    console.log("stringP: ",stringP);
+    results = initGaz();
+    tGaz = results.tGaz;
+    selectedStrE = results.selectedStrE;
+    selectedIntE = results.selectedIntE;
+    selectedStrU = results.selectedStrU;
+    selectedIntU = results.selectedIntU;
+
     
-    selectedPBasic = results.selectedPBasic;
-    console.log("selectedPBasic",selectedPBasic);
+    var stringE = "";
+    for (p in selectedStrE) {
+        stringE.concat(String(selectedStrE[p]));
+    }
+    console.log("stringE: ",stringE);
+    console.log("selectedIntE",selectedIntE);
+
+
     // Get form values for validation
     var pNamef = document.getElementById("pName");
     var pDescf = document.getElementById("pDesc");
@@ -619,7 +752,6 @@ function submitInstance() {
         validation.style.display="none";
         successAnnouncement.style.display="none";
         //Prepare data for sending to flask
-        console.log("selectedPBasic: ",selectedPBasic)
         var entry = {
             type: "Feature",
             properties: {
@@ -629,179 +761,14 @@ function submitInstance() {
                 tBegin: tBeginf.value,
                 tEnd: tEndf.value,
                 tDesc: tDescf.value,
-                eIds: selectedPBasic
+                eIds: selectedIntE,
+                pIds: selectedIntU,
             },
             geometry: polyJson
         };
         console.log(entry);
         //Send to flask
         fetch(`${window.origin}/publisher/${sID}/save_instance`, {
-            //fetch(`${window.origin}/save_instance`, {
-                method: "POST",
-                credentials: "include",
-                body: JSON.stringify(entry),
-                cache: "no-cache",
-                headers: new Headers({
-                    "content-type": "application/json"
-                })
-            })
-            .then(function(response) {
-                if (response.status !== 200) {
-                    window.alert("Error");
-                    console.log(`Looks like there was a problem. Status code: ${response.status}`);
-                    return;
-                }
-                response.json().then(function(data) {
-                    console.log(data);
-                    let maisUm = confirm("Parabéns! A instância foi guardada com sucesso. Quer associar mais uma instância?")
-                    if (maisUm) {
-                        location.reload();
-                    } else {
-                        window.location.href = "review";
-                    }
-
-
-                    
-                    //window.location.href = 'https://www.google.com';
-                }
-                );
-            })
-            .catch(function(error) {
-            console.log("Fetch error: " + error);
-            });
-    }
-}
-
-
-/*
-///// MAPBOX DRAW /////////////
-// Loading mapbox background    
-mapboxgl.accessToken = 'pk.eyJ1IjoiY3dlbnRsaW5nIiwiYSI6ImNqd2F0cmVvajA5bHAzemx6NDF3bmZ6NGsifQ.2qy1Q4WfMf4XFllp2v96HQ';
-const mapDesign = new mapboxgl.Map({
-    container: 'mapDesign', // container ID
-    style: 'mapbox://styles/cwentling/cksfd4uh6532w18nt3bbtxtae', // style URL
-    center: [-9.150404956762742, 38.72493479806579], // starting position [lng, lat]
-    zoom: 13 // starting zoom
-});
-
-// Add the control to the map.
-mapDesign.addControl(
-    new MapboxGeocoder({
-        accessToken: mapboxgl.accessToken,
-        mapboxgl: mapboxgl
-    })
-);
-
-//Drawing controls to polygon design
-const draw = new MapboxDraw({
-    displayControlsDefault: false,
-    // Select which mapbox-gl-draw control buttons to add to the map.
-    controls: {
-        polygon: true,
-        trash: true
-    },
-    // Set mapbox-gl-draw to draw by default.
-    // The user does not have to click the polygon control button first.
-    defaultMode: 'draw_polygon'
-});
-
-mapDesign.addControl(draw);
-
-mapDesign.on('draw.create', updateArea);
-mapDesign.on('draw.delete', updateArea);
-mapDesign.on('draw.update', updateArea);
-
-
-
-function updateArea(e) {
-    console.log(e);
-    const data = draw.getAll();
-    if (data.features.length > 0) {
-        //console.log("Data features lenght:")
-        //console.log(data.features.length)
-        const numPoly = data.features.length
-        //const area = turf.area(data);
-        // Restrict the area to 2 decimal points.
-        //const rounded_area = Math.round(area * 100) / 100;
-        answer.innerHTML = `<p><strong>${numPoly}</strong></p>`;
-        // Getting coordinates input polygons
-        console.log("data features (allPoly):");
-        let allPoly = data.features;
-        console.log(allPoly);
-        let newPoly = data.features[0].geometry.coordinates[0];
-        console.log("newPoly:");
-        console.log(newPoly);
-        geoPoly = JSON.stringify(allPoly);
-        console.log("geoPoly");
-        console.log(geoPoly);
-        nGon = newPoly.length;
-        console.log("Saving allPoly")
-        
-        saveG.innerHTML = `<select name="selectGeom" id="selectGeom"> <option value=${geoPoly}> ${numPoly} área(s)</option> </select>`;
-        saveB.innerHTML = `<button type="button" class="btn btn-primary" id="submitGeom" onClick="submit_poly();">Atribua</button>`;
-        
-    } else {
-        answer.innerHTML = '';
-        if (e.type !== 'draw.delete')
-            alert('Desenhar uma área');
-            ;
-        nGon=0;
-        saveG.innerHTML = `<p>Sim geometria</p>`;
-    }
-    
-}; 
-
-
-/////SUBMIT FORM ///////
-function submit_poly() {
-    const successA = document.getElementById('successAnnouncement');
-    successA.innerHTML = `<p>Saving... </p>`;
-    var pNamef = document.getElementById("pName")
-    var pDescf = document.getElementById("pDesc")
-    var geom = geoPoly
-    var tBeginf = document.getElementById("tBegin")
-    var tEndf = document.getElementById("tEnd")
-    var tDescf = document.getElementById("tDesc")
-
-    var faltas = [];
-    if (! pNamef.value) {
-        console.log('pNamef: ');
-        console.log(pNamef);
-        faltas.push(pNamef.placeholder);
-        console.log('faltas: ');
-        console.log(faltas);
-    }
-    if (! tBeginf.value) {
-        console.log('tBeginf: ');
-        console.log(tBeginf);
-        faltas.push(" Tempo do início")
-    }
-    if (! tEndf.value) {
-        console.log('tEndf: ');
-        console.log(tEndf);
-        faltas.push(" Tempo do fim")
-    }
-    if (faltas.length > 0){
-        successA.innerHTML = `<em style="color:red">Falta: ${faltas}</em>`;
-        return
-    }
-    else {
-        var entry = {
-            type: "Feature",
-            properties : {
-                pName: pNamef.value,
-                pDesc: pDescf.value,
-                allDay: tBeginf.type,
-                tBegin: tBeginf.value,
-                tEnd: tEndf.value,
-                tDesc: tDescf.value
-            },
-            geometry: geom
-        };
-        console.log(entry);
-        
-        fetch(`${window.origin}/publisher/${sID}/save_instance`, {
-        //fetch(`${window.origin}/save_instance`, {
             method: "POST",
             credentials: "include",
             body: JSON.stringify(entry),
@@ -812,19 +779,24 @@ function submit_poly() {
         })
         .then(function(response) {
             if (response.status !== 200) {
+                window.alert("Error");
                 console.log(`Looks like there was a problem. Status code: ${response.status}`);
                 return;
             }
             response.json().then(function(data) {
                 console.log(data);
-                successA.innerHTML = `<p> Parabéns! Os dados ficam guardados. </p>`;
-                //window.location.href = 'https://www.google.com';
-            }
-            );
+                let maisUm = confirm("Parabéns! A instância foi guardada com sucesso. Quer associar mais uma instância?")
+                if (maisUm) {
+                    location.reload();
+                } else {
+                    window.location.href = "review";
+                }
+            });
         })
         .catch(function(error) {
         console.log("Fetch error: " + error);
         });
     }
 }
-*/
+
+
