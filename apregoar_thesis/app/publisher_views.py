@@ -381,32 +381,21 @@ def review_e(s_id):
                 print(delete_inst)
         try:
             with engine.connect() as conn:
-                SQL = "SELECT p_id FROM apregoar.instances WHERE i_id IN %(delete_inst)s"
-                result = conn.execute(SQL, {
-                    'delete_inst': tuple(delete_inst),
+                SQL = "DELETE FROM apregoar.instance_ugaz WHERE i_id IN %(delete_inst)s"
+                conn.execute(SQL, {
+                    'delete_p': tuple(delete_inst),
                 })
-                delete_p = []
-                for i in result:
-                    delete_p.append(i["p_id"])
-                print("p_ids: ",delete_p)
                 SQL2 = "DELETE FROM apregoar.instances WHERE i_id IN %(delete_inst)s"
                 conn.execute(SQL2, {
                     'delete_inst': tuple(delete_inst),
-                })
-                #Functional... but should this remain, or should locations be deleted separately?
-                """
-                SQL3 = "DELETE FROM apregoar.ugazetteer WHERE p_id IN %(delete_p)s"
-                conn.execute(SQL3, {
-                    'delete_p': tuple(delete_p),
-                })
-                """
-                        
+                })                      
         except:
             conn.close()
             print("Error in finding related stories")
             feedback=f"Erro na eliminação"
             flash(feedback,"danger") 
         else:
+            conn.commit()
             conn.close()
             numInstDel = str(len(delete_inst))
             feedback = numInstDel+" instâncias eliminadas"
@@ -433,7 +422,7 @@ def review_e(s_id):
         if story:
             try:
                 with engine.connect() as conn:
-                    SQL = text("SELECT * FROM apregoar.instances i LEFT JOIN apregoar.ugazetteer u ON i.p_id = u.p_id WHERE s_id = :x")
+                    SQL = text("SELECT * FROM apregoar.geonoticias WHERE s_id = :x")
                     SQL = SQL.bindparams(x=s_id)
                     print(SQL)
                     result = conn.execute(SQL)
@@ -733,13 +722,12 @@ def edit_instance(i_id):
     print("Instance ID: ",{i_id})
     try:
         with engine.connect() as conn:
+            #Edit this to connect instances to instance_ugaz to ugaz
             SQL = text("""
                 SELECT * 
-                FROM ( SELECT *
-                        FROM apregoar.instances i
-                            LEFT JOIN apregoar.stories s ON i.s_id = s.s_id
-                        WHERE i_id = :x) AS si
-                    LEFT JOIN apregoar.ugazetteer u ON si.p_id = u.p_id;
+                FROM apregoar.geonoticias
+                WHERE i_id = :x
+                ;
                 """)
             SQL = SQL.bindparams(x=i_id)
             result = conn.execute(SQL)
@@ -751,13 +739,15 @@ def edit_instance(i_id):
         instance = {}
         for row in result:
             instance = row
-        print(instance)
+            print("title",instance["title"])
         if instance:
             d_begin = instance["t_begin"].date()
             d_end = instance["t_end"].date()
             print(d_begin)
             print(d_end)
-            return render_template("publisher/instance.html", instance=instance, dBegin = d_begin, dEnd = d_end)
+            map_story_filter = "s_id="+str(instance["s_id"])
+            print("map_story_filter",map_story_filter)
+            return render_template("publisher/instance.html", instance=instance, mapStoryFilter=map_story_filter, dBegin = d_begin, dEnd = d_end)
         else:
             feedback = f"No valid instance selected"
             flash(feedback, "danger")
@@ -774,7 +764,7 @@ def save_instance(s_id):
     print("Received: ")
     print(req)
     print()
-    res = make_response(jsonify(req), 200)
+    
     u_id = fsession["u_id"]
     print("Story id: ",s_id,", User ID: ",u_id)
     print()
@@ -820,41 +810,47 @@ def save_instance(s_id):
 
     #Define connection
     con = psycopg2.connect("dbname=postgres user=postgres password=thesis2021")
+    
+    #BEGIN EDITS
+    try:
+        with con:
+            with con.cursor() as cur:
+                #Save new instance
+                cur.execute("""
+                    INSERT INTO apregoar.instances (t_begin, t_end, t_desc, p_desc, s_id, u_id, t_type, p_name,created,edited) 
+                    VALUES (%(t_begin)s, %(t_end)s, %(t_desc)s, %(p_desc)s, %(s_id)s, %(u_id)s, %(t_type)s, %(p_name)s,NOW(),NOW())
+                    RETURNING i_id
+                    ;""",
+                    {'t_begin':t_begin, 't_end':t_end, 't_desc':t_desc, 'p_desc':p_desc, 's_id':s_id, 'u_id':u_id, 't_type':all_day,'p_name':p_name}
+                )
+                i_id = cur.fetchone()[0]
+                print("Instance added to database. i_id: ",i_id)
+                instance["i_id"]=i_id
 
-    #Extract and Save UGaz (if exists)
-    if features:
-        print("There are UGaz features")
-        features = json.loads(features)
-        print("Features: ")
-        print(features)
-        multiShape=[]
-        shapeP = None
-        #Original save
-        """
-        for idx,val in enumerate(features): #supports multiple polygons with the same temporal description
-            coords=features[idx]['geometry']['coordinates'][0] #extracting coordinates
-            shapeP = Polygon(coords)
-            multiShape.append(shapeP) 
-        """
-        #Test save
-        all_coords = features['coordinates']
-        print("all_coords",all_coords)
-        #for idx in enumerate(all_coords):
-        for i in range(len(all_coords)):
-            shape_coords = all_coords[i]
-            print(shape_coords)
-            shapeP = Polygon(shape_coords)
-            multiShape.append(shapeP)
-        print("Length of Multishape (number of polygons): ", len(multiShape))
-        multiP = MultiPolygon(multiShape)
-        print("# polys in MultiP: ",len(multiP.geoms))
-        print("multiP wkt: ",multiP.wkt)
-
-
-        #Save place to database
-        try:
-            with con:
-                with con.cursor() as cur:
+                #Extract and Save UGaz (if exists)
+                if features:
+                    print("There are UGaz features")
+                    features = json.loads(features)
+                    print("Features: ")
+                    print(features)
+                    multiShape=[]
+                    shapeP = None
+                    #Prepare feature geometry
+                    all_coords = features['coordinates']
+                    print("all_coords",all_coords)
+                    for i in range(len(all_coords)):
+                        shape_coords = all_coords[i]
+                        print(shape_coords)
+                        shapeP = Polygon(shape_coords)
+                        multiShape.append(shapeP)
+                    print("Length of Multishape (number of polygons): ", len(multiShape))
+                    multiP = MultiPolygon(multiShape)
+                    print("# polys in MultiP: ",len(multiP.geoms))
+                    print("multiP wkt: ",multiP.wkt)
+                    new_geom = 'SRID=4326;'+multiP.wkt
+                    print(new_geom)
+                    
+                    #Save place to database
                     cur.execute("""
                         INSERT INTO apregoar.ugazetteer (p_name, geom, u_id, p_desc,created,edited) 
                         VALUES (%(p_name)s, ST_GeomFromEWKT(%(geom)s), %(u_id)s, %(p_desc)s,NOW(),NOW())
@@ -863,74 +859,112 @@ def save_instance(s_id):
                         {'p_name':p_name, 'geom':multiP.wkt, 'u_id':u_id, 'p_desc':p_desc}
                     )
                     p_id = cur.fetchone()[0]
-                    con.commit()            
-        except psycopg2.Error as e:
-            print("Error in saving new place")
-            print(e.pgerror)
-            print(e.diag.message_primary)
-            #feedback = f"Erro: não consiguimos de guardar o novo lugar. Se faz favor, tenta de novo."
-            #flash(feedback, "danger")
-            con.close()
-            return res
-        else:
-            print("Place added to database. p_id: ",p_id)
-            instance["p_id"] = p_id
-    else:
-        print("No UGAZ features assigned")
-        p_id = None
+                    instance["p_id"] = p_id
+                    print("Custom place added to database. p_id: ",p_id)
+                    instance["p_id"] = p_id
+                    #Relate instance and new place
+                    cur.execute("""
+                        INSERT INTO apregoar.instance_ugaz (i_id, p_id, original)
+                        VALUES (%(i_id)s, %(p_id)s, %(original)s)
+                        ;""",
+                        {'i_id':i_id, 'p_id':p_id,'original':True}
+                    )
+                    print("Custome place successfully related to instance")
 
-    #Save instance to database
-    try: 
-        with con:
-            with con.cursor() as cur:
-                cur.execute("""
-                    INSERT INTO apregoar.instances (t_begin, t_end, t_desc, p_desc, s_id, p_id, u_id, t_type, p_name,created,edited) 
-                    VALUES (%(t_begin)s, %(t_end)s, %(t_desc)s, %(p_desc)s, %(s_id)s, %(p_id)s, %(u_id)s, %(t_type)s, %(p_name)s,NOW(),NOW())
-                    RETURNING i_id
-                    ;""",
-                    {'t_begin':t_begin, 't_end':t_end, 't_desc':t_desc, 'p_desc':p_desc, 's_id':s_id, 'p_id':p_id, 'u_id':u_id, 't_type':all_day,'p_name':p_name}
-                )
-                i_id = cur.fetchone()[0]
-                con.commit()
-                con.close
+                    #Find related geometries
+                    cur.execute("""
+                        SELECT
+                            ugaz.p_id AS p_id,
+                            egaz.e_ids AS e_ids,
+                            ST_Contains(ST_Makevalid(ugaz.geom), ST_Makevalid(egaz.t_geom)) AS u_contains_e,
+                            ST_Within(ST_Makevalid(ugaz.geom), ST_Makevalid(egaz.t_geom)) AS u_within_e,
+                            ST_Overlaps(ST_Makevalid(ugaz.geom), ST_Makevalid(egaz.t_geom)) AS u_overlaps_e,
+                            ST_Touches(ST_Makevalid(ugaz.geom), ST_Makevalid(egaz.t_geom)) AS u_touches_e
+                        FROM 
+                            apregoar.ugazetteer ugaz, 
+                            apregoar.admin_gaz egaz
+                        WHERE
+                            ugaz.p_id = %(p_id)s AND
+                            ST_Intersects(ST_Makevalid(ugaz.geom), ST_Makevalid(egaz.t_geom))
+                        ;""",
+                        {'p_id':p_id}
+                    )
+                    records = cur.fetchall()
+                    for row in records:
+                        g_rel = ""
+                        egaz_id = row[1]
+                        print("row[1]: ",row[1])
+                        print("Type of boolean (row[3]): ",type(row[3]))
+                        print("row: ",row)
+                        if row[2] == True:
+                            g_rel = "u_contains_e"
+                        elif row[3] == True:
+                            g_rel = "u_within_e"
+                        elif row[4] == True:
+                            g_rel = "u_overlaps_e"
+                        elif row[5] == True:
+                            g_rel = "u_touches_e"
+                        else:
+                            print("No ST_Intersect relation here")
+                            break
+                        print("entry: ",p_id,",",egaz_id,",",g_rel)
+                        cur.execute("""
+                            INSERT INTO apregoar.spatial_assoc (p_id, e_ids, relation) 
+                            VALUES (%(p_id)s, %(e_ids)s, %(relation)s)
+                            ;""",
+                            {'p_id':p_id, 'e_ids':egaz_id, 'relation':g_rel}
+                        )
+                        print("1 relation added")
+
+                    
+                
+                else:
+                    print("No new features created")
+                    p_id = None
+
+                #Associate any existing administrative gazetteers
+                print("e_ids: ",e_ids)
+                if e_ids:
+                    print("e_ids: ",e_ids)
+                    for e_id in e_ids:
+                        e_id.strip("'")
+                        print("e_id",e_id)
+                        cur.execute("""
+                            INSERT INTO apregoar.instance_egaz (i_id, e_id, explicit,last_edited)
+                            VALUES (%(i_id)s, %(e_id)s, %(explicit)s,NOW())
+                            ;""",
+                            {'i_id':i_id, 'e_id':e_id,'explicit':True}
+                        )
+                    print("Successfully associated ",len(e_ids)," existing admin features")
+                else:
+                    print("no admin features associated")
+                
+                #Associate any existing user created gazetteers
+                print("p_ids",p_ids)
+                if p_ids:
+                    print("p_ids: ",p_ids)
+                    for id in p_ids:
+                        print("p_id (existing)",id)
+                        cur.execute("""
+                            INSERT INTO apregoar.instance_ugaz (i_id, p_id, original)
+                            VALUES (%(i_id)s, %(p_id)s, %(original)s)
+                            ;""",
+                            {'i_id':i_id, 'p_id':id,'original':False}
+                        )
+                    print("Successfully associated ",len(p_ids)," previous ugaz features")
+                else:
+                    print("No association to previous ugaz features")                        
     except psycopg2.Error as e:
-        print("Error in saving new instance: ",e)
-        #feedback = f"Erro: não consiguimos de guardar a nova instância. Se faz favor, tenta de novo."
-        #flash(feedback, "danger")
+        print("Error in saving new instance")
+        print(e.pgerror)
+        print(e.diag.message_primary)
+        res = make_response(jsonify(req), 500)
         con.close()
         return res
     else:
-        print("Instance added to database. i_id: ",i_id)
-        instance["i_id"]=i_id
-        print(e_ids)
-        if e_ids:
-            print("e_ids: ",e_ids)
-            for e_id in e_ids:
-                e_id.strip("'")
-                print("e_id",e_id)
-                try:
-                    with con:
-                        with con.cursor() as cur:
-                            cur.execute("""
-                                INSERT INTO apregoar.instance_egaz (i_id, e_id, explicit,last_edited)
-                                VALUES (%(i_id)s, %(e_id)s, %(explicit)s,NOW())
-                                ;""",
-                                {'i_id':i_id, 'e_id':e_id,'explicit':True}
-                            )
-                            #result = cur.fetchone()[0]
-                            #print("result of save: ",result)
-                    con.commit()
-                except psycopg2.Error as e:
-                    print("Error in saving new instance to EGaz: ",e)
-                    con.close()
-                    return res
-                else:    
-                    print("instance associated with explicit existing gazetteers")
-            con.close()
-            print("saving of instance positioning complete!")
-        else:
-            print("no e_ids")
- 
+        #Commit all additions to database
+        con.commit()
+        con.close()
+        print("Successful save of instance and related places") 
+    res = make_response(jsonify(req), 200) 
     return res
-
-    print("Why is this reaching here??") 

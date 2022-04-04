@@ -53,7 +53,6 @@
                 var storyID = "{{ sID }}"; //Replace with a function to get the actual s_id
                 deleteStoryID = "deleteStory"+storyID;
                 console.log(storyID);
-                console.log(deleteStoryID);
                 //Apparently document.write is considered bad practice. Replace in the future with something better
                 document.write('<p> <a href="/publisher/'+storyID+'/localize"> <button type="button" class="btn btn-primary">Associar localização</button></a>');
               </script>
@@ -95,6 +94,7 @@
   </div>
 
   <!-- JAVASCRIPT -->
+  
   <script>
     function toggleMap(){
       //Get the checkbox

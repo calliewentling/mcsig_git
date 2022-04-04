@@ -1,20 +1,23 @@
-<!-- https://docs.mapbox.com/mapbox-gl-js/example/mapbox-gl-draw/ -->
-<!--
-<!DOCTYPE html>
-<html>
-<head>
-    -->
-
-    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
 <link href="https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.css" rel="stylesheet"> 
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.7.0/mapbox-gl.js"></script>
+
+
 
 <style>
     /*https://www.w3schools.com/howto/howto_css_split_screen.asp*/
     /*Control the left side*/
     .left {
         left: 0;
-        width: 38%;
+        width: 30%;
+        position: fixed;
+        z-index: 1;
+        overflow-x: hidden;
+    }
+    /*Control the right side*/
+    .center {
+        right: 30%;
+        width: 30%;
         position: fixed;
         z-index: 1;
         overflow-x: hidden;
@@ -23,7 +26,7 @@
     /*Control the right side*/
     .right {
         right: 0;
-        width: 60%;
+        width: 30%;
         position: fixed;
         z-index: 1;
         overflow-x: hidden;
@@ -32,10 +35,10 @@
     .calculation-box {
         height: 100px;
         width: 150px;
-        position: fixed;
+        position: absolute;
         bottom: 40px;
         right: 10px;
-        background-color: rgba(255, 255, 255, 0.9);
+        background-color: rgb(255, 255, 255);
         padding: 15px;
         text-align: center;
     }
@@ -45,7 +48,7 @@
         margin: 0;
         font-size: 13px;
     }
-    #map { position: fixed; bottom: 0; right: 0; width: 60%; height:92% }
+    
 
 </style>
     
@@ -58,31 +61,32 @@
 
 {% extends "publisher/templates/publisher_template.html" %}
 
-{% block title %}Editar Instância{% endblock %}
+{% block title %}Localize{% endblock %}
 
 {% block main %}
+
 
 <!--<script src="{{ url_for('static', filename='js/create.js') }}"></script> -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+
 <script>
     $(document).ready(function(){
         $('[data-toggle="tooltip"]').tooltip();
     });
 </script>
 
-
-
 <div class="container">
   <div class="row">
     <div class="col">
-        <h1>Editar a instância</h1>
+    
+        <h1>Localizar as Notícias</h1>
+        <h3>{{ instance["title"] }}</h3>
 
-        <div class="card left" id="save_instance">
-            <h4>{{ instance["title"] }}</h4>
-            
-            <p> Editar a notícia
+        <div>
+            <p> Editar uma instância (tempo e sítio) da notícia
                 <a 
                     href="#" 
                     data-toggle="tooltip" 
@@ -90,357 +94,162 @@
                     <span class="material-icons">info</span>
                 </a>
             </p>
-                
-            <br>
-            <!-- <form method="post", action="/save_instance", method='post'> -->
-            <div>   
-                <div>
-                    <strong>Localização/ões</strong>
-                    <div id="selectName">
-                        <input type="text" id="pName" name="pName" value = '{{ instance["p_name"] }}' placeholder="Nome do sítio" required>
-                        <span class="error" aria-live="polite"></span>
-                    </div>
-                    <br>
-                    <div id="selectDesc">
-                        <input type="text" id="pDesc" name="pDesc" value= '{{ instance["p_desc"] }}' placeholder="Descrição do sítio">
-                    </div>
-                    <br>
-                    <div id="selectGeom" style="color:red" ></div>
-                </div>
-                <br>
-                <div>
-                    <strong>Hora(s)</strong>
-                    <div>
-                        <label for="allday_y">Todo o dia</label><input type="radio" id="allday_y" name="allDay" value="allday_y" onClick="timeDefD()" >
-                        <label for="allday_n">Horas específicas</label><input type="radio" id="allday_n" name="allDay" value="allday_n" onClick="timeDefH()">
-                    </div>
-                    <div>
-                        <input id="tBegin" name="tBegin" required> <input id="tEnd" name="tEnd"  required>
-                    </div>
-                    <br>
-                    <div>
-                        <input type="text" id="tDesc" name="tDesc" value= '{{ instance["t_desc"] }}' placeholder="Temporal description">
-                    </div>
-                </div>
-                <br>
-                <div id="successAnnouncement"></div>
-                <div id="formButton"></div>
-
-                <!--
-                <button type="button" href="/storyreview">Back to main story</button>
-                <button type="button" href="/profile">Profile</button>
-                -->
-            </div>
-            <!-- </form> -->
         </div>
-        <div class="card left">
-            <script>
-                var storyID = '{{ instance["s_id"] }}';
-                console.log(storyID);
-                //Apparently document.write is considered bad practice. Replace in the future with something better
-                document.write('<span><a href="/publisher/'+storyID+'/review"> <button type ="button" class="btn btn-primary">Volta à notícia</button> </a></span>');
-            </script>
-            <button type="button" class="btn btn-primary" onclick=limparTudo()>Limpar tudo</button>
-            
-  
-
-        </div>
-
         
-        <div id="map"></div>
+        <div id="eGazMap" style="display:block">
+            <div id="map" class="map"></div>
+            <div id="deletedFeatures" style="display:none"></div>
+        </div>
+        <br> 
+        <div class="card" id="save_instance" >             
+            <h3>Localização/ões</h3>
+            <form method="POST" action="review">
+                <div id="totalGazSummary">
+                    
+                    <!--Summary of associated places-->
+                    <p id="totalNumGaz" style="color:red;font-size:24px;">0 </p>
+                    <p>localizações associadas</p>
+                    <em id="alertPoly" style="color:rgb(117, 5, 5)">Associar e/ou desenhar pelo menos um localização de notícia.</em>
+                    <br><br>
+                    <p id = "totalUGaz" style="color:rgb(255, 166, 0);font-size:18px">0</p>
+                    <p> áreas desinhadas. </p>
+                    <p id = "totalEGaz" style="color:rgb(255, 166, 0);font-size:18px">0</p>
+                    <p> áreas existentes. </p>
+                </div>
+                <br>
+                <!-- Name of instance place group -->
+                <div id="selectName">
+                    <input type="text" id="pName" name="pName" placeholder="Nome do sítio" required>
+                    <span class="error" aria-live="polite"></span>
+                </div>
+                <div id="selectDesc">
+                    <input type="text" id="pDesc" name="pDesc" placeholder="Descrição do sítio">
+                </div>
 
+                <!-- DESIGN NEW (UGAZ) -->
+                <h3>Desenhar uns localizações novos</h3>
+                
+                <div id="newUgaz" style="display:block">
+                    <!-- TOGGLE -->
+                    <div class="container1">
+                        <label class="switch">
+                            <input id ="tswitch" type="checkbox" onclick = "toggleLocalization()">
+                            <span class="slider round"></span>
+                        </label>
+                        <div id="toggleMode"><p>Ativar modo do desenho</p></div>
+                    </div>
+                    <em>Pode desenhar um ou mais polígonos para representar a localização customizada onde a notícia acontece (no passado, presente, ou futuro). Pode modificar os polígonos depois ou deleter e começer outra vez.</em>
+                    <!-- UGAZ INFO -->
+                    <div style="display:none">
+                        <p>Número dos polígonos:</p>
+                        <div id="calculated-area" style="color:red"></div> 
+                        <div id="selectGeom" style="color:red" ></div>
+                    </div>
+                    <!--<label for="type">Geometry type &nbsp;</label> -->
+                    <select id="type" style="display:none">
+                        <option value="Polygon" select="selected">Polygon</option>
+                    </select>   
+                    <!--<label for="type">Select type &nbsp;</label> -->
+                    <select id="clickType" style="display:none">
+                        <option value="click" select="selected">Click</option>
+                        <option value="singleclick">Single-click</option>
+                        <option value="pointermove">Hover</option>
+                        <option value="altclick">Alt+Click</option>
+                        <option value="none">None</option>
+                    </select> 
+                </div>
 
-<div class="calculation-box">
-    Número dos polígonos:
-    <div id="calculated-area" style="color:red"></div>
+                <!-- EGAZ --> 
+                <h3>Escolher sítios existentes</h3> 
+                
+                <div id="containerGaz">
+                    <div id="left">
+                        <button type="button" class="btn btn-primary" onclick="loadGaz('ugaz_personal')">Sítios Pessoais</button>
+                        <br>
+                        <select id='select_ugaz_personal' name="selectUgazPersonal" multiple style="display:none"></select>
+                    </div>
+                    <div id="center">
+                        <button type="button" class="btn btn-primary" onclick="loadGaz('ugaz_empresa')">Sítios Empresiais</button>
+                        <br>
+                        <select id='select_ugaz_empresa' name="selectUgazEmpresa" multiple style="display:none"></select>
+                    </div>
+                    <div id="right">
+                        <button type="button" class="btn btn-primary" onclick="loadGaz('ugaz_all')">Sítios (Totais)</button>
+                        <br>
+                        <select id='select_ugaz_all' name="selectUgazAll" multiple style="display:none"></select>
+                    </div>
+                </div>
+                <br><br><br>
+                <div id="containerGaz">
+                    <div id="left">
+                        <button type="button" class="btn btn-primary" onclick="loadGaz('egaz_freguesia')">Freguesias</button>
+                        <br>
+                        <select id='select_egaz_freguesia' name="selectEgazFreguesia" multiple style="display:none"></select>
+                    </div>
+                    <div id="center">
+                        <button type="button" class="btn btn-primary" onclick="loadGaz('egaz_concelho')">Concelhos</button>
+                        <br>
+                        <select id='select_egaz_concelho' name="selectEgazConcelho" multiple style="display:none"></select>
+                    </div>
+                    <div id="right">
+                        <button type="button" class="btn btn-primary" onclick="loadGaz('egaz_extra')">Grupos Administrativos</button>
+                        <br>
+                        <select id='select_egaz_extra' name="selectEgazExtra" multiple style="display:none"></select>
+                    </div>
+                </div>
+                <br><br>
+                <button type="button" class="btn btn-primary" onclick="initGaz()">Prever</button>
+
+                <!-- TEMPORAL -->
+                <h3>Associar uma altura</h3>
+                <div>
+                    <label for="allday_y">Todo o dia</label><input type="radio" id="allday_y" name="allDay" value="allday_y" onClick="timeDefD()" checked="checked">
+                    <label for="allday_n">Horas específicas</label><input type="radio" id="allday_n" name="allDay" value="allday_n" onClick="timeDefH()">
+                        
+                </div>
+                <div>
+                    <input type="date" id="tBegin" name="tBegin" required> <input type="date" id="tEnd" name="tEnd"  required>
+                </div>
+                <br>
+                <div>
+                    <input type="text" id="tDesc" name="tDesc" placeholder="Temporal description">
+                </div>
+
+                <br>
+                <h3 id="validation" style="display:none">Validação</h3>
+                <div id="successAnnouncement" style="display:none"></div>
+                <div id="formButton" style="display:none"></div>
+            </form>
+            
+        </div>
+        <br>
+        <div class="card">
+            
+        </div>
+        <br>
+        <div class="card">
+            <button type="button" class="btn btn-primary" onclick = submitInstance()> Associar instáncia</button>
+            <div id="btnReturn"></div>
+            <br>
+            <button type="button" class="btn btn-primary" onclick=limparTudo()>Limpar tudo</button>
+        </div>
+    </div>
 </div>
-
-
-
-<!-- Load the `mapbox-gl-geocoder` plugin. -->
-<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.min.js"></script>
-<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.2/mapbox-gl-geocoder.css" type="text/css">
 
 <script>
-
-    
-	mapboxgl.accessToken = 'pk.eyJ1IjoiY3dlbnRsaW5nIiwiYSI6ImNqd2F0cmVvajA5bHAzemx6NDF3bmZ6NGsifQ.2qy1Q4WfMf4XFllp2v96HQ';
-    const map = new mapboxgl.Map({
-        container: 'map', // container ID
-        style: 'mapbox://styles/cwentling/cksfd4uh6532w18nt3bbtxtae', // style URL
-        center: [-9.150404956762742, 38.72493479806579], // starting position [lng, lat]
-        zoom: 13 // starting zoom
-    });
-
-    // Add the control to the map.
-    map.addControl(
-        new MapboxGeocoder({
-            accessToken: mapboxgl.accessToken,
-            mapboxgl: mapboxgl
-        })
-    );
-
-    const draw = new MapboxDraw({
-        displayControlsDefault: false,
-        // Select which mapbox-gl-draw control buttons to add to the map.
-        controls: {
-            polygon: true,
-            trash: true
-        },
-        // Set mapbox-gl-draw to draw by default.
-        // The user does not have to click the polygon control button first.
-        defaultMode: 'draw_polygon'
-    });
-
-    var tType = '{{ instance["t_type"] }}';
-    console.log(tType);
-    const optHours = document.getElementById('optHours');
-    const tBeginInput = document.getElementById("tBegin");
-    const tEndInput = document.getElementById("tEnd");
-    const tEndInit = '{{ instance["t_end"] }}';
-    
-/* Previously input time management */
-    if (tType === "datetime-local") {
-        document.getElementById("allday_y").checked = false;
-        document.getElementById("allday_n").checked = true;
-        tBeginInput.type = 'datetime-local';
-        tEndInput.type = 'datetime-local';
-        tBeginInput.value =  '{{ instance["t_begin"] }}';
-        tEndInput.value =  '{{ instance["t_end"] }}';
-    }
-    else {
-        document.getElementById("allday_y").checked = true;
-        document.getElementById("allday_n").checked = false;
-        tBeginInput.type = 'date';
-        tEndInput.type = 'date';
-        tBeginInput.value =  '{{ dBegin }}';
-        tEndInput.value =  '{{ dEnd }}';
-        console.log("date: ");
-        console.log('{{ instance["t_begin"] }}');
-    }
-/* New time inputs */
-    function timeDefH(){
-        var tBVal = new Date(document.getElementById("tBegin").value);
-        var tEVal = new Date(document.getElementById("tEnd").value);
-        tBText = tBVal.toISOString().substring(0,16);
-        tEText = tEVal.toISOString().substring(0,16);
-        console.log("tBText: ")
-        console.log(tBText);
-        var tBeginInput = document.getElementById("tBegin");
-        var tEndInput = document.getElementById("tEnd");
-        tBeginInput.type = 'datetime-local';
-        tEndInput.type = 'datetime-local';
-        tBeginInput.value = tBText;
-        tEndInput.value = tEText;
-    }
-    function timeDefD(){
-        var tBVal = new Date(document.getElementById("tBegin").value);
-        var tEVal = new Date(document.getElementById("tEnd").value);
-        tBText = tBVal.toISOString().substring(0,10);
-        tEText = tEVal.toISOString().substring(0,10);
-        console.log("tBText");
-        console.log(tBText);
-        const tBeginInput = document.getElementById("tBegin");
-        const tEndInput = document.getElementById("tEnd");
-        tBeginInput.type = 'date';
-        tEndInput.type = 'date';
-        tBeginInput.value = tBText;
-        tEndInput.value = tEText;
-    }
-    
-    
-
-    var sID = '{{ sID }}';
-    
+    //////// STORY INFO ///////
+    // Loading story info
+    //var instance = '{{ instance }}';
+    console.log("instance: ",instance);
+    var sID = String(instance["s_id"]);
     console.log("sID is: ");
     console.log(sID);
+    var mapStoryFilter = "{{ mapStoryFilter }}";
+    //var mapStoryFilter = "s_id="+sID;
+    console.log("Map Story filter: ",mapStoryFilter);
     
-
-    const answer = document.getElementById('calculated-area');
-    const saveG = document.getElementById('selectGeom');
-    const saveN = document.getElementById('selectName');
-    const saveD = document.getElementById('selectDesc');
-    const saveB = document.getElementById('formButton');
-    saveG.innerHTML = `Desenhar um ou mais áreas.`;
-    map.addControl(draw);
-
-    map.on('draw.create', updateArea);
-    map.on('draw.delete', updateArea);
-    map.on('draw.update', updateArea);
-
-    const numPoly = 0;
-    answer.innerHTML = `<strong>${numPoly}</strong>`;
-
-    function limparTudo() {
-        document.getElementById("pName").value = '';
-        document.getElementById("pDesc").value = '';
-        document.getElementById("tBegin").value = '';
-        document.getElementById("tEnd").value = '';
-        document.getElementById("tDesc").value = '';
-    }
-    
-    function updateArea(e) {
-        console.log(e);
-        const data = draw.getAll();
-        if (data.features.length > 0) {
-            const numPoly = data.features.length
-            answer.innerHTML = `<p><strong>${numPoly}</strong></p>`;
-            // Getting coordinates input polygons
-            console.log("data features (allPoly):");
-            let allPoly = data.features;
-            console.log(allPoly);
-            let newPoly = data.features[0].geometry.coordinates[0];
-            console.log("newPoly:");
-            console.log(newPoly);
-            geoPoly = JSON.stringify(allPoly);
-            console.log("geoPoly");
-            console.log(geoPoly);
-            nGon = newPoly.length;
-            console.log("Saving allPoly")
-            
-            saveG.innerHTML = `<select name="selectGeom" id="selectGeom"> <option value=${geoPoly}> ${numPoly} área(s)</option> </select>`;
-            saveB.innerHTML = `<button type="button" class="btn btn-primary" id="submitGeom" onClick="submit_poly();">Atribua</button>`;
-            
-        } else {
-            answer.innerHTML = '';
-            if (e.type !== 'draw.delete')
-                alert('Desenhar uma área');
-                ;
-            nGon=0;
-            saveG.innerHTML = `<p>Sim geometria</p>`;
-        }
-        
-    }; 
-
-    function submit_poly() {
-        const successA = document.getElementById('successAnnouncement');
-        successA.innerHTML = `<p>Saving... </p>`;
-        var pNamef = document.getElementById("pName")
-        var pDescf = document.getElementById("pDesc")
-        var geom = geoPoly
-        var tBeginf = document.getElementById("tBegin")
-        var tEndf = document.getElementById("tEnd")
-        var tDescf = document.getElementById("tDesc")
-
-        var faltas = [];
-        if (! pNamef.value) {
-            console.log('pNamef: ');
-            console.log(pNamef);
-            faltas.push(pNamef.placeholder);
-            console.log('faltas: ');
-            console.log(faltas);
-        }
-        if (! tBeginf.value) {
-            console.log('tBeginf: ');
-            console.log(tBeginf);
-            faltas.push(" Tempo do início")
-        }
-        if (! tEndf.value) {
-            console.log('tEndf: ');
-            console.log(tEndf);
-            faltas.push(" Tempo do fim")
-        }
-        if (faltas.length > 0){
-            successA.innerHTML = `<em style="color:red">Falta: ${faltas}</em>`;
-            return
-        }
-        else {
-            var entry = {
-                type: "Feature",
-                properties : {
-                    pName: pNamef.value,
-                    pDesc: pDescf.value,
-                    allDay: tBeginf.type,
-                    tBegin: tBeginf.value,
-                    tEnd: tEndf.value,
-                    tDesc: tDescf.value
-                },
-                geometry: geom
-            };
-            console.log(entry);
-            
-            fetch(`${window.origin}/publisher/${sID}/save_instance`, {
-            //fetch(`${window.origin}/save_instance`, {
-                method: "POST",
-                credentials: "include",
-                body: JSON.stringify(entry),
-                cache: "no-cache",
-                headers: new Headers({
-                    "content-type": "application/json"
-                })
-            })
-            .then(function(response) {
-                if (response.status !== 200) {
-                    console.log(`Looks like there was a problem. Status code: ${response.status}`);
-                    return;
-                }
-                response.json().then(function(data) {
-                    console.log(data);
-                    successA.innerHTML = `<p> Parabéns! Os dados ficam guardados. </p>`;
-                    //window.location.href = 'https://www.google.com';
-                }
-                );
-            })
-            .catch(function(error) {
-            console.log("Fetch error: " + error);
-            });
-        }
-
-        
-
-        
-
-    }
 </script>
-</div>
-</div>
-</div>
-
+<script src="{{ url_for('static', filename='js/localize.js') }}"></script>
 
 
 {% endblock %}
-
-<!--
-<script>
-    const form = document.getElementById('save_instance')[0];
-
-    const vName = document.getElementById('pName');
-    const vNameError = document.querySelector('#pName + span.error');
-    vName.addEventListener('input', function (event) {
-        //Each time the user types something, we check if the form fields are valid
-        if (vName.validity.valid) {
-            //In case there is an error message visible, if the field is valid, we remove the error message.
-            vNameError.innterHTML = ''; //Reset the content of the message
-            vNameError.className = 'error'; //reset the visual state of the message
-        } else {
-            // If there is still an error, show the correct error
-            showError();
-        }
-    });
-    form.addEventListener('submit', function (event) {
-        if (!vName.validity.valid) {
-            // If it isn't, we display the appropriate error message
-            showError();
-            //Then prevent the form from being sent by canceling the event
-            event.preventDefault();
-        }
-    });
-    function showError() {
-        if(vName.validity.valueMissing) {
-            //If the field is empty display the following error message
-            vNameError.textContent ="Enter Title";
-        } else if(vName.validity.tooShort) {
-            //If the data is too short display the following error message.
-            vNameError.textContent = "Title should be at least ${ vName.minLength } characters.";
-        }
-        //Set the styling
-        vNameError.className = 'error active';
-    }
-
-</script>
--->
-
-<!--
-</body>
-</html>
--->

@@ -47,7 +47,7 @@
             {% endfor %}
           {% endfor %}
 
-          <h3> As notícias de {{ organization }}</h3>
+          <h2> As notícias de {{ organization }}</h2>
           {% if orgStories|length > 0 %}
             {% for oStory in orgStories %}
               {% for sID, attributes in oStory.items() %}
@@ -55,7 +55,7 @@
               {% endfor %}
             {% endfor %}
           {% else %}
-            <p><i>No stories associated with this organization</i></p>
+            <p><i>Ãinda sem notícias associadas</i></p>
           {% endif %}
 
         </div>
@@ -63,11 +63,10 @@
 
       <div class="card">
         <div class="card-body">
-          <h3>Ver todos as notícias no mapa</h3>
-          <p>(Put a sexy map here with all of the stories published by the publisher)</p>
+          <h3>Localizações das notícias</h3>
+          <p>Pode ver a distribuição de todas as notícias aqui.</p>
             <!-- THIS IS THE PUBLISHER NOTICIAS MAP -->
             <div id="instanceMap" style="display:block">
-              <p>(This is where the map of existing instances will go)</p>
               <div id="map" class="map"></div>
               <!--<div id="info">&nbsp;</div>-->
               <div id="popup" class="ol-popup">
