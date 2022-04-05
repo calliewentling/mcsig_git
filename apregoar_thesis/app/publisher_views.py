@@ -144,6 +144,7 @@ def sign_up():
                     print("Error in saving new user")
                     feedback=f"Erro"
                     flash(feedback, "danger")
+                    conn.rollback()
                     cur.close()
                 else:
                     print("User added to database")
@@ -324,6 +325,7 @@ def review_e(s_id):
         print(delete_req)
         delete_inst = []
         delete_story = []
+        con = psycopg2.connect("dbname=postgres user=postgres password=thesis2021")
         for key in delete_req.keys():
             if "deleteStory" in key:
                 key = int(key[11:])
@@ -332,41 +334,42 @@ def review_e(s_id):
                 print("We're deleting a story (ID: ",key,")! Continue dev here!")
                 print("The story key of the page = ",s_id)
                 #Delete story and related instances
-                
                 try:
-                    with engine.connect() as conn:
-                        print("Arrived in try")
-                        SQL = "SELECT i_id FROM apregoar.instances WHERE s_id = %(s_id)s"
-                        #result = conn.execute(SQL)
-                        #SQL = "SELECT i_id FROM apregoar.instances WHERE s_id IN %(s_id)s"
-                        result = conn.execute(SQL, {
-                            's_id': s_id
-                        })
-                        print("Did we make it here?")
-                        delete_i = []
-                        for i in result:
-                            delete_i.append(i["i_id"])
-                        print("Related instances: ", delete_i, " Totalling: ", len(delete_i))
-                        print("Associated places not deleted... yet!")
-                        #Testing here
-                        SQL2 = "DELETE FROM apregoar.instances WHERE s_id = %(s_id)s"
-                        conn.execute(SQL2, {
-                            's_id': s_id,
-                        })
-                        print("Instances deleted")
-                        SQL3 = "DELETE FROM apregoar.stories WHERE s_id = %(s_id)s"
-                        conn.execute(SQL3, {
-                            's_id': s_id
-                        })
-                        print("Story deleted")
+                    with con:
+                        with con.cursor() as cur:
+                            print("Arrived in Delete entire story")
+                            SQL = "SELECT i_id FROM apregoar.instances WHERE s_id = %(s_id)s"
+                            result = cur.execute(SQL, {
+                                's_id': s_id
+                            })
+                            print("Did we make it here?")
+                            delete_i = []
+                            if result:
+                                for i in result:
+                                    print("i: ",i)
+                                    delete_i.append(i["i_id"])
+                                print("Related instances: ", delete_i, " Totalling: ", len(delete_i))
+                                print("Associated places not deleted... yet!")
+                                #Testing here
+                                SQL2 = "DELETE FROM apregoar.instances WHERE s_id = %(s_id)s"
+                                cur.execute(SQL2, {
+                                    's_id': s_id,
+                                })
+                                print("Instances deleted")
+                            SQL3 = "DELETE FROM apregoar.stories WHERE s_id = %(s_id)s"
+                            cur.execute(SQL3, {
+                                's_id': s_id
+                            })
+                            print("Story deleted")
                 
                 except: 
-                    conn.close()
+                    con.rollback()
+                    con.close()
                     print("Error in finding story, related instances and places")
                     feedback=f"Erro na eliminação"
                     flash(feedback,"danger")
                 else:
-                    conn.close()
+                    con.commit()
                     num_i_d=str(len(delete_i))
                     print("Successfully deleted story and ",len(delete_i),"associated instances")
                     feedback = "Notícia e "+num_i_d+" instâncias reletadas eliminadas"
@@ -377,26 +380,28 @@ def review_e(s_id):
             else: #Assuming that we're deleting an instance
                 key = int(key[8:]) #Extract instance key (ignore "instance", capture number)
                 delete_inst.append(key)
-                delete_inst
-                print(delete_inst)
+                print("Instance for deletion: ",delete_inst)
         try:
-            with engine.connect() as conn:
-                SQL = "DELETE FROM apregoar.instance_ugaz WHERE i_id IN %(delete_inst)s"
-                conn.execute(SQL, {
-                    'delete_p': tuple(delete_inst),
-                })
-                SQL2 = "DELETE FROM apregoar.instances WHERE i_id IN %(delete_inst)s"
-                conn.execute(SQL2, {
-                    'delete_inst': tuple(delete_inst),
-                })                      
-        except:
-            conn.close()
-            print("Error in finding related stories")
-            feedback=f"Erro na eliminação"
-            flash(feedback,"danger") 
+            with con:
+                with con.cursor() as cur:
+                    print("Entering delete sequences for: ", delete_inst)
+                    cur.execute("DELETE FROM apregoar.instance_ugaz WHERE i_id = ANY (%s);", (delete_inst,))
+                    print("Passed delete from instance_ugaz")
+                    cur.execute("DELETE FROM apregoar.instance_egaz WHERE i_id = ANY (%s);", (delete_inst,))
+                    print("Passed delete from instance_egaz")
+                    cur.execute("DELETE FROM apregoar.instances WHERE i_id = ANY (%s);", (delete_inst,))
+                    print("Passed delete from instances")                      
+        except psycopg2.Error as e:
+            #If not submitted, attempt to create again
+            print("e.pgerror:",e.pgerror)
+            print("e.diag.message_primary",e.diag.message_primary)
+            feedback = f"Excepção: a instância não ficou apagada. Erro: "+str(e.pgerror)+", "+e.diag.message_primary
+            flash(feedback, "danger")
+            con.rollback()
+            con.close() 
         else:
-            conn.commit()
-            conn.close()
+            con.commit()
+            con.close()
             numInstDel = str(len(delete_inst))
             feedback = numInstDel+" instâncias eliminadas"
             flash(feedback, "success")
@@ -506,16 +511,17 @@ def review():
                     s_id = cur.fetchone()[0]
                     con.commit()
                     print("Story added to database. s_id: ",s_id)
-            con.close()
         except psycopg2.Error as e:
             #If not submitted, attempt to create again
             print(e.pgerror)
             print(e.diag.message_primary)
             feedback = f"Excepção: a história não ficou guardada. Erro: "+e.pgerror+", "+e.diag.message_primary
             flash(feedback, "danger")
+            con.rollback()
             con.close()
             return render_template("publisher/create.html")
         else:
+            con.close()
             story["s_id"] = s_id
             return render_template("publisher/review.html", story=story, sID = s_id)
     
@@ -548,41 +554,7 @@ def localize(s_id):
         #egaz_freguesia = []
         #egaz_concelho = []
         #egaz_extra = []
-        if story:
-            """
-            try:
-                with engine.connect() as conn:
-                    SQL2 = text("SELECT * FROM apregoar.admin_gaz")
-                    result2 = conn.execute(SQL2)
-            except:
-                print("Extraction of admin gazetteer unsuccessful")
-                conn.close()
-                print("Error in extracting Existing Admin gazetteer from database")
-                feedback = f"Não conseguimos de carregar localizações existentes"
-                flash(feedback,"warning")
-                print("No egaz")
-                return render_template("publisher/localize.html", story=story, sID = s_id, eGazF=egaz_freguesia)
-            else:
-                conn.close()
-                print("Successful extraction of egazetteer!")
-                for row in result2:                  
-                    entry_egaz = {
-                        "e_ids": row["e_ids"],
-                        #"type": row["type"],
-                        "name": row["name"],
-                        #"geom": row["t_geom"]
-                    }
-                    if row["type"] == "freguesia":
-                        egaz_freguesia.append(entry_egaz)
-                    elif row["type"] == "Concelho":
-                        egaz_concelho.append(entry_egaz)
-                    elif row["type"] == "Área Administrativa":
-                        egaz_area.append(entry_egaz)
-                    else:
-                        egaz_extra.append(entry_egaz)
-                print("Number of egazetteer freguesia entries extracted: ",len(egaz_freguesia))
-                """
-                
+        if story:               
             return render_template("publisher/localize.html", story=story, sID = s_id)
                 #return render_template("publisher/localize.html", story=story, sID = s_id, eGazF=egaz_freguesia, eGazC=egaz_concelho, eGazA = egaz_area, eGazX = egaz_extra)
         else:
@@ -657,10 +629,10 @@ def loadGaz(s_id):
     elif gazetteer == "egaz_freguesia":
         SQL = text("""
             SELECT
-                e_ids AS gaz_id,
+                e_id AS gaz_id,
                 name AS gaz_name,
                 type AS gaz_desc
-            FROM apregoar.admin_gaz
+            FROM apregoar.egazetteer
             WHERE type = 'freguesia'
             ORDER BY gaz_name
             ;
@@ -668,22 +640,22 @@ def loadGaz(s_id):
     elif gazetteer == "egaz_concelho":
         SQL = text("""
             SELECT
-                e_ids AS gaz_id,
+                e_id AS gaz_id,
                 name AS gaz_name,
                 type AS gaz_desc
-            FROM apregoar.admin_gaz
-            WHERE type = 'Concelho'
+            FROM apregoar.egazetteer
+            WHERE type = 'concelho'
             ORDER BY gaz_name
             ;
         """)
     elif gazetteer == "egaz_extra":
         SQL = text("""
             SELECT
-                e_ids AS gaz_id,
+                e_id AS gaz_id,
                 name AS gaz_name,
                 type AS gaz_desc
-            FROM apregoar.admin_gaz
-            WHERE type NOT IN ('Concelho','freguesia')
+            FROM apregoar.egazetteer
+            WHERE type NOT IN ('concelho','freguesia')
             ORDER BY gaz_name
             ;
         """)
@@ -875,17 +847,17 @@ def save_instance(s_id):
                     cur.execute("""
                         SELECT
                             ugaz.p_id AS p_id,
-                            egaz.e_ids AS e_ids,
-                            ST_Contains(ST_Makevalid(ugaz.geom), ST_Makevalid(egaz.t_geom)) AS u_contains_e,
-                            ST_Within(ST_Makevalid(ugaz.geom), ST_Makevalid(egaz.t_geom)) AS u_within_e,
-                            ST_Overlaps(ST_Makevalid(ugaz.geom), ST_Makevalid(egaz.t_geom)) AS u_overlaps_e,
-                            ST_Touches(ST_Makevalid(ugaz.geom), ST_Makevalid(egaz.t_geom)) AS u_touches_e
+                            egaz.e_id AS e_id,
+                            ST_Contains(ST_Makevalid(ugaz.geom), ST_Makevalid(egaz.geom)) AS u_contains_e,
+                            ST_Within(ST_Makevalid(ugaz.geom), ST_Makevalid(egaz.geom)) AS u_within_e,
+                            ST_Overlaps(ST_Makevalid(ugaz.geom), ST_Makevalid(egaz.geom)) AS u_overlaps_e,
+                            ST_Touches(ST_Makevalid(ugaz.geom), ST_Makevalid(egaz.geom)) AS u_touches_e
                         FROM 
                             apregoar.ugazetteer ugaz, 
-                            apregoar.admin_gaz egaz
+                            apregoar.egazetteer egaz
                         WHERE
                             ugaz.p_id = %(p_id)s AND
-                            ST_Intersects(ST_Makevalid(ugaz.geom), ST_Makevalid(egaz.t_geom))
+                            ST_Intersects(ST_Makevalid(ugaz.geom), ST_Makevalid(egaz.geom))
                         ;""",
                         {'p_id':p_id}
                     )
@@ -909,10 +881,10 @@ def save_instance(s_id):
                             break
                         print("entry: ",p_id,",",egaz_id,",",g_rel)
                         cur.execute("""
-                            INSERT INTO apregoar.spatial_assoc (p_id, e_ids, relation) 
-                            VALUES (%(p_id)s, %(e_ids)s, %(relation)s)
+                            INSERT INTO apregoar.spatial_assoc (p_id, e_id, relation) 
+                            VALUES (%(p_id)s, %(e_id)s, %(relation)s)
                             ;""",
-                            {'p_id':p_id, 'e_ids':egaz_id, 'relation':g_rel}
+                            {'p_id':p_id, 'e_id':egaz_id, 'relation':g_rel}
                         )
                         print("1 relation added")
 
@@ -927,7 +899,6 @@ def save_instance(s_id):
                 if e_ids:
                     print("e_ids: ",e_ids)
                     for e_id in e_ids:
-                        e_id.strip("'")
                         print("e_id",e_id)
                         cur.execute("""
                             INSERT INTO apregoar.instance_egaz (i_id, e_id, explicit,last_edited)
@@ -959,6 +930,7 @@ def save_instance(s_id):
         print(e.pgerror)
         print(e.diag.message_primary)
         res = make_response(jsonify(req), 500)
+        con.rollback()
         con.close()
         return res
     else:

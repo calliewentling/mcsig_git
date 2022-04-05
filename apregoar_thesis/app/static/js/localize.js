@@ -150,10 +150,12 @@ function toggleLocalization(){
     var newUgaz = document.getElementById("newUgaz");
     var eGazMap = document.getElementById("eGazMap");
     var toggleMode = document.getElementById("toggleMode");
+    var poiGaz = document.getElementById("poiGaz");
     //If the checkbox is checked, display the output text
     if (tswitch.checked == true){
         console.log("CREATE NEW UGAZ MODE");
         toggleMode.innerHTML = "Desenhar localização";
+        poiGaz.style.display = "block";
         //Draw new areas on the map
         const modifyDraw = new ol.interaction.Modify({
             source: drawSource,
@@ -184,6 +186,7 @@ function toggleLocalization(){
     } else {
         console.log("UGAZ MODIFY MODE");
         toggleMode.innerHTML = "Ver localizações";
+        poiGaz.style.display = "none";
         //remove interactivity
         mapGaz.removeInteraction(drawDraw);
         mapGaz.removeInteraction(snapDraw); 
@@ -323,6 +326,41 @@ const wmsLayerUGaz = new ol.layer.Image({
 mapGaz.addLayer(wmsLayerUGaz);
 console.log("UGaz Layer added");
 
+// Adding fetch to view POIs
+function loadGazPOI(poi) {
+    fetch(`${window.origin}/publisher/${sID}/gazetteer`, {
+        method: "POST",
+        credentials: "include",
+        body: JSON.stringify({"gazetteer": gazetteer}),
+        cache: "no-cache",
+        headers: new Headers({
+            "content-type":"application/json"
+        })
+    })
+    .then(function(response) {
+        if (response.status !== 200) {
+            window.alert("Erro no carragemento do gazetteer");
+            console.log(`Error status code: ${response.status}`);
+            return;
+        }
+        response.json().then(function(data){
+            console.log(data);
+            var select = document.getElementById(`select_${gazetteer}`)
+            for (var i=0; i < data.length; i++) {
+                var option = document.createElement("option");
+                option.textContent = data[i]["gaz_name"];
+                option.value = data[i]["gaz_id"];
+                select.appendChild(option);
+            }
+            $(function(){
+                $(`#select_${gazetteer}`).multiSelect();
+            });
+        })
+    })
+    .catch(function(error){
+        console.log("Fetch error: "+error);
+    });
+}
 
 // Adding fetches to get access to gazetteers
 const loadingGaz = document.getElementById("loadingGaz");
@@ -363,148 +401,77 @@ function loadGaz(gazetteer) {
 }
 
 
-/*
-// Visualize selection of eGaz item on the map
-const selectedEgaz = document.getElementById("selectedEgaz");
-let selectedP = [];
 
-
-
-
-var selectEgazFreguesia = document.getElementsByName("selectEgazFreguesia")[0];
-// new calc vals 
-function calcEGaz(selectGaz) {
-    // Resetting base values
-    var numberPlace = 0;
-    var selectedP = [];
-    var selectedPBasic = [];
-    var eGazVals = [];
-    // Reworking for new dropdowns
-    console.log("Freguesias: ",selectEgazFreguesia)
-    var numberFreg = 0;
-    for (var i = 0; i < selectGaz.length; i++) {
-        if(selectEgazFreguesia[i].selected) {
-            numberFreg++;
-            console.log("Value checked: ",selectEgazFreguesia[i].value);
-            var placeF = String(selectEgazFreguesia[i].value);
-            var placeFString = `\'${placeF}\'`;
-            console.log("Freguesia place: ",placeFString);
-            selectedP.push(placeFString);
-            //Just Int Values
-            console.log("selectedFreg value ",selectEgazFreguesia[i].value)
-            var fregVal = selectEgazFreguesia[i].value;
-            for (j in fregVal) {
-                var eGazVal = Number(j);
-                eGazVals.push(eGazVal); 
-            }
-            console.log("eGazVals: ",eGazVals);
-            selectedPBasic.push(selectEgazFreguesia[i].value);
-        }
-    }
-}
-*/
-
-
-function prepGaz(selectedGaz,selectedStr,selectedInt,gazType) {
+function prepGaz(selectedGaz,selectedInt) {
     console.log("selectedGaz",selectedGaz); //New selected Gazetteer values
-    // Reset iterim counter vals
-    //var numberPlaces = 0;
     for (var i=0; i<selectedGaz.length; i++) {
         if (selectedGaz[i].selected){
-            //numberPlaces++;
             console.log("Value checked: ",selectedGaz[i].value);
-            var place = String(selectedGaz[i].value);
-            var placeString = `\'${place}\'`;
-            selectedStr.push(placeString);
-            if (gazType == "eGaz") {
-                selectedInt.push(selectedGaz[i].value);
-            }
-            else if (gazType == "uGaz") {
-                selectedInt.push(Number(selectedGaz[i].value));
-            }
-            else {
-                console.log("No valid gazType selected");
-                console.log("gazType: ",gazType);
-            }
+            selectedInt.push(selectedGaz[i].value);
             console.log("selectedInt: ",selectedInt);
         }
     }
-    return {selectedStr, selectedInt}
+    return selectedInt
 }
 
 function initGaz(){
     console.log("Entering initGaz");
     // Initializing values
-    var selectedStrE = [];
     var selectedIntE = [];
-    var selectedStrU = [];
     var selectedIntU = [];
-    let selectedGaz;
     // Preparing freguesias
-    var testEgazFreg = document.getElementsByName("selectEgazFreguesia");
-    console.log();
-    console.log("testEgazFreg: ",testEgazFreg);
-    console.log();
     var selectEgazFreguesia = document.getElementsByName("selectEgazFreguesia")[0];
     console.log("initGaz selectEgazFreguesia: ",selectEgazFreguesia);
-    var result = prepGaz(selectedGaz = selectEgazFreguesia,selectedStr = selectedStrE,selectedInt = selectedIntE, gazType = "eGaz");
-    selectedIntE = result.selectedInt;
-    selectedStrE = result.selectedStr;
+    var result = prepGaz(selectedGaz = selectEgazFreguesia,selectedInt = selectedIntE);
+    selectedIntE = selectedInt;
     console.log("selectedIntE after Freguesia: ",selectedIntE);
     // Preparing concelhos
     var selectEgazConcelho = document.getElementsByName("selectEgazConcelho")[0];
-    result = prepGaz(selectedGaz = selectEgazConcelho, selectedStr = selectedStrE, selectedInt = selectedIntE, gazType = "eGaz");
-    selectedIntE = result.selectedInt;
-    selectedStrE = result.selectedStr;
+    result = prepGaz(selectedGaz = selectEgazConcelho, selectedInt = selectedIntE);
+    selectedIntE = selectedInt;
     console.log("selectedIntE after Concelho: ",selectedIntE);
     // Preparing other administrative areas
     var selectEgazExtra = document.getElementsByName("selectEgazExtra")[0];
     console.log("selectEgazExtra: ",selectEgazExtra);
-    result = prepGaz(selectedGaz = selectEgazExtra, selectedStr = selectedStrE, selectedInt = selectedIntE, gazType = "eGaz");
-    selectedIntE = result.selectedInt;
-    selectedStrE = result.selectedStr;
+    result = prepGaz(selectedGaz = selectEgazExtra, selectedInt = selectedIntE);
+    selectedIntE = selectedInt;
     console.log("selectedIntE after Extra: ",selectedIntE);
     // Preparing Sítios pessoais
     var selectUgazPersonal = document.getElementsByName("selectUgazPersonal")[0];
     console.log("selectUgazPersonal: ",selectUgazPersonal);
-    result = prepGaz(selectedGaz = selectUgazPersonal, selectedStr = selectedStrU, selectedInt = selectedIntU, gazType = "uGaz");
-    selectedIntU = result.selectedInt;
-    selectedStrU = result.selectedStr;
+    result = prepGaz(selectedGaz = selectUgazPersonal, selectedInt = selectedIntU);
+    selectedIntU = selectedInt;
     console.log("selectedIntU after Ugaz Personal: ",selectedIntU);
     // Preparing Sítios Empresiais
     var selectUgazEmpresa = document.getElementsByName("selectUgazEmpresa")[0];
     console.log("selectUgazEmpresa: ",selectUgazEmpresa);
-    result = prepGaz(selectedGaz = selectUgazEmpresa, selectedStr = selectedStrU, selectedInt = selectedIntU, gazType = "uGaz");
-    selectedIntU = result.selectedInt;
-    selectedStrU = result.selectedStr;
+    result = prepGaz(selectedGaz = selectUgazEmpresa, selectedInt = selectedIntU);
+    selectedIntU = selectedInt;
     console.log("selectedIntU after Ugaz Empresa: ",selectedIntU);
     // Preparing Sítios Empresiais
     var selectUgazAll = document.getElementsByName("selectUgazAll")[0];
     console.log("selectUgazAll: ",selectUgazAll);
-    result = prepGaz(selectedGaz = selectUgazAll, selectedStr = selectedStrU, selectedInt = selectedIntU, gazType = "uGaz");
-    selectedIntU = result.selectedInt;
-    selectedStrU = result.selectedStr;
+    result = prepGaz(selectedGaz = selectUgazAll, selectedInt = selectedIntU);
+    selectedIntU = selectedInt;
     console.log("selectedIntU after Ugaz All: ",selectedIntU);
-    gazL = selectedStrE.length + selectedStrU.length;
+    gazL = selectedIntE.length + selectedIntU.length;
     tGaz = updateGazTotals(uGaz, gazL);
-    results = vizGaz(selectedStrE,selectedIntU);
+    results = vizGaz(selectedIntE,selectedIntU);
     results["tGaz"] = tGaz;
-    results["selectedIntE"] = selectedIntE;
-    results["selectedStrU"] = selectedStrU;
     console.log(results);
     return results;
 }
 
-function vizGaz(selectedStrE,selectedIntU){
+function vizGaz(selectedIntE,selectedIntU){
     //Update Gaz Totals
     var vectorSource = vectorSourceStories;
     // Get EGaz map images
-    if (selectedStrE.length > 0){
-        console.log("selectedStrE for Filter: ",selectedStrE);
-        mapEgazFilter = "e_ids IN ("+selectedStrE+")";
+    if (selectedIntE.length > 0){
+        console.log("selectedIntE for Filter: ",selectedIntE);
+        mapEgazFilter = "e_id IN ("+selectedIntE+")";
         console.log("mapFilter: ",mapEgazFilter);
         //Get Egaz extent
-        var wfs_url_E = 'http://localhost:8080/geoserver/wfs?service=wfs&version=2.0.0&request=GetFeature&typeNames=apregoar:admin_gaz&cql_filter='+mapEgazFilter+'&outputFormat=application/json';
+        var wfs_url_E = 'http://localhost:8080/geoserver/wfs?service=wfs&version=2.0.0&request=GetFeature&typeNames=apregoar:egazetteer&cql_filter='+mapEgazFilter+'&outputFormat=application/json';
         fetch(wfs_url_E).then(function (response) {
             jsonE = response.json();
             console.log("JSON: ",jsonE);
@@ -513,6 +480,9 @@ function vizGaz(selectedStrE,selectedIntU){
         .then(function (jsonE) {
             const featuresE = new ol.format.GeoJSON().readFeatures(jsonE);
             console.log("Features: ",featuresE);
+            if (featuresE.length < selectedIntE.length){
+                window.alert("Cuidade! Todos elementos não foram carregados (",featuresE.length," de ",selectedIntE.length," com successo).");
+            }
             vectorSource.addFeatures(featuresE);
             console.log("layerExtent: in Egaz",vectorSource.getExtent());
             layerExtent = zoomGaz(vectorSource);
@@ -521,20 +491,20 @@ function vizGaz(selectedStrE,selectedIntU){
         // Add eGaz shapes     
         wmsLayerEGaz.setOpacity(0.5);
         wmsSourceEGaz.updateParams({
-            "LAYERS": "apreagoar:admin_gaz",
+            "LAYERS": "apreagoar:egazetteer",
             "cql_filter": mapEgazFilter
         });
         console.log("source updated")
         console.log("Egaz added to map")
     } else {
         wmsSourceEGaz.updateParams({
-            "LAYERS": "apreagoar:admin_gaz",
-            "cql_filter": "e_ids = 0"
+            "LAYERS": "apreagoar:egazetteer",
+            "cql_filter": "e_id = 0"
         });
         console.log("replaced Egaz layer with empty");
     }
     if(selectedIntU.length > 0){
-        console.log("selectedStrU for Filter: ",selectedIntU);
+        console.log("selectedIntU for Filter: ",selectedIntU);
         mapUgazFilter = "p_id IN ("+selectedIntU+")";
         console.log("mapFilter: ",mapUgazFilter);
         // Get Ugaz extent
@@ -547,6 +517,9 @@ function vizGaz(selectedStrE,selectedIntU){
         .then(function (jsonU) {
             const featuresU = new ol.format.GeoJSON().readFeatures(jsonU);
             console.log("Features: ",featuresU);
+            if (featuresU.length < selectedIntU.length){
+                window.alert('Cuidade! Todos elementos não foram carregados.');
+            }
             vectorSource.addFeatures(featuresU);
             console.log("layerExtent: in get Ugaz",vectorSource.getExtent());
             layerExtent = zoomGaz(vectorSource);
@@ -567,7 +540,7 @@ function vizGaz(selectedStrE,selectedIntU){
         });
         console.log("replaced Ugaz layer with empty");
     }
-    return {selectedStrE,selectedIntU}
+    return {selectedIntE,selectedIntU}
 }
 
 
@@ -689,19 +662,8 @@ function submitInstance() {
     // Get all checked values
     results = initGaz();
     tGaz = results.tGaz;
-    selectedStrE = results.selectedStrE;
     selectedIntE = results.selectedIntE;
-    selectedStrU = results.selectedStrU;
     selectedIntU = results.selectedIntU;
-
-    
-    var stringE = "";
-    for (p in selectedStrE) {
-        stringE.concat(String(selectedStrE[p]));
-    }
-    console.log("stringE: ",stringE);
-    console.log("selectedIntE",selectedIntE);
-
 
     // Get form values for validation
     var pNamef = document.getElementById("pName");
