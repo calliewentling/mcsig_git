@@ -438,15 +438,33 @@ def review_e(s_id):
                 return render_template("publisher/review.html", story=story, sID = s_id, instances=[])
             else:
                 instances = []
+                print("Returned result: ",result)
                 for row in result:
-                    instance = {
-                        row["i_id"] : {
-                            "p_name": row["p_name"],
-                            "t_begin": row["t_begin"].date(),
-                            "t_end": row["t_end"].date()
-                        }
-                    }
-                    instances.append(instance)
+                    if row["i_id"] != None:
+                        if row["t_begin"] is None:
+                            instance = {
+                                row["i_id"] : {
+                                    "p_name": row["p_name"],
+                                    "timeframe": ""
+                                }
+                            }
+                        elif row["t_begin"] == row["t_end"]:
+                            instance = {
+                                row["i_id"] : {
+                                    "p_name": row["p_name"],
+                                    "timeframe": str(row["t_begin"].date()),
+                                }
+                            }
+                        else:
+                            instance = {
+                                row["i_id"] : {
+                                    "p_name": row["p_name"],
+                                    "timeframe": str(row["t_begin"].date())+" - "+str(row["t_end"].date())
+                                }
+                            }
+                        instances.append(instance)
+                    else:
+                        break
                 print(instances)
                 return render_template("publisher/review.html", story=story, sID = s_id, instances=instances) #
         else:
@@ -659,6 +677,38 @@ def loadGaz(s_id):
             ORDER BY gaz_name
             ;
         """)
+    elif gazetteer == "poi_poi":
+        search_term = req["searchTerm"]
+        print("search_term: ",search_term)
+        query = """
+            SELECT
+                id as gaz_id,
+                name as gaz_name,
+                'poi' AS gaz_desc
+            FROM apregoar.apregoar_poi
+        """
+        print("query:",query)
+        if search_term:
+            where_clause = " WHERE LOWER(name) LIKE '%"+search_term.lower()+"%';"
+            print("where_clause",where_clause)
+            SQL = text(query+where_clause)
+        else:
+            SQL = text(query+";")
+        print("SQL: ",SQL)
+        print("Successfull definition of SQL!")
+    elif gazetteer == "poi_locale":
+        layer_extent = req["layerExtent"]
+        print("layer_extent: ",layer_extent)
+        query = """
+            SELECT
+                id as gaz_id,
+                name as gaz_name,
+                'poi' as gaz_desc
+            FROM apregoar.apregoar_poi
+            ;
+        """
+        print("query for locale: ",query)
+        SQL = text(query)    
     else:
         #If no valid gazetteer selected
         res = make_response(jsonify("No valid gazetteer selected"))

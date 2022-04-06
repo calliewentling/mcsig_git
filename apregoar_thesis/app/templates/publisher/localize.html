@@ -49,6 +49,35 @@
         font-size: 13px;
     }
     
+#spinner:not([hidden]) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#spinner::after {
+    content: "";
+    width: 80px;
+    height: 80px;
+    border: 2px solid #f3f3f3;
+    border-top: 3px solid #f25a41;
+    border-radius: 100%;
+    will-change: transform;
+    animation: spin 1s infinite linear
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    } to {
+        transofmr: rotate(360deg);
+    }
+}
 
 </style>
     
@@ -77,6 +106,9 @@
         $('[data-toggle="tooltip"]').tooltip();
     });
 </script>
+
+
+
 
 <div class="container">
   <div class="row">
@@ -141,12 +173,32 @@
                     <em>Pode desenhar um ou mais polígonos para representar a localização customizada onde a notícia acontece (no passado, presente, ou futuro). Pode modificar os polígonos depois ou deleter e começer outra vez.</em>
                     <!-- UGAZ INFO -->
                     <div id="poiGaz" style="display:none">
-                        <div id="center">
-                            <button type="button" class="btn btn-primary" onclick="loadGazPOI('poi')">Pontes de Interesse</button>
-                            <br>
-                            <select id='select_poi_poi' name="selectPoiPoi" multiple style="display:none"></select>
+                        <div id="containerGaz">
+                            <div id="left">
+                                <button type="button" class="btn btn-primary" onclick="loadGazPOI('poi_poi')">Pontes de Interesse (por nome)</button>
+                                <br><br>
+                                <select id='select_poi_poi' name="selectPoiPoi" multiple style="display:none"></select>
+                                
+                            </div>
+                            
+                            <div id="center">
+                                <br>
+                            </div>
+                            <div id="right">
+                                <br>
+                                <!--
+                                <button type="button" class="btn btn-primary" onclick="loadGazPOI('poi_locale')">Pontes de Interesse (na vista atual da mapa)</button>
+                                <br>
+                                <select id='select_poi_locale' name="selectPoiLocale" multiple style="display:none"></select>
+                                -->
+                            </div>
                         </div>
+                        <div id="preverPOI" style="display:none">
+                            <br><br><br><br><br>
+                            <button type="button" class="btn btn-primary" onclick="zoomPOI()">Prever POI</button>
+                        </div>                   
                     </div>
+                    
                     <div style="display:none">
                         <p>Número dos polígonos:</p>
                         <div id="calculated-area" style="color:red"></div> 
@@ -165,6 +217,7 @@
                         <option value="none">None</option>
                     </select> 
                 </div>
+                <br>
 
                 <!-- EGAZ --> 
                 <h3>Escolher sítios existentes</h3> 
@@ -212,6 +265,7 @@
                 <div>
                     <label for="allday_y">Todo o dia</label><input type="radio" id="allday_y" name="allDay" value="allday_y" onClick="timeDefD()" checked="checked">
                     <label for="allday_n">Horas específicas</label><input type="radio" id="allday_n" name="allDay" value="allday_n" onClick="timeDefH()">
+                    <label for="allday_p">Persistente (sim datas específicas) </label><input type="radio" id="allday_p" name="allDay" value="allday_p" onClick="timeDefP()">
                         
                 </div>
                 <div>
@@ -233,6 +287,8 @@
         <div class="card">
             
         </div>
+        <br>
+        <div hidden id="spinner"></div>
         <br>
         <div class="card">
             <button type="button" class="btn btn-primary" onclick = submitInstance()> Associar instáncia</button>

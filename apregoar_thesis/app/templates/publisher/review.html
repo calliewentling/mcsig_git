@@ -64,7 +64,7 @@
                     {% for iID, attributes in instance.items() %}
                       {% set instanceID = "instance" ~ iID %}
                       <label class="cozycheck">
-                        <input id = "{{ instanceID }}" name = "{{ instanceID }}" type="checkbox" class = "listInstances"> {{ instanceID }} {{ attributes["p_name"] }} <i> {{ attributes["t_begin"] }} to {{ attributes["t_end"] }} </i>
+                        <input id = "{{ instanceID }}" name = "{{ instanceID }}" type="checkbox" class = "listInstances"> {{ attributes["p_name"] }} <i> {{ attributes["timeframe"] }} </i>
                       </label>                      
                     {% endfor %}
                   {% endfor %}

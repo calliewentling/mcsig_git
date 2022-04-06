@@ -1,3 +1,10 @@
+//// Initialize loader ////
+const spinner = document.getElementById("spinner");
+
+    
+    
+
+
 ////// MAP INITIALIZATION //////
 //Generic Map Setup
 const viewGaz = new ol.View({
@@ -7,6 +14,8 @@ const viewGaz = new ol.View({
 });
  
 
+
+var styleJson = 'https://api.maptiler.com/maps/3b03922e-4557-48cb-9428-624bbbc242fb/style.json?key=DoqRHLdjG2tKhuJx9x3L';
 const mapGaz = new ol.Map({
     layers: [
         new ol.layer.Tile({
@@ -16,6 +25,8 @@ const mapGaz = new ol.Map({
     target: 'map',
     view: viewGaz,
 });
+//olms.apply(mapGaz,styleJson);
+
 
 // Add Story shapes
 const wmsSourceStory = new ol.source.ImageWMS({
@@ -57,6 +68,7 @@ fetch(wfs_url_story).then(function (response) {
     if (featuresS.length > 0) {
         layerExtent = zoomGaz(vectorSource = vectorSourceStories);
     }
+    spinner.setAttribute('hidden', '');
     return vectorSourceStories;
     //layerExtent = vectorSource.getExtent();
     //map.getView().fit(ol.extent.buffer(layerExtent, .01)); //What does this number mean??
@@ -327,11 +339,28 @@ mapGaz.addLayer(wmsLayerUGaz);
 console.log("UGaz Layer added");
 
 // Adding fetch to view POIs
-function loadGazPOI(poi) {
+const preverPOI = document.getElementById("preverPOI");
+function loadGazPOI(gazetteer) {
+    var bodyContent = {}
+    if (gazetteer == "poi_poi"){
+        var searchTerm = prompt("Pode especificar a pesquisa:");
+        bodyContent = JSON.stringify({
+            "gazetteer": gazetteer,
+            "searchTerm": searchTerm
+        })
+    } /*else if (gazetteer == "poi_locale"){
+        var getBottomLeft = mapGaz.getView().extent.getBottomLeft();
+        console.log("layerExtent: ",layerExtent)
+        bodyContent = JSON.stringify({
+            "gazetteer":gazetteer,
+            "layerExent":getBottomLeft
+        })
+    }*/
+
     fetch(`${window.origin}/publisher/${sID}/gazetteer`, {
         method: "POST",
         credentials: "include",
-        body: JSON.stringify({"gazetteer": gazetteer}),
+        body: bodyContent,
         cache: "no-cache",
         headers: new Headers({
             "content-type":"application/json"
@@ -346,15 +375,22 @@ function loadGazPOI(poi) {
         response.json().then(function(data){
             console.log(data);
             var select = document.getElementById(`select_${gazetteer}`)
+            console.log("select: ",select)
+            while (select.hasChildNodes()) {
+                select.removeChild(select.firstChild);
+            }
             for (var i=0; i < data.length; i++) {
                 var option = document.createElement("option");
                 option.textContent = data[i]["gaz_name"];
                 option.value = data[i]["gaz_id"];
                 select.appendChild(option);
             }
-            $(function(){
-                $(`#select_${gazetteer}`).multiSelect();
-            });
+            select.style.display="block";
+            //$(function(){
+            //    $(`#select_${gazetteer}`).multiSelect();
+            //});
+            preverPOI.style.display="block";
+
         })
     })
     .catch(function(error){
@@ -366,6 +402,7 @@ function loadGazPOI(poi) {
 const loadingGaz = document.getElementById("loadingGaz");
 function loadGaz(gazetteer) {
     //const loadingGaz = document.getElementById(gazetteer);
+    spinner.removeAttribute('hidden');
     fetch(`${window.origin}/publisher/${sID}/gazetteer`, {
         method: "POST",
         credentials: "include",
@@ -393,11 +430,68 @@ function loadGaz(gazetteer) {
             $(function(){
                 $(`#select_${gazetteer}`).multiSelect();
             });
+
         })
     })
     .catch(function(error){
         console.log("Fetch error: "+error);
     });
+    spinner.setAttribute('hidden', '');
+}
+
+// Initialize POI map layers
+const wmsSourcePOI = new ol.source.ImageWMS({
+    url: 'http://localhost:8080/geoserver/apregoar/wms',
+    serverType: 'geoserver',
+    crossOrigin: 'anonymous',
+});
+console.log("Source defined")
+const wmsLayerPOI = new ol.layer.Image({
+    source: wmsSourcePOI,
+    style: styleGazAdmin,
+});
+mapGaz.addLayer(wmsLayerPOI);
+console.log("POI Layer added");
+
+
+function zoomPOI(){
+    console.log("Entering zoomPOI");
+    //Initialize zoom values
+    var vectorSource = vectorSourceStories;
+    var selectedPOI = [];
+    var selectPoiPoi = document.getElementsByName("selectPoiPoi")[0];
+    console.log("selectPoiPoi: ",selectPoiPoi);
+    selectedPOI = prepGaz(selectedGaz = selectPoiPoi, selectedInt = selectedPOI);
+    console.log("selectedPOI afer POI: ",selectedPOI);
+    if (selectedPOI.length > 0) {
+        var mapPOIFilter = "id IN ("+selectedPOI+")";
+        console.log("mapFilter: ",mapPOIFilter);
+        var wfs_url_POI = 'http://localhost:8080/geoserver/wfs?service=wfs&version=2.0.0&request=GetFeature&typeNames=apregoar:apregoar_poi&cql_filter='+mapPOIFilter+'&outputFormat=application/json'
+
+        fetch(wfs_url_POI).then(function (response) {
+            jsonPOI = response.json();
+            console.log("jsonPOI: ",jsonPOI);
+            return jsonPOI;
+        })
+        .then(function(jsonPOI) {
+            const featuresPOI = new ol.format.GeoJSON().readFeatures(jsonPOI);
+            console.log("featuresPOI: ",featuresPOI);
+            if (featuresPOI.length < selectedPOI.length) {
+                window.alert(`Cuidade! Todos elementes não foram carregados. (Apenas ${featuresPOI.length} de ${selectedPOI.length} com successo).`);
+            }
+            vectorSource.addFeatures(featuresPOI);
+            layerExtent =  vectorSource.getExtent();
+            console.log("layerExtent: ",layerExtent);
+            mapGaz.getView().fit(ol.extent.buffer(layerExtent, .01));
+            wmsSourcePOI.updateParams({
+                "LAYERS": "apregoar:apregoar_poi",
+                "cql_filter": mapPOIFilter
+            });
+            console.log("source updated")
+            console.log("POI indicators added to map")
+
+        })
+    }
 }
 
 
@@ -415,6 +509,7 @@ function prepGaz(selectedGaz,selectedInt) {
 }
 
 function initGaz(){
+    spinner.removeAttribute('hidden');
     console.log("Entering initGaz");
     // Initializing values
     var selectedIntE = [];
@@ -463,6 +558,7 @@ function initGaz(){
 }
 
 function vizGaz(selectedIntE,selectedIntU){
+
     //Update Gaz Totals
     var vectorSource = vectorSourceStories;
     // Get EGaz map images
@@ -486,6 +582,7 @@ function vizGaz(selectedIntE,selectedIntU){
             vectorSource.addFeatures(featuresE);
             console.log("layerExtent: in Egaz",vectorSource.getExtent());
             layerExtent = zoomGaz(vectorSource);
+            spinner.setAttribute('hidden', '');
             return vectorSource;
         });
         // Add eGaz shapes     
@@ -523,6 +620,7 @@ function vizGaz(selectedIntE,selectedIntU){
             vectorSource.addFeatures(featuresU);
             console.log("layerExtent: in get Ugaz",vectorSource.getExtent());
             layerExtent = zoomGaz(vectorSource);
+            spinner.setAttribute('hidden', '');
             return vectorSource;
         });
         // Add eGaz shapes     
@@ -540,6 +638,7 @@ function vizGaz(selectedIntE,selectedIntU){
         });
         console.log("replaced Ugaz layer with empty");
     }
+
     return {selectedIntE,selectedIntU}
 }
 
@@ -573,6 +672,7 @@ const btnReturn = document.getElementById("btnReturn");
 btnReturn.innerHTML = '<a href="/publisher/'+sID+'/review"> <button type ="button" class="btn btn-primary">Volta à notícia</button> </a>';
 
 //Setting default temporal inputs
+document.getElementsByName("allDay").value="allday_y";
 const tBeginInput = document.getElementById("tBegin");
 const tEndInput = document.getElementById("tEnd");
 tBeginInput.type="date";
@@ -585,6 +685,8 @@ tEndInput.valueAsDate= new Date();
 function timeDefH(){
     var tBVal = new Date(document.getElementById("tBegin").value);
     var tEVal = new Date(document.getElementById("tEnd").value);
+    var allDay = document.getElementsByName("allDay");
+    allDay.value = "allday_n";
     tBText = tBVal.toISOString().substring(0,16);
     tEText = tEVal.toISOString().substring(0,16);
     console.log("tBText: ")
@@ -595,10 +697,14 @@ function timeDefH(){
     tEndInput.type = 'datetime-local';
     tBeginInput.value = tBText;
     tEndInput.value = tEText;
+    tBeginInput.style.display = 'block';
+    tEndInput.style.display = 'block';
 }
 function timeDefD(){
     var tBVal = new Date(document.getElementById("tBegin").value);
     var tEVal = new Date(document.getElementById("tEnd").value);
+    var allDay = document.getElementsByName("allDay");
+    allDay.value = "allday_y";
     tBText = tBVal.toISOString().substring(0,10);
     tEText = tEVal.toISOString().substring(0,10);
     console.log("tBText");
@@ -609,6 +715,26 @@ function timeDefD(){
     tEndInput.type = 'date';
     tBeginInput.value = tBText;
     tEndInput.value = tEText;
+    tBeginInput.style.display = 'block';
+    tEndInput.style.display = 'block';
+}
+function timeDefP(){
+    var tBVal = new Date(document.getElementById("tBegin").value);
+    var tEVal = new Date(document.getElementById("tEnd").value);
+    var allDay = document.getElementsByName("allDay");
+    allDay.value = "allday_p";
+    tBText = tBVal.toISOString().substring(0,10);
+    tEText = tEVal.toISOString().substring(0,10);
+    console.log("tBText");
+    console.log(tBText);
+    const tBeginInput = document.getElementById("tBegin");
+    const tEndInput = document.getElementById("tEnd");
+    tBeginInput.type = 'date';
+    tEndInput.type = 'date';
+    tBeginInput.value = tBText;
+    tEndInput.value = tEText;
+    tBeginInput.style.display = 'none';
+    tEndInput.style.display = 'none';
 }
 
 //Establishing connections to html elements
@@ -659,7 +785,9 @@ function limparTudo() {
 }
 
 function submitInstance() {
+    
     // Get all checked values
+    console.log("Beginning Submit");
     results = initGaz();
     tGaz = results.tGaz;
     selectedIntE = results.selectedIntE;
@@ -671,6 +799,9 @@ function submitInstance() {
     var tBeginf = document.getElementById("tBegin");
     var tEndf = document.getElementById("tEnd");
     var tDescf = document.getElementById("tDesc");
+    var allDay = document.getElementsByName("allDay");
+    console.log("tBeginf.value: ",tBeginf.value)
+    console.log("allDay value: ",allDay.value);
     // Geovalues: polyJson is UGaz definition. selectedP is EGaz definition.
     // Get validation announcement areas
     var successAnnouncement = document.getElementById("successAnnouncement");
@@ -689,20 +820,23 @@ function submitInstance() {
         console.log('faltas: ');
         console.log(faltas);
     }
-    if (! tBeginf.value) {
-        console.log('tBeginf: ');
-        console.log(tBeginf);
-        faltas.push(" Tempo do início");
-    }
-    if (! tEndf.value) {
-        console.log('tEndf: ');
-        console.log(tEndf);
-        faltas.push(" Tempo do fim");
-    }
-    if (tEndf.value < tBeginf.value){
-        console.log("Ending before beginning");
-        faltas.push(" Altura fecha antes o início")
-    }
+    console.log("allDay.value: ",allDay.value);
+    if (allDay.value !== "allday_p") {
+        if (! tBeginf.value) {
+            console.log('tBeginf: ');
+            console.log(tBeginf);
+            faltas.push(" Tempo do início");
+        }
+        if (! tEndf.value) {
+            console.log('tEndf: ');
+            console.log(tEndf);
+            faltas.push(" Tempo do fim");
+        }
+        if (tEndf.value < tBeginf.value){
+            console.log("Ending before beginning");
+            faltas.push(" Altura fecha antes o início")
+        }
+    }     
     if (faltas.length > 0){
         window.alert("Falta alguns campos requeridos");
         validation.style.display="block";
@@ -710,6 +844,19 @@ function submitInstance() {
         successAnnouncement.innerHTML = `<em style="color:red">Falta: ${faltas}</em>`;
         return
     } else {
+        console.log("Preparating of entry");
+        if (allDay.value !=="allday_p") {
+            console.log("Scenario: Specific time defined")
+            var tBeginVal = tBeginf.value;
+            var tEndVal = tEndf.value;
+            
+        } else {
+            console.log("Scenario: Persistent time")
+            var tBeginVal = null;
+            var tEndVal = null;
+        }
+        console.log("tBeginVal: ",tBeginVal);
+        console.log("tEndVal: ",tEndVal);
         //Remove validation commentary
         validation.style.display="none";
         successAnnouncement.style.display="none";
@@ -719,17 +866,19 @@ function submitInstance() {
             properties: {
                 pName: pNamef.value,
                 pDesc: pDescf.value,
-                allDay: tBeginf.type,
-                tBegin: tBeginf.value,
-                tEnd: tEndf.value,
+                allDay: allDay.value,
+                tBegin: tBeginVal,
+                tEnd: tEndVal,
                 tDesc: tDescf.value,
                 eIds: selectedIntE,
                 pIds: selectedIntU,
             },
             geometry: polyJson
         };
-        console.log(entry);
+        console.log("entry: ",entry);
+        console.log("entry properties: ",entry.properties);
         //Send to flask
+        spinner.removeAttribute('hidden');
         fetch(`${window.origin}/publisher/${sID}/save_instance`, {
             method: "POST",
             credentials: "include",
@@ -753,11 +902,13 @@ function submitInstance() {
                 } else {
                     window.location.href = "review";
                 }
+                spinner.setAttribute('hidden','');
             });
         })
         .catch(function(error) {
         console.log("Fetch error: " + error);
         });
+
     }
 }
 
