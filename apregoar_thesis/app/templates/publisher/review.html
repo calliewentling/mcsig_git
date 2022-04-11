@@ -3,13 +3,6 @@
 {% block title %}Review{% endblock %}
 
 {% block main %}
-<head>
-<style>
-/* https://www.w3schools.com/howto/howto_js_collapsible.asp */
-/* Style the button that is used to open and close the collapsible content */
-
-</style>
-</head>
 
   <!--<script src="{{ url_for('static', filename='js/create.js') }}"></script>-->
 
@@ -79,12 +72,17 @@
             </div>
             <!-- VIEW INSTANCS  -->
             <div id="instanceMap" style="display:block">
-              <div id="map" class="map"></div>
-              <div id="popup" class="ol-popup">
-                <a href="#" id="popup-closer" class="ol-popup-closer"></a>
-                <div id="popup-instances"></div>
-                <div id="popup-story" display="none"></div>
+              <div class="wrapper">
+                <div id="map" class="map"></div>
+                <div id="popup" class="ol-popup">
+                  <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+                  <div id="popup-instances"></div>
+                  <div id="popup-story" display="none"></div>
+                </div>
+                <div id="progress"></div>
+
               </div>
+              
               <div id="info">&nbsp;</div>
             </div>
           </div>

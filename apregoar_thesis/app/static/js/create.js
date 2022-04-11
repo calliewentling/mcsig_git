@@ -1,4 +1,4 @@
-const form = document.getElementsByTagName('addStory')[0];
+/*const form = document.getElementsByTagName('addStory')[0];
 
 const vtitle = document.getElementById('title');
 
@@ -33,3 +33,4 @@ function showError() {
     //Set the styling
     vtitleError.className = 'error active';
 }
+*/

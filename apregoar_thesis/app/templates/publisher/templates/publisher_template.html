@@ -58,6 +58,7 @@
     </div>
 
   </nav>
+  <div hidden id="spinner"></div>
 
   <div class="row">
 
@@ -109,7 +110,8 @@
   <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/build/ol.js"></script>
 
   <main>
-    {% block main %}{% endblock main %}
+    {% block main %}
+    {% endblock main %}
   </main>
 
     <!-- Import jquery 3.3.1 slim min -->
@@ -124,8 +126,9 @@
   <script src="{{ url_for('static', filename='js/jquery-2.2.4.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/jquery.multi-select.js') }}"></script>
   
-  
+  <script src="https://cdn.polyfill.io/v3/polyfill.min.js?features=fetch,requestAnimationFrame,Element.prototype.classList,URL,TextDecoder,Number.isInteger"></script>
   {% block script %}{% endblock %}
+  
 
 </body>
 
