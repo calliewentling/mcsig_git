@@ -696,6 +696,35 @@ def loadGaz(s_id):
             SQL = text(query+";")
         print("SQL: ",SQL)
         print("Successfull definition of SQL!")
+    elif gazetteer == "gaz_prev":
+        search_term = req["searchTerm"]
+        print("search_term: ",search_term)
+        query_egaz = """
+            SELECT
+                e_id as gaz_id,
+                name as gaz_name,
+                type AS gaz_desc
+            FROM apregoar.egazetteer
+        """
+        print("query_egaz:",query_egaz)
+        query_ugaz = """
+            SELECT
+                p_id as gaz_id,
+                p_name as gaz_name,
+                concat('ugaz',u_id) as gaz_desc
+            FROM apregoar.ugazetteer
+        """
+        print("query_ugaz:",query_ugaz)
+        if search_term:
+            where_clause_e = " WHERE LOWER(name) LIKE '%"+search_term.lower()+"%'"
+            where_clause_u = " WHERE LOWER(p_name) LIKE '%"+search_term.lower()+"%'"
+            print("where_clause_e",where_clause_e,". where_clause_u: ",where_clause_u)
+            SQL = text(query_ugaz+where_clause_u+" UNION "+query_egaz+where_clause_e+";")
+            #SQL = text(query_ugaz+where_clause_u+";")
+        else:
+            SQL = text(query+";")
+        print("SQL: ",SQL)
+        print("Successfull definition of SQL!")
     elif gazetteer == "poi_locale":
         layer_extent = req["layerExtent"]
         print("layer_extent: ",layer_extent)

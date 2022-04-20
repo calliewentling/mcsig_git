@@ -71,7 +71,8 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-
+<link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Raleway'>
+<link rel='stylesheet' href='https://fonts.googleapis.com/icon?family=Material+Icons'>
 
 <script>
     $(document).ready(function(){
@@ -197,37 +198,43 @@
 
                 <!-- EGAZ --> 
                 <h3>Escolher sítios existentes</h3> 
+                <div>
+                    <button type="button" class="btn btn-primary" onclick="searchGazPrev('gaz_prev')">Pesquisar áreas existentes</button>
+                    <br><br>
+                    <div id="searchTerm" style="display:none"></div>
+                    
+                </div>
                 
-                <div id="containerGaz">
-                    <div id="left">
+                <div class="containerG grid">
+                    <div class="itemG">
                         <button type="button" class="btn btn-primary" onclick="loadGaz('ugaz_personal')">Sítios Pessoais</button>
                         <br>
                         <select id='select_ugaz_personal' name="selectUgazPersonal" multiple style="display:none"></select>
                     </div>
-                    <div id="center">
+                    <div class="itemG">
                         <button type="button" class="btn btn-primary" onclick="loadGaz('ugaz_empresa')">Sítios Empresiais</button>
                         <br>
                         <select id='select_ugaz_empresa' name="selectUgazEmpresa" multiple style="display:none"></select>
                     </div>
-                    <div id="right">
+                    <div class="itemG">
                         <button type="button" class="btn btn-primary" onclick="loadGaz('ugaz_all')">Sítios (Totais)</button>
                         <br>
                         <select id='select_ugaz_all' name="selectUgazAll" multiple style="display:none"></select>
                     </div>
                 </div>
                 <br><br><br>
-                <div id="containerGaz">
-                    <div id="left">
+                <div class="containerG grid">
+                    <div class="itemG">
                         <button type="button" class="btn btn-primary" onclick="loadGaz('egaz_freguesia')">Freguesias</button>
                         <br>
                         <select id='select_egaz_freguesia' name="selectEgazFreguesia" multiple style="display:none"></select>
                     </div>
-                    <div id="center">
+                    <div class="itemG">
                         <button type="button" class="btn btn-primary" onclick="loadGaz('egaz_concelho')">Concelhos</button>
                         <br>
                         <select id='select_egaz_concelho' name="selectEgazConcelho" multiple style="display:none"></select>
                     </div>
-                    <div id="right">
+                    <div class="itemG">
                         <button type="button" class="btn btn-primary" onclick="loadGaz('egaz_extra')">Grupos Administrativos</button>
                         <br>
                         <select id='select_egaz_extra' name="selectEgazExtra" multiple style="display:none"></select>
@@ -257,7 +264,6 @@
                 <div id="successAnnouncement" style="display:none"></div>
                 <div id="formButton" style="display:none"></div>
             </form>
-            
         </div>
         <br>
         <div class="card">
@@ -285,8 +291,15 @@
     console.log("Map Story filter: ",mapStoryFilter);
     var mapEAGazFilter = "";
     const eGazAll = "{{ eGazF }}";
+    var uID = '{{ story.u_id }}';
+    console.log("uID is: ");
+    console.log(uID);
+    var pubName = '{{ story.publication }}';
+    console.log("pubName is: ");
+    console.log(pubName);
 </script>
 <script src="{{ url_for('static', filename='js/localize.js') }}"></script>
+
 
 
 {% endblock %}

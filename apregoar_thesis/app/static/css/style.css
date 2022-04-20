@@ -23,7 +23,8 @@ input:required + label {
 
 form {
     padding: 10px;
-    max-width: 500px;
+    /*max-width: 500px;*/
+    max-width: 98%;
     
 }
 form div {
@@ -224,17 +225,20 @@ div.container1 {
 #left {
     float:left;
     width:32%;
+
 }
 
 #center {
     display: inline-block;
     margin:0 auto;
     width:32%;
+
 }
 
 #right {
     float:right;
     width:32%;
+
 }
 
 /*Loading*/
@@ -267,4 +271,27 @@ div.container1 {
     } to {
         transofmr: rotate(360deg);
     }
+}
+
+/* STYLE SELECT */
+select {
+    width: 100%;
+}
+
+/*Grid*/
+.grid {
+    display: grid;
+    grid-template-columns: 32% 32% 32%;
+}
+
+.containerG {
+    width: 100%;
+    height: 10em;
+    padding: 10px;
+    justify-content: space-between;
+    align-content: space-between;
+}
+
+.itemG {
+    padding: 10px;
 }

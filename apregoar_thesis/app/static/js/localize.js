@@ -466,9 +466,6 @@ function loadGazPOI(gazetteer) {
                 select.appendChild(option);
             }
             select.style.display="block";
-            //$(function(){
-            //    $(`#select_${gazetteer}`).multiSelect();
-            //});
             preverPOI.style.display="block";
 
         })
@@ -476,6 +473,130 @@ function loadGazPOI(gazetteer) {
     .catch(function(error){
         console.log("Fetch error: "+error);
     });
+}
+
+
+
+// Adding fetch to search through all previous areas
+const selectPrev = document.getElementById("selectPrev");
+function searchGazPrev(gazetteer) {
+    var selectUgazPersonal = document.getElementById('select_ugaz_personal');
+    var selectUgazEmpresa = document.getElementById('select_ugaz_empresa');
+    var selectUgazAll = document.getElementById('select_ugaz_all');
+    var selectEgazFreguesia = document.getElementById('select_egaz_freguesia');
+    var selectEgazConcelho = document.getElementById('select_egaz_concelho');
+    var selectEgazExtra = document.getElementById('select_egaz_extra')
+    while (selectUgazPersonal.hasChildNodes()) {
+        selectUgazPersonal.removeChild(selectUgazPersonal.firstChild);
+    }
+    selectUgazPersonal.style.display="none";
+    while (selectUgazEmpresa.hasChildNodes()) {
+        selectUgazEmpresa.removeChild(selectUgazEmpresa.firstChild);
+    }
+    selectUgazEmpresa.style.display="none";
+    while (selectUgazAll.hasChildNodes()) {
+        selectUgazAll.removeChild(selectUgazAll.firstChild);
+    }
+    selectUgazAll.style.display="none";
+    while (selectEgazFreguesia.hasChildNodes()) {
+        selectEgazFreguesia.removeChild(selectEgazFreguesia.firstChild);
+    }
+    selectEgazFreguesia.style.display="none";
+    while (selectEgazConcelho.hasChildNodes()) {
+        selectEgazConcelho.removeChild(selectEgazConcelho.firstChild);
+    }
+    selectEgazConcelho.style.display="none";
+    while (selectEgazExtra.hasChildNodes()) {
+        selectEgazExtra.removeChild(selectEgazExtra.firstChild);
+    }
+    selectEgazExtra.style.display="none";
+    var bodyContent = {}
+    if (gazetteer == "gaz_prev"){
+        var searchTerm = prompt("Pode especificar a pesquisa:");
+        bodyContent = JSON.stringify({
+            "gazetteer": gazetteer,
+            "searchTerm": searchTerm
+        })
+    }
+    fetch(`${window.origin}/publisher/${sID}/gazetteer`, {
+        method: "POST",
+        credentials: "include",
+        body: bodyContent,
+        cache: "no-cache",
+        headers: new Headers({
+            "content-type":"application/json"
+        })
+    })
+    .then(function(response) {
+        if (response.status !== 200) {
+            window.alert("Erro no carragemento do gazetteer");
+            console.log(`Error status code: ${response.status}`);
+            return;
+        }
+        response.json().then(function(data){
+            console.log(data);          
+            for (var i=0; i < data.length; i++) {
+                var option = document.createElement("option");
+                option.textContent = data[i]["gaz_name"];
+                option.value = data[i]["gaz_id"];
+                gazType = data[i]["gaz_desc"];
+                console.log("gazType: ",gazType);
+                console.log("Option: ",option);
+                if (gazType.includes("ugaz")) {
+                    console.log("Entering UGAZ if statement");
+                    gazUID = parseInt(gazType.substr(4));
+                    console.log("gazUID: ",gazUID);
+                    if (gazUID == uID) {
+                        console.log("My place");
+                        selectUgazPersonal.appendChild(option);
+                        selectUgazPersonal.style.display="block";
+                        console.log("selectUgazPersonal: ",selectUgazPersonal);
+                        console.log("child element count: ",selectUgazPersonal.childElementCount);
+                        
+                    }
+                    else {
+                        console.log("not my place");
+                        selectUgazAll.appendChild(option);
+                        selectUgazAll.style.display="block";
+                    }
+                }
+                else if (gazType == "freguesia") {
+                    selectEgazFreguesia.appendChild(option);
+                    selectEgazFreguesia.style.display="block";
+                }
+                else if (gazType == "concelho") {
+                    selectEgazConcelho.appendChild(option);
+                    selectEgazConcelho.style.display="block";
+                }
+                else {
+                    selectEgazExtra.appendChild(option);
+                    selectEgazExtra.style.display="block";
+                }
+            }
+            styleSelectGaz(gaz=selectUgazPersonal);
+            styleSelectGaz(gaz=selectUgazEmpresa);
+            styleSelectGaz(gaz=selectUgazAll);
+            styleSelectGaz(gaz=selectEgazFreguesia);
+            styleSelectGaz(gaz=selectEgazConcelho);
+            styleSelectGaz(gaz=selectEgazExtra);
+            //$(function(){
+            //    $(`#select_${gazetteer}`).multiSelect();
+            //});
+            
+        })
+    })
+    .catch(function(error){
+        console.log("Fetch error: "+error);
+    });
+}
+
+function styleSelectGaz(gaz) {
+    maxOptions = 8;
+    if (gaz.options.length < maxOptions) {
+        gaz.size = gaz.options.length +1;
+    } else {
+        gaz.size = maxOptions;
+    }
 }
 
 // Adding fetches to get access to gazetteers
@@ -507,9 +628,11 @@ function loadGaz(gazetteer) {
                 option.value = data[i]["gaz_id"];
                 select.appendChild(option);
             }
-            $(function(){
-                $(`#select_${gazetteer}`).multiSelect();
-            });
+            select.style.display = "block";
+            //$(function(){
+            //    $(`#select_${gazetteer}`).multiSelect();
+            //});
+            styleSelectGaz(gaz=select);
 
         })
     })
