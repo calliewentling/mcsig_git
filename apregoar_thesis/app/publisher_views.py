@@ -630,10 +630,10 @@ def loadGaz(s_id):
                     p_desc AS gaz_desc,
                     publication AS gaz_pub
                 FROM apregoar.access_ugaz
-                WHERE publication = :x
+                WHERE publication = :x AND u_id NOT IN (:y)
                 ;
             """)
-            SQL = SQL.bindparams(x=publication)
+            SQL = SQL.bindparams(x=publication,y=u_id)
     elif gazetteer == "ugaz_all":
         SQL = text("""
             SELECT
@@ -642,8 +642,10 @@ def loadGaz(s_id):
                 p_desc AS gaz_desc,
                 u_id
             FROM apregoar.access_ugaz
+            WHERE u_id NOT IN :x
             ;
         """)
+        SQL = SQL.bindparams(x=u_id)
     elif gazetteer == "egaz_freguesia":
         SQL = text("""
             SELECT
@@ -666,14 +668,27 @@ def loadGaz(s_id):
             ORDER BY gaz_name
             ;
         """)
+    elif gazetteer == "egaz_archive":
+        print("egaz_archive")
+        SQL = text("""
+            SELECT
+                e_id AS gaz_id,
+                name AS gaz_name,
+                'archive' AS gaz_desc
+            FROM apregoar.egazetteer
+            WHERE type IN ('freguesia_archivo')
+            ORDER BY gaz_name
+            ;
+        """)
     elif gazetteer == "egaz_extra":
+        print("egaz_extra")
         SQL = text("""
             SELECT
                 e_id AS gaz_id,
                 name AS gaz_name,
                 type AS gaz_desc
             FROM apregoar.egazetteer
-            WHERE type NOT IN ('concelho','freguesia')
+            WHERE type NOT IN ('concelho','freguesia','freguesia_archivo')
             ORDER BY gaz_name
             ;
         """)
@@ -716,8 +731,9 @@ def loadGaz(s_id):
         """
         print("query_ugaz:",query_ugaz)
         if search_term:
-            where_clause_e = " WHERE LOWER(name) LIKE '%"+search_term.lower()+"%'"
-            where_clause_u = " WHERE LOWER(p_name) LIKE '%"+search_term.lower()+"%'"
+            where_clause_e = " WHERE LOWER(name) SIMILAR TO LOWER('%("+search_term.replace(", ","|")+")%')"
+            #where_clause_u = " WHERE LOWER(p_name) LIKE '%"+search_term.lower()+"%'"
+            where_clause_u = " WHERE LOWER(p_name) SIMILAR TO LOWER('%("+search_term.replace(", ","|")+")%')"
             print("where_clause_e",where_clause_e,". where_clause_u: ",where_clause_u)
             SQL = text(query_ugaz+where_clause_u+" UNION "+query_egaz+where_clause_e+";")
             #SQL = text(query_ugaz+where_clause_u+";")

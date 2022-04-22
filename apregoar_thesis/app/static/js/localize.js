@@ -481,33 +481,38 @@ function loadGazPOI(gazetteer) {
 const selectPrev = document.getElementById("selectPrev");
 function searchGazPrev(gazetteer) {
     var selectUgazPersonal = document.getElementById('select_ugaz_personal');
-    var selectUgazEmpresa = document.getElementById('select_ugaz_empresa');
-    var selectUgazAll = document.getElementById('select_ugaz_all');
-    var selectEgazFreguesia = document.getElementById('select_egaz_freguesia');
-    var selectEgazConcelho = document.getElementById('select_egaz_concelho');
-    var selectEgazExtra = document.getElementById('select_egaz_extra')
     while (selectUgazPersonal.hasChildNodes()) {
         selectUgazPersonal.removeChild(selectUgazPersonal.firstChild);
     }
     selectUgazPersonal.style.display="none";
+    var selectUgazEmpresa = document.getElementById('select_ugaz_empresa');
     while (selectUgazEmpresa.hasChildNodes()) {
         selectUgazEmpresa.removeChild(selectUgazEmpresa.firstChild);
     }
     selectUgazEmpresa.style.display="none";
+    var selectUgazAll = document.getElementById('select_ugaz_all');
     while (selectUgazAll.hasChildNodes()) {
         selectUgazAll.removeChild(selectUgazAll.firstChild);
     }
     selectUgazAll.style.display="none";
+    var selectEgazFreguesia = document.getElementById('select_egaz_freguesia');
     while (selectEgazFreguesia.hasChildNodes()) {
         selectEgazFreguesia.removeChild(selectEgazFreguesia.firstChild);
     }
     selectEgazFreguesia.style.display="none";
+    var selectEgazConcelho = document.getElementById('select_egaz_concelho');
     while (selectEgazConcelho.hasChildNodes()) {
         selectEgazConcelho.removeChild(selectEgazConcelho.firstChild);
     }
     selectEgazConcelho.style.display="none";
+    var selectEgazExtra = document.getElementById('select_egaz_extra');
     while (selectEgazExtra.hasChildNodes()) {
         selectEgazExtra.removeChild(selectEgazExtra.firstChild);
+    }
+    selectEgazExtra.style.display="none";
+    var selectEgazArchive = document.getElementById('select_egaz_archive');
+    while (selectEgazArchive.hasChildNodes()) {
+        selectEgazArchive.removeChild(selectEgazArchive.firstChild);
     }
     selectEgazExtra.style.display="none";
     var bodyContent = {}
@@ -517,6 +522,9 @@ function searchGazPrev(gazetteer) {
             "gazetteer": gazetteer,
             "searchTerm": searchTerm
         })
+        var searchTermDisplay = document.getElementById("searchTermDisplay");
+        searchTermDisplay.innerHTML = "<p>"+searchTerm+"</p>";
+        searchTermDisplay.style.display="block";
     }
     fetch(`${window.origin}/publisher/${sID}/gazetteer`, {
         method: "POST",
@@ -552,7 +560,6 @@ function searchGazPrev(gazetteer) {
                         selectUgazPersonal.style.display="block";
                         console.log("selectUgazPersonal: ",selectUgazPersonal);
                         console.log("child element count: ",selectUgazPersonal.childElementCount);
-                        
                     }
                     else {
                         console.log("not my place");
@@ -568,6 +575,11 @@ function searchGazPrev(gazetteer) {
                     selectEgazConcelho.appendChild(option);
                     selectEgazConcelho.style.display="block";
                 }
+                else if (gazType.includes("archiv")) {
+                    console.log("In Archive");
+                    selectEgazArchive.appendChild(option);
+                    selectEgazArchive.style.display="block";
+                }
                 else {
                     selectEgazExtra.appendChild(option);
                     selectEgazExtra.style.display="block";
@@ -578,6 +590,7 @@ function searchGazPrev(gazetteer) {
             styleSelectGaz(gaz=selectUgazAll);
             styleSelectGaz(gaz=selectEgazFreguesia);
             styleSelectGaz(gaz=selectEgazConcelho);
+            styleSelectGaz(gaz=selectEgazArchive);
             styleSelectGaz(gaz=selectEgazExtra);
             //$(function(){
             //    $(`#select_${gazetteer}`).multiSelect();

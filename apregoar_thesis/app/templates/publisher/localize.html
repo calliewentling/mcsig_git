@@ -201,8 +201,7 @@
                 <div>
                     <button type="button" class="btn btn-primary" onclick="searchGazPrev('gaz_prev')">Pesquisar áreas existentes</button>
                     <br><br>
-                    <div id="searchTerm" style="display:none"></div>
-                    
+                    <div id="searchTermDisplay" style="display:none"></div>
                 </div>
                 
                 <div class="containerG grid">
@@ -238,6 +237,13 @@
                         <button type="button" class="btn btn-primary" onclick="loadGaz('egaz_extra')">Grupos Administrativos</button>
                         <br>
                         <select id='select_egaz_extra' name="selectEgazExtra" multiple style="display:none"></select>
+                    </div>
+                </div>
+                <div class="containerG grid">
+                    <div class="itemG">
+                        <button type="button" class="btn btn-primary" onclick="loadGaz('egaz_archive')">Archivo</button>
+                        <br>
+                        <select id='select_egaz_archive' name="selectEgazArchive" multiple style="display:none"></select>
                     </div>
                 </div>
                 <br><br>
