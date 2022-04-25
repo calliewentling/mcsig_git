@@ -741,6 +741,11 @@ function initGaz(){
     result = prepGaz(selectedGaz = selectEgazConcelho, selectedInt = selectedIntE);
     selectedIntE = selectedInt;
     console.log("selectedIntE after Concelho: ",selectedIntE);
+    // Preparing Archive
+    var selectEgazArchive = document.getElementsByName("selectEgazArchive")[0];
+    result = prepGaz(selectedGaz = selectEgazArchive, selectedInt = selectedIntE);
+    selectedIntE = selectedInt;
+    console.log("selectedIntE after Concelho: ",selectedIntE);
     // Preparing other administrative areas
     var selectEgazExtra = document.getElementsByName("selectEgazExtra")[0];
     console.log("selectEgazExtra: ",selectEgazExtra);
