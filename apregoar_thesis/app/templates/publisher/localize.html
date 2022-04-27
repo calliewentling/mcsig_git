@@ -149,31 +149,14 @@
                     </div>
                     <em>Pode desenhar um ou mais polígonos para representar a localização customizada onde a notícia acontece (no passado, presente, ou futuro). Pode modificar os polígonos depois ou deleter e começer outra vez.</em>
                     <!-- UGAZ INFO -->
-                    <div id="poiGaz" style="display:none">
-                        <div id="containerGaz">
-                            <div id="left">
-                                <button type="button" class="btn btn-primary" onclick="loadGazPOI('poi_poi')">Pontes de Interesse (por nome)</button>
-                                <br><br>
-                                <select id='select_poi_poi' name="selectPoiPoi" multiple style="display:none"></select>
-                                
-                            </div>
-                            
-                            <div id="center">
-                                <br>
-                            </div>
-                            <div id="right">
-                                <br>
-                                <!--
-                                <button type="button" class="btn btn-primary" onclick="loadGazPOI('poi_locale')">Pontes de Interesse (na vista atual da mapa)</button>
-                                <br>
-                                <select id='select_poi_locale' name="selectPoiLocale" multiple style="display:none"></select>
-                                -->
-                            </div>
-                        </div>
-                        <div id="preverPOI" style="display:none">
-                            <br><br><br><br><br>
-                            <button type="button" class="btn btn-primary" onclick="zoomPOI()">Prever POI</button>
-                        </div>                   
+                    <div id="poiGaz" style="display:block">
+                        <button type="button" onclick="searchGeoNames()">GeoNames</button>
+                        <br>
+                        <select id='select_geonames' name="selectGeonames" multiple style="display:none"></select>
+                        <div id="geonamesComment"></div>
+                    </div>
+                    <div id="buttonZoomGeonames" style="display:block">
+                        <button type="button" onclick="zoomGeonames()">Zoom</button>
                     </div>
                     
                     <div style="display:none">

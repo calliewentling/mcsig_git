@@ -475,6 +475,93 @@ function loadGazPOI(gazetteer) {
     });
 }
 
+//Calling RESTAPI of geonames to search gazetteer
+function searchGeoNames() {
+    var selectGeonames = document.getElementById('select_geonames');
+    var buttonZoomGeonames = document.getElementById("buttonZoomGeonames");
+    buttonZoomGeonames.style.display="none";
+    while (selectGeonames.hasChildNodes()) {
+        selectGeonames.removeChild(selectGeonames.firstChild);
+    }
+    selectGeonames.style.display="none";
+    var searchTerm = prompt("Pode especificar a pesquisa para Geonames:");
+    encodedSearch = encodeURIComponent(searchTerm);
+    var url = "http://api.geonames.org/search?q="+encodedSearch+"&east=-7.74577887999189&west=-9.517104891617194&north=39.83801908704823&south=38.40907442337447&type=json&isNameRequired=true&maxRows=20&username=cwentling";
+    console.log("URL: ",url);
+    fetch(url)
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('HTTP error! Status: ${ resonse.status }');
+            }
+            return response.json();
+        })
+        .then((response) => {
+            console.log("Response: ",response);
+            var totalResults = response.totalResultsCount;
+            console.log("Number of total results: ",totalResults);
+            var geonames = response["geonames"];
+            
+            if (totalResults == 0) {
+                geonamesComment.innerHTML = "<i>Desculpa, pesquisa sem resultos</i>";
+                selectGeonames.style.display="none";
+            } else {
+                for (var i=0; i < geonames.length; i++) {
+                    var option = document.createElement("option");
+                    option.textContent = geonames[i]["name"];
+                    console.log("option text: ",option.textContent);
+                    option.value = geonames[i]["lng"].concat(",",geonames[i]["lat"]);
+                    console.log("option value: ",option.value);
+                    selectGeonames.appendChild(option);
+                }
+                selectGeonames.style.display="block";
+                buttonZoomGeonames.style.display="block";
+            }
+            
+        })
+}
+// Zooming to GeoNames results
+function zoomGeonames(){
+    console.log("Entering zoomGeonames");
+    var sourceGeonames = new ol.source.Vector();
+    var selectGeonames = document.getElementsByName("selectGeonames")[0];
+    for (var i=0; i<selectGeonames.length; i++){
+        if (selectGeonames[i].selected){
+            var value = selectGeonames[i]["value"].split(",")
+            var lat = parseFloat(value[1]);
+            var lon = parseFloat(value[0]);
+            console.log("Lat/Lon: ",lat," ",lon);
+            console.log("Type: ",typeof(lat));
+            coords = [lon,lat];
+            var feature = new ol.Feature({
+                geometry: new ol.geom.Point(coords),
+                name: selectGeonames["name"]
+            })
+            console.log("feature geom: ",feature["geometry"]);
+            sourceGeonames.addFeature(feature);
+            var pGeom = feature.getGeometry();
+            console.log("pGeom: ",pGeom);
+            var gFeatures = sourceGeonames.getFeatures();
+            console.log("gFeatures: ",gFeatures);
+        }
+    }
+    var layerGeonames = new ol.layer.Vector({
+        source: sourceGeonames,
+        style: new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 7,
+                fill: new ol.style.Fill({
+                    color: '#ff3333',
+                }),
+            }),
+        }),
+    });
+    
+    //REUNITE
+    mapGaz.addLayer(layerGeonames);
+    var layerExtent = sourceGeonames.getExtent();
+    console.log("layerExtent: ",layerExtent);
+    mapGaz.getView().fit(ol.extent.buffer(layerExtent, .01));
+}
 
 
 // Adding fetch to search through all previous areas
@@ -669,46 +756,6 @@ const wmsLayerPOI = new ol.layer.Image({
 mapGaz.addLayer(wmsLayerPOI);
 console.log("POI Layer added");
 
-
-function zoomPOI(){
-    console.log("Entering zoomPOI");
-    //Initialize zoom values
-    var vectorSource = vectorSourceStories;
-    var selectedPOI = [];
-    var selectPoiPoi = document.getElementsByName("selectPoiPoi")[0];
-    console.log("selectPoiPoi: ",selectPoiPoi);
-    selectedPOI = prepGaz(selectedGaz = selectPoiPoi, selectedInt = selectedPOI);
-    console.log("selectedPOI afer POI: ",selectedPOI);
-    if (selectedPOI.length > 0) {
-        var mapPOIFilter = "id IN ("+selectedPOI+")";
-        console.log("mapFilter: ",mapPOIFilter);
-        var wfs_url_POI = 'http://localhost:8080/geoserver/wfs?service=wfs&version=2.0.0&request=GetFeature&typeNames=apregoar:apregoar_poi&cql_filter='+mapPOIFilter+'&outputFormat=application/json'
-
-        fetch(wfs_url_POI).then(function (response) {
-            jsonPOI = response.json();
-            console.log("jsonPOI: ",jsonPOI);
-            return jsonPOI;
-        })
-        .then(function(jsonPOI) {
-            const featuresPOI = new ol.format.GeoJSON().readFeatures(jsonPOI);
-            console.log("featuresPOI: ",featuresPOI);
-            if (featuresPOI.length < selectedPOI.length) {
-                window.alert(`Cuidade! Todos elementes não foram carregados. (Apenas ${featuresPOI.length} de ${selectedPOI.length} com successo).`);
-            }
-            vectorSource.addFeatures(featuresPOI);
-            layerExtent =  vectorSource.getExtent();
-            console.log("layerExtent: ",layerExtent);
-            mapGaz.getView().fit(ol.extent.buffer(layerExtent, .01));
-            wmsSourcePOI.updateParams({
-                "LAYERS": "apregoar:apregoar_poi",
-                "cql_filter": mapPOIFilter
-            });
-            console.log("source updated")
-            console.log("POI indicators added to map")
-
-        })
-    }
-}
 
 
 
