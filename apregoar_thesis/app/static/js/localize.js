@@ -597,11 +597,16 @@ function searchGazPrev(gazetteer) {
         selectEgazExtra.removeChild(selectEgazExtra.firstChild);
     }
     selectEgazExtra.style.display="none";
+    var selectEgazGreen = document.getElementById('select_egaz_green');
+    while (selectEgazGreen.hasChildNodes()) {
+        selectEgazGreen.removeChild(selectEgazGreen.firstChild);
+    }
+    selectEgazGreen.style.display="none";
     var selectEgazArchive = document.getElementById('select_egaz_archive');
     while (selectEgazArchive.hasChildNodes()) {
         selectEgazArchive.removeChild(selectEgazArchive.firstChild);
     }
-    selectEgazExtra.style.display="none";
+    selectEgazArchive.style.display="none";
     var bodyContent = {}
     if (gazetteer == "gaz_prev"){
         var searchTerm = prompt("Pode especificar a pesquisa:");
@@ -661,6 +666,10 @@ function searchGazPrev(gazetteer) {
                 else if (gazType == "concelho") {
                     selectEgazConcelho.appendChild(option);
                     selectEgazConcelho.style.display="block";
+                }
+                else if (gazType == "espaço_verde") {
+                    selectEgazGreen.appendChild(option);
+                    selectEgazGreen.style.display="block";
                 }
                 else if (gazType.includes("archiv")) {
                     console.log("In Archive");
@@ -793,6 +802,11 @@ function initGaz(){
     result = prepGaz(selectedGaz = selectEgazArchive, selectedInt = selectedIntE);
     selectedIntE = selectedInt;
     console.log("selectedIntE after Concelho: ",selectedIntE);
+    // Preparing Green Space
+    var selectEgazGreen = document.getElementsByName("selectEgazGreen")[0];
+    result = prepGaz(selectedGaz = selectEgazGreen, selectedInt = selectedIntE);
+    selectedIntE = selectedInt;
+    console.log("selectedIntE after GreenSpace: ",selectedIntE);
     // Preparing other administrative areas
     var selectEgazExtra = document.getElementsByName("selectEgazExtra")[0];
     console.log("selectEgazExtra: ",selectEgazExtra);
@@ -817,6 +831,7 @@ function initGaz(){
     result = prepGaz(selectedGaz = selectUgazAll, selectedInt = selectedIntU);
     selectedIntU = selectedInt;
     console.log("selectedIntU after Ugaz All: ",selectedIntU);
+    //Calcuate totals
     gazL = selectedIntE.length + selectedIntU.length;
     tGaz = updateGazTotals(uGaz, gazL);
     results = vizGaz(selectedIntE,selectedIntU);

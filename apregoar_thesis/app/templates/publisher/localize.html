@@ -155,7 +155,7 @@
                         <select id='select_geonames' name="selectGeonames" multiple style="display:none"></select>
                         <div id="geonamesComment"></div>
                     </div>
-                    <div id="buttonZoomGeonames" style="display:block">
+                    <div id="buttonZoomGeonames" style="display:none">
                         <button type="button" onclick="zoomGeonames()">Zoom</button>
                     </div>
                     
@@ -223,6 +223,11 @@
                     </div>
                 </div>
                 <div class="containerG grid">
+                    <div class="itemG">
+                        <button type="button" class="btn btn-primary" onclick="loadGaz('egaz_green')">Espaço Verde</button>
+                        <br>
+                        <select id='select_egaz_green' name="selectEgazGreen" multiple style="display:none"></select>
+                    </div>
                     <div class="itemG">
                         <button type="button" class="btn btn-primary" onclick="loadGaz('egaz_archive')">Archivo</button>
                         <br>

@@ -668,6 +668,17 @@ def loadGaz(s_id):
             ORDER BY gaz_name
             ;
         """)
+    elif gazetteer == "egaz_green":
+        SQL = text("""
+            SELECT
+                e_id AS gaz_id,
+                name AS gaz_name,
+                type AS gaz_desc
+            FROM apregoar.egazetteer
+            WHERE type = 'espaço_verde'
+            ORDER BY gaz_name
+            ;
+        """)
     elif gazetteer == "egaz_archive":
         print("egaz_archive")
         SQL = text("""
