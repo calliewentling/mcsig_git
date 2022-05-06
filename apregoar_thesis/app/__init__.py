@@ -43,3 +43,4 @@ def shutdown_session(response_or_exc):
 
 from app import user_views
 from app import publisher_views
+from app import jornal_views

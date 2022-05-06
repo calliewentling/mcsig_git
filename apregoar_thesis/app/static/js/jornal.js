@@ -153,12 +153,15 @@ var map = new ol.Map({
 
 
 // Add Story shapes
-
+console.log("Geonoticia s_id: ",geonoticia.s_id);
+var sID = geonoticia.s_id;
+mapStoryFilter = "s_id="+sID;
+console.log("mapStoryFilter: ",mapStoryFilter);
 const wmsSourceStory = new ol.source.ImageWMS({
     url: 'http://localhost:8080/geoserver/apregoar/wms',
     /*params: {"LAYERS":"apregoar:geonoticias"},*/ //OG
     params: {"LAYERS":"apregoar:geonoticias",
-        "cql_filter":mapStoryFilter}, //Set on each individual page
+        "cql_filter": mapStoryFilter }, //Set on each individual page
     serverType: 'geoserver',
     crossOrigin: 'anonymous',
 });
@@ -281,25 +284,12 @@ map.on('singleclick', function (evt) {
                         '<p>'+tDesc+'</p></em>';
                     
 
-                    if (docTitle === "Review") {
-                        console.log("In Review if");
-                        console.log("docTitle: "+docTitle);
-                        instContent.innerHTML = instanceBlock;
-                        notpop.innerHTML = instanceBlock;
-                    } else if (docTitle === "Dashboard") {
-                        console.log("In DASHBOARD if");
-                        console.log("docTitle: "+docTitle);
-                        storyContent.innerHTML = storyBlock;
-                    } else if (docTitle === "Localize"){
-                        console.log("In LOCALIZE if docTitle: "+docTitle);
-                    } else {
-                        console.log("In else");
-                        console.log("docTitle: "+docTitle);
-                        if (storyContent) {
-                            storyContent.innerHTML = storyBlock;
-                        }
-                    }
-
+                    
+                    console.log("In Review if");
+                    console.log("docTitle: "+docTitle);
+                    instContent.innerHTML = instanceBlock;
+                    notpop.innerHTML = instanceBlock;
+                    
                     /* Set Position */
                     overlay.setPosition(coordinate);
                 }

@@ -12,6 +12,14 @@
   </div>
 </div>
 
+<script>
+  var alertNotice = '{{ notice }}';
+  if (alertNotice) {
+    console.log("Notice",alertNotice)
+    alert(alertNotice);
+  }
+</script>
+
 {% endblock %}
 <!-- <!DOCTYPE html>
 <html lang="en">
