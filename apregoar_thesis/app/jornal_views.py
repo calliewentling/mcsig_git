@@ -48,13 +48,15 @@ def historia(s_id):
         conn.close()
         instances = []
         geonoticia = {}
-        valid = False
+        sExists = False
+        iExist = False
         print("Result: ",result)
         for row in result:
-            valid = True
+            sExists = True
             print(row)
             print()
             if row["i_id"] is not None:
+                iExist = True
                 instance = {
                     "i_id": row["i_id"],
                     "t_begin": row["t_begin"],
@@ -67,7 +69,7 @@ def historia(s_id):
                 }
                 instances.append(instance)
         print("instances: ",instances)
-        if valid == True: #Ensure the story is real
+        if sExists == True: #Ensure the story is real
             geonoticia = {
                 "s_id": s_id,
                 "title": row["title"].replace('"','\\\"').replace("'","\\\'"),
@@ -77,12 +79,14 @@ def historia(s_id):
                 "section": row["section"].replace('"','\\\"').replace("'","\\\'"),
                 "tags": row["tags"].replace('"','\\\"').replace("'","\\\'"),
                 "author": row["author"].replace('"','\\\"').replace("'","\\\'"),
-                "publication": row["publication"].replace('"','\\\"').replace("'","\\\'"),
-                "instances": instances
+                "publication": row["publication"].replace('"','\\\"').replace("'","\\\'")
             }
-            print()
-            print("geonoticias: ", geonoticia)
-            num_instances = len(instances)
-            print("num_instances: ",num_instances)
-            return render_template("jornal/historia.html", geonoticia=geonoticia, numInstances = num_instances, instance=instance)
+            if iExist == True: #ensure instances exist
+                geonoticia["instances"] = instances
+                print()
+                print("geonoticia w instances: ", geonoticia)
+                num_instances = len(instances)
+                print("num_instances: ",num_instances)
+                return render_template("jornal/historia.html", num_instances=num_instances, instance=instance, geonoticia =geonoticia)
+            return render_template("jornal/historia.html", num_instances=num_instances, instance=[], geonoticia=geonoticia)
     return render_template("user/index.html", notice="A história não  existe")
