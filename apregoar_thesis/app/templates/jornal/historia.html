@@ -66,14 +66,19 @@
             <div id="progress"></div>
         </div>
     </div>
-    <div id="info">&nbsp;</div>
-    <div id="featureCount"></div>;
+    <div id="info">
+        <i>Selecionar um (ou mais) instâncias para ver mais informação</i>
+    </div>
+    <!--<div id="featureCount"></div>-->
+    <hr>
 </div>
+
 <div class="split right bottom">
-        <p>This is bottom text</p>
-        <p>Number of instances: {{ numInstances }} </p>
-        <p>s_id: {{ geonoticia.s_id }}</p>
-        <p> {{ geonoticia }} </p>
+    <p>Tags</p>
+    <i>Add tags and other relevant info here</i><br>
+    <i>Ver a distruibição das temas</i><br>
+    <i>Ver mais historias nesta área</i><br>
+    <p>s_id: {{ geonoticia.s_id }}</p>    
 </div>
     
 <script>
