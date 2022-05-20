@@ -1,6 +1,6 @@
 {% extends "jornal/templates/jornal_template.html" %}
 
-{% block title %}{{ geonoticia["title"]}}{% endblock %}
+{% block title %} Explorar a Mapa {% endblock %}
 
 {% block main %}
 
@@ -36,80 +36,66 @@
         position: fixed;
         overflow: hidden;
     }
-
-    #iframeH {
-        height: 100%;
-        width: 100%;
-    }
-
 </style>
 
-<div class="split left">
-    <iframe id ="iframeH" src="{{ geonoticia['web_link'] }}" onerror="badIFrame()" onload="goodIFrame()" style="top: 0;"></iframe>
-    <div id="noArticle" style="display:none;">
-        <h1 style="text-transform: capitalize;"> {{ geonoticia.title }} </h1>
-        <h3> {{geonoticia.pub_date}} </h3>
+<div class = "split left">
+    <div id="tagList">
+        {% for tag in tags %}
+            {{ tag }}
+        {% endfor %}
+    </div>
+    <h2>Lista das notícias</h2>
+    <div id="listNoticias">
+
+
     </div>
 </div>
+
 <div class="split right top">
-    <div id="jornalMap" style="display:block">
+    <div id="tagMap" style="display:block">
         <div class="wrapper">
             <div id="map" class="map"></div>
             <div id="popup" class="ol-popup">
                 <a href="#" id="popup-closer" class="ol-popup-closer"></a>
-                <div id="popup-instances"></div>
-                <div id="popup-story" display="none"></div>
+                <div id="popup-instances" display="none"></div>
+                <div id="popup-story"></div>
                 <br>
                 <div id="instanceScroll" style="position:absolute; left: 8px; bottom: 2px; right:8px;">
                     <a href="#" id="popup-pageahead" class="ol-popup-pageahead"></a>
                     <div id="popup-instance-count" style="text-align: center; font-size: 11px"></div>
                     <a href="#" id="popup-pagebehind" class="ol-popup-pagebehind"></a>
-                </div>
+                </div>                
             </div>
             <div id="progress"></div>
         </div>
     </div>
     <div id="info">
-        <i>Selecionar um (ou mais) instâncias para ver mais informação</i>
+        <i>placeholder text</i>
     </div>
     <div id="featureCount">
-        <p># Instances: {{ num_instances }} </p>
+        <p># Instances: {{ num_instances }}</p>
     </div>
     <hr>
 </div>
 
 <div class="split right bottom">
     <h1>Tags </h1>
-    {% for tag in geonoticia.tags %}
-        <button type="button" class="btn btn-primary" onclick="loadTagMap(tag='{{ tag }}')">{{ tag }}</button>
+    {% for tag in allTags %}
+        <button type="button" class="btn btn-primary">{{ tag }}</button>
     {% endfor %}
-    
-    <i>Add tags and other relevant info here</i><br>
-    <i>Ver a distruibição das temas</i><br>
-    <i>Ver mais historias nesta área</i><br>
-    <p>s_id: {{ geonoticia.s_id }}</p>    
+    <i>This should allow hte addition of new tags to the map</i>
 </div>
-    
+
 <script>
-    var geonoticia  = JSON.parse(' {{ geonoticia | tojson | safe }} ');
-    console.log("geonoticia: ",geonoticia);
+    var geonoticias  = JSON.parse(' {{ geonoticia | tojson | safe }} ');
+    console.log("geonoticias: ",geonoticias);
     if (geonoticia.instances) {
         console.log("geonoticias instance id: ", geonoticia.instances[0].i_id);
     } else {
         console.log("No instances associated");
     }
-    
 </script>
 
 <script src="{{ url_for('static', filename='js/jornal.js') }}"></script>
-
-<!--
-<div id="jornalMap" style="display:block">
-    <div class="wrapper">
-        <div id="map" class="map"></div>
-        <div id="progress"></div>
-    </div>
-</div>
--->
 
 {% endblock %}

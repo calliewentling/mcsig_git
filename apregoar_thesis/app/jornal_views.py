@@ -77,7 +77,7 @@ def historia(s_id):
                 "pub_date": row["pub_date"],
                 "web_link": row["web_link"],
                 "section": row["section"].replace('"','\\\"').replace("'","\\\'"),
-                "tags": row["tags"].replace('"','\\\"').replace("'","\\\'"),
+                "tags": list(row["tags"].replace('"','\\\"').replace("'","\\\'").split(",")),
                 "author": row["author"].replace('"','\\\"').replace("'","\\\'"),
                 "publication": row["publication"].replace('"','\\\"').replace("'","\\\'")
             }
@@ -88,5 +88,5 @@ def historia(s_id):
                 num_instances = len(instances)
                 print("num_instances: ",num_instances)
                 return render_template("jornal/historia.html", num_instances=num_instances, instance=instance, geonoticia =geonoticia)
-            return render_template("jornal/historia.html", num_instances=num_instances, instance=[], geonoticia=geonoticia)
+            return render_template("jornal/historia.html", num_instances=0, instance=[], geonoticia=geonoticia)
     return render_template("user/index.html", notice="A história não  existe")

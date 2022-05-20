@@ -1,4 +1,4 @@
-console.log("Hello from app.js");
+//console.log("Hello from app.js");
 
 // Get the modal
 var modal = document.getElementById("deleteIs");

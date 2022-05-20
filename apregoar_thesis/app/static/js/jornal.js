@@ -55,7 +55,7 @@ if (closer) {
 */
 var popupInstances = [];
 var currentF = 0;
-//var featureCount = document.getElementById('featureCount');
+var featureCount = document.getElementById('featureCount');
 if (pageahead) {
     pageahead.onclick = function () {
         //console.log("entered pageahead");
@@ -141,6 +141,8 @@ var map = new ol.Map({
     view: view,
 });
 
+// Style text of page
+document.querySelector('h1').style.color = pubColor;
 
 
 /* Preparing highlight maps of selected instances */
@@ -190,14 +192,23 @@ var vSource = new ol.source.Vector({
             if (xhr.status == 200){
                 var features = vSource.getFormat().readFeatures(xhr.responseText);
                 vSource.addFeatures(features);
+                noFeatures = false;
+                if (features.length == 1) {
+                    if (features[0]["A"]["geometry"] == null){
+                        console.log("no instances here");
+                        noFeatures = true;
+                    }
+                }
                 success(features);
-                layerExtent = vSource.getExtent();
+                if (noFeatures == false) {
+                    layerExtent = vSource.getExtent();
+                    //console.log("layerExtent: ",layerExtent);
+                    map.getView().fit(ol.extent.buffer(layerExtent, .01)); //What does this number mean??
+                }
                 var sourceFeatureInfo = vSource.getFeatures();
                 //console.log("sourceFeatureInfo: ",sourceFeatureInfo);
                 numStoryFeatures = sourceFeatureInfo.length;
                 //console.log("Number of features in story: ", numStoryFeatures);
-                //console.log("layerExtent: ",layerExtent);
-                map.getView().fit(ol.extent.buffer(layerExtent, .01)); //What does this number mean??
                 console.log("Successful loading of vector source");
             } else {
                 onError();
@@ -299,9 +310,11 @@ let getInfo;
 const displayFeatureInfo = function (pixel, popupFeatures) {
     if (popupFeatures.length>0) {
         //console.log("number of popupfeatures returned: ",popupFeatures.length);
+        /* No longer necessary: now loading the number of features per story as max
         if (popupFeatures.length == numStoryFeatures){
             alert("Cuidade! Monstrado "+numStoryFeatures+" instâncias neste posiçião. Se calhar há mais. Utiliza os filtros para identificar todos as opções desejável.");
         }
+        */
         popupInstances = [];
 
         for (let f=0; f < popupFeatures.length; f++) {
@@ -331,7 +344,7 @@ const displayFeatureInfo = function (pixel, popupFeatures) {
                     var vizDate  = '<p><em>'+tBegin.toDateString()+' - '+tEnd.toDateString()+'</em></p>';
                 }
             } else if (tType == "allday_n"){
-                if (tBegin.toDateString() == tEnd.toDateSring()){
+                if (tBegin.toDateString() == tEnd.toDateString()){
                     var vizDate = '<p><em>'+tBegin.toDateString()+'</em>'+tBegin.toTimeString()+' - '+tEnd.toTimeString()+'</p>'; 
                 } else {
                     var vizDate = '<p><em>'+tBegin.toDateString()+'</em>'+tBegin.toTimeString()+' - <em>'+tEnd.toDateString()+'</em> '+tEnd.toTimeString()+'</p>'; 
@@ -430,6 +443,7 @@ let popupFeatures;
 map.on('click', function (evt) {
     coordinate = evt.coordinate;
     popupFeatures = vSource.getFeaturesAtCoordinate(coordinate);
+    featureFocus.getSource().clear();
     //console.log("popupFeatures: ",popupFeatures);
     displayFeatureInfo(evt.pixel, popupFeatures);
 });
@@ -439,6 +453,7 @@ map.on('click', function (evt) {
 
 
 // Creating a layer that clusters the overlapping values as an array
+/*
 var clusterSource = new ol.source.Cluster({
     distance: 0,
     source: vSource,
@@ -460,3 +475,109 @@ const clusterLayer = new ol.layer.Vector({
     source: clusterSource,
 });
 map.addLayer(clusterLayer);
+*/
+
+///// LOADING IFRAME ////
+var iframeH = document.getElementById("iframeH");
+function badIFrame(){
+    console.log("bad iframe");
+    iframeH.style.display = "none";
+    document.getElementById("noArticle").style.display = "block";
+    alert("Peço desculpa, a notícia não está a carregar a partir do anfitrião original");
+};
+
+function goodIFrame(){
+    console.log("good iframe");
+    iframeH.style.display = "block";
+    document.getElementById("noArticle").style.display="none";
+}
+
+
+var timePast = false;
+setTimeout(function() {
+    timePast = true;
+},1000);
+const urlRedirect = "http://127.0.0.1:5000/";
+if (iframeH.attachEvent){
+    iframeH.attachEvent("onload",function(){
+        if(timePast) {
+            iframeH.style.display = "block";
+        } else {
+            iframeH.style.display = "none";
+            document.getElementById("noArticle").style.display = "block";
+            alert("Peço desculpa, a notícia não está a carregar a partir do anfitrião original");
+            //window.open(urlRedirect, "_self");
+        }
+    });
+} else {
+    iframeH.onload = function(){
+        if(timePast){
+            iframeH.style.display = "block";
+        } else {
+            iframeH.style.display = "none";
+            document.getElementById("noArticle").style.display = "block";
+            alert("Peço desculpa, a notícia não está a carregar a partir do anfitrião original")
+            //window.open(urlRedirect, "_self");
+        }
+    };
+}
+
+
+// Attributes and next steps
+function loadTagMap(tag) {
+    console.log("tag selected: ",tag);
+    tagFilter = "LOWER(tags) LIKE LOWER('%"+tag+"%')";
+    console.log("tagFilter: ",tagFilter);
+    var tagSource = new ol.source.Vector({
+        format: new ol.format.GeoJSON(),
+        loader: function (extent, resolution, projection, success, failure) {
+            var proj = projection.getCode();
+            url = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
+            'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
+            'cql_filter='+tagFilter+'&'+
+            'outputFormat=application/json&srsname='+proj+'&';
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET',url);
+            var onError = function() {
+                console.log("Error in loading vector source (tags)");
+                tagSource.removeLoadedExtent(extent);
+                failure();
+            }
+            xhr.onerror = onError;
+            xhr.onload = function() {
+                if(xhr.status == 200){
+                    var tagFeatures = tagSource.getFormat().readFeatures(xhr.responseText);
+                    tagSource.addFeatures(tagFeatures);
+                    noFeatures = false;
+                    if (tagFeatures.length == 1){
+                        if (features[0]["A"]["geometry"] == null){
+                            console.log("no instances here");
+                            noFeatures = true;
+                        }
+                    }
+                    success(tagFeatures);
+                    if (noFeatures == false){
+                        layerExtent = tagSource.getExtent();
+                        tagMap.getView().fit(ol.extent.buffer(layerExtent,0.1));
+                    }
+                    var sourceFEatureInfo = tagSource.getFeatures();
+                    numTagFeatures = sourceFeatureInfo.length;
+                    console.log("Successful loading of tag source")
+                } else {
+                    onError();
+                }
+            }
+            xhr.send();
+        },
+    });
+    const tagLayer = new ol.layer.Vector({
+         source: tagSource,
+         style: function (feature) {
+             style.getText().setText(feature.get('p_name'));
+             return style;
+         }
+    });
+}
+
+
+
