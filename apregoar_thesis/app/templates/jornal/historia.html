@@ -42,6 +42,7 @@
         width: 100%;
     }
 
+
 </style>
 
 <div class="split left">
@@ -81,13 +82,14 @@
 <div class="split right bottom">
     <h1>Tags </h1>
     {% for tag in geonoticia.tags %}
-        <button type="button" class="btn btn-primary" onclick="loadTagMap(tag='{{ tag }}')">{{ tag }}</button>
+        <button type="button" class="btn btn-primary" onclick="exploreMap(tag='{{ tag }}')">{{ tag }}</button>
     {% endfor %}
     
     <i>Add tags and other relevant info here</i><br>
     <i>Ver a distruibição das temas</i><br>
     <i>Ver mais historias nesta área</i><br>
     <p>s_id: {{ geonoticia.s_id }}</p>    
+
 </div>
     
 <script>
@@ -100,7 +102,7 @@
     }
     
 </script>
-
+<script src="https://code.jquery.com/jquery-3.4.1.js"></script>
 <script src="{{ url_for('static', filename='js/jornal.js') }}"></script>
 
 <!--

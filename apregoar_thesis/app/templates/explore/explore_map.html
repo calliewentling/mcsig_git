@@ -1,0 +1,42 @@
+{% extends "explore/templates/explore_template.html" %}
+
+{% block title %} Explorar a Mapa {% endblock %}
+
+{% block main %}
+
+
+<h1>This is a title</h1>
+<p> Welcome to explore Map</p>
+
+<div id="map" class="map"></div>
+<br>
+<h3>Filtros</h3>
+<div id="attrFilters"></div>
+
+<br>
+
+<h5>This is h5</h5>
+<em>This is em</em>
+<p> This is a p</p>
+
+<select id="checksTags">
+    {% for i in tags %}
+        {% set name = i[0] %}
+        {% set count = i[1].total_s %}
+        <option value="{{ name }}">{{ name }} ({{ count }})</option>
+    {% endfor %}
+</select>
+
+<select id="checksSections">
+    {% for i in sections %}
+        {% set name = i[0] %}
+        {% set count = i[1].total_s %}
+        <option value="{{ name }}">{{ name }} ({{ count }})</option>
+    {% endfor %}
+</select>
+
+
+
+<script src="{{ url_for('static', filename='js/explore.js') }}"></script>
+
+{% endblock %}

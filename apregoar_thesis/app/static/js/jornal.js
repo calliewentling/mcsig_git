@@ -566,79 +566,85 @@ for (let i=0; i < sTags.length; i++){
 };
 console.log("storyTags: ",storyTags);
 // Attributes and next steps
-function loadTagMap(tag) {
+function exploreMap(tag) {
     console.log("tag selected: ",tag);
     console.log("pub: ",pub);
-    if (storyTags[tag] == true){
-        console.log("storyTag ",tag," is already loaded");
-        storyTags[tag] = false;
-        map.removeLayer(tagLayer);
-    }
-    else {
-        tagFilter = "publication='"+pub+"' and strToLowerCase(tags) like '%"+tag.toLowerCase()+"%'";
-        console.log("tagFilter: ",tagFilter);
-        cqlFilter = tagFilter.replace(/%/gi,"%25").replace(/'/gi,"%27").replace(/ /gi,"%20"); //Gloval
-        console.log("cqlFilter: ",cqlFilter);
-        //cql_filter=publication=%27A%20Mensagem%27&strToLowerCase(tags)=%27mobilidade%27&outputFormat=application/json&srsname=EPSG:4326
-        tagSource = new ol.source.Vector({
-            format: new ol.format.GeoJSON(),
-            loader: function (extent, resolution, projection, success, failure) {
-                var proj = projection.getCode();
-                url = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
-                'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
-                'cql_filter='+cqlFilter+'&'+
-                'sortby=area+D&'+
-                'outputFormat=application/json&srsname='+proj;
-                console.log(url);
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET',url);
-                var onError = function() {
-                    console.log("Error in loading vector source (tags)");
-                    tagSource.removeLoadedExtent(extent);
-                    failure();
-                }
-                xhr.onerror = onError;
-                xhr.onload = function() {
-                    if(xhr.status == 200){
-                        var tagFeatures = tagSource.getFormat().readFeatures(xhr.responseText);
-                        tagSource.addFeatures(tagFeatures);
-                        noFeatures = false;
-                        if (tagFeatures.length == 1){
-                            if (features[0]["A"]["geometry"] == null){
-                                console.log("no instances here");
-                                noFeatures = true;
-                            }
-                        }
-                        success(tagFeatures);
-                        if (noFeatures == false){
-                            layerExtent = tagSource.getExtent();
-                            map.getView().fit(ol.extent.buffer(layerExtent,0.1));
-                        }
-                        var sourceFeatureInfo = tagSource.getFeatures();
-                        numTagFeatures = sourceFeatureInfo.length;
-                        console.log("sourceFeatureInfo (",numTagFeatures,"): ",sourceFeatureInfo);
-                        console.log("Successful loading of tag source")
-                    } else {
-                        onError();
+    if (tag == "nearby"){
+        console.log("Allow user to choose a radius to search within")
+    } else if (tag == "freguesia"){
+        console.log("Load all news happening in the same freguesia")
+    } else {
+        if (storyTags[tag] == true){
+            console.log("storyTag ",tag," is already loaded");
+            storyTags[tag] = false;
+            map.removeLayer(tagLayer);
+        }
+        else {
+            tagFilter = "publication='"+pub+"' and strToLowerCase(tags) like '%"+tag.toLowerCase()+"%'";
+            console.log("tagFilter: ",tagFilter);
+            cqlFilter = tagFilter.replace(/%/gi,"%25").replace(/'/gi,"%27").replace(/ /gi,"%20"); //Gloval
+            console.log("cqlFilter: ",cqlFilter);
+            //cql_filter=publication=%27A%20Mensagem%27&strToLowerCase(tags)=%27mobilidade%27&outputFormat=application/json&srsname=EPSG:4326
+            tagSource = new ol.source.Vector({
+                format: new ol.format.GeoJSON(),
+                loader: function (extent, resolution, projection, success, failure) {
+                    var proj = projection.getCode();
+                    url = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
+                    'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
+                    'cql_filter='+cqlFilter+'&'+
+                    'sortby=area+D&'+
+                    'outputFormat=application/json&srsname='+proj;
+                    console.log(url);
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('GET',url);
+                    var onError = function() {
+                        console.log("Error in loading vector source (tags)");
+                        tagSource.removeLoadedExtent(extent);
+                        failure();
                     }
-                }
-                xhr.send();
-            },
-        });
-        const tagLayer = new ol.layer.Vector({
-            source: tagSource,
-            /*style: function (feature) {
-                tagStyle.getText().setText(feature.get('p_name'));
-                return tagStyle;
-            }*/
-            style: tagStyle,
-        });
-        map.addLayer(tagLayer);
-        tagLayer.setZIndex(currentZIndex);
-        currentZIndex +=1;
-        vectorLayer.setZIndex(currentZIndex);
-        storyTags[tag] = true;
-        console.log("tagSource (",tagSource.length,"): ",tagSource);
+                    xhr.onerror = onError;
+                    xhr.onload = function() {
+                        if(xhr.status == 200){
+                            var tagFeatures = tagSource.getFormat().readFeatures(xhr.responseText);
+                            tagSource.addFeatures(tagFeatures);
+                            noFeatures = false;
+                            if (tagFeatures.length == 1){
+                                if (features[0]["A"]["geometry"] == null){
+                                    console.log("no instances here");
+                                    noFeatures = true;
+                                }
+                            }
+                            success(tagFeatures);
+                            if (noFeatures == false){
+                                layerExtent = tagSource.getExtent();
+                                map.getView().fit(ol.extent.buffer(layerExtent,0.1));
+                            }
+                            var sourceFeatureInfo = tagSource.getFeatures();
+                            numTagFeatures = sourceFeatureInfo.length;
+                            console.log("sourceFeatureInfo (",numTagFeatures,"): ",sourceFeatureInfo);
+                            console.log("Successful loading of tag source")
+                        } else {
+                            onError();
+                        }
+                    }
+                    xhr.send();
+                },
+            });
+            const tagLayer = new ol.layer.Vector({
+                source: tagSource,
+                /*style: function (feature) {
+                    tagStyle.getText().setText(feature.get('p_name'));
+                    return tagStyle;
+                }*/
+                style: tagStyle,
+            });
+            map.addLayer(tagLayer);
+            tagLayer.setZIndex(currentZIndex);
+            currentZIndex +=1;
+            vectorLayer.setZIndex(currentZIndex);
+            storyTags[tag] = true;
+            console.log("tagSource (",tagSource.length,"): ",tagSource);
+        }
     }
 }
 currentZIndex = 1;
