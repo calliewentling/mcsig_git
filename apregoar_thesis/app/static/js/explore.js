@@ -1,6 +1,15 @@
+
+
+// MULTISELECT CHECKBOX //
+
 $(document).ready(function () {
     $("#checksTags").CreateMultiCheckBox({ width: '230px', defaultText : 'Tags', height:'250px', multiName: "checkTags" });
-    $("#checksSections").CreateMultiCheckBox({ width: '230px', defaultText : 'Sections', height:'250px', multiName: "checkSections"});
+    $("#checksSections").CreateMultiCheckBox({ width: '230px', defaultText : 'Secções', height:'250px', multiName: "checkSections"});
+    $("#checksAuthors").CreateMultiCheckBox({ width: '230px', defaultText : 'Escritores', height:'250px', multiName: "checkAuthors"});
+    $("#checksPublications").CreateMultiCheckBox({ width: '230px', defaultText : 'Fontes', height:'250px', multiName: "checkPublications"});
+    $("#checksT_types").CreateMultiCheckBox({ width: '230px', defaultText : 'Definição Temporal', height:'250px', multiName: "checkT_types"});
+    $("#checksP_types").CreateMultiCheckBox({ width: '230px', defaultText : 'Definição Espacial', height:'250px', multiName: "checkP_types"});
+    $("#checksE_names").CreateMultiCheckBox({ width: '230px', defaultText : 'Areas Administrativas', height:'250px', multiName: "checkE_names"});
 });
 
 $(document).ready(function () {
@@ -174,6 +183,16 @@ const style = new ol.style.Style({
 
 var popupSource = new ol.source.Vector();
 
+
+function refineFeatures(feature){
+    feature["pub_date"] = new Date(feature["pub_date"]);
+    feature["t_begin"] = new Date(feature["t_begin"]);
+    feature["t_end"] = new Date(feature["t_end"]);
+    return feature
+}
+var recentDate1 = new Date();
+var recentDate2 = new Date();
+//Preload recent entries (100)
 var recentSource = new ol.source.Vector({
     format: new ol.format.GeoJSON(),
     loader: function (extent, resolution, projection, success, failure) {
@@ -206,8 +225,35 @@ var recentSource = new ol.source.Vector({
                 success(features);
                 if (noFeatures == false) {
                     layerExtent = recentSource.getExtent();
-                    //console.log("layerExtent: ",layerExtent);
-                    map.getView().fit(ol.extent.buffer(layerExtent, .01)); //What does this number mean??
+                    console.log("layerExtent: ",layerExtent);
+                    maxLisbonExtent = [-9.500526607165842, 38.40907442337447,-8.490972125626802, 39.31772866134256]
+                    filterMaxExtent = layerExtent;
+                    if (layerExtent[0] < maxLisbonExtent[0]){
+                        filterMaxExtent[0] = maxLisbonExtent[0];
+                    };
+                    if (layerExtent[1] < maxLisbonExtent[1]){
+                        filterMaxExtent[1] = maxLisbonExtent[1];
+                    };
+                    if (layerExtent[2] > maxLisbonExtent[2]){
+                        filterMaxExtent[2] = maxLisbonExtent[2];
+                    };
+                    if (layerExtent[3] > maxLisbonExtent[3]){
+                        filterMaxExtent[3] = maxLisbonExtent[3];
+                    };
+                    map.getView().fit(ol.extent.buffer(filterMaxExtent, .01)); //What does this number mean??
+                    
+
+                    //Getting info of preloaded features
+                    preloadF = [];
+                    console.log("features: ",features);
+                    for (i = 0; i<features.length; i++){
+                        refinedFeature = refineFeatures(features[i]["A"]);
+                        preloadF.push(refinedFeature);
+                    }
+                    recentDate1 = preloadF[preloadF.length-1]["pub_date"];
+                    recentDate2 = preloadF[0]["pub_date"];
+                    document.getElementById("from").defaultValue = recentDate1.toDateString();
+                    document.getElementById("to").defaultValue = recentDate2.toDateString();
                 }
                 var sourceFeatureInfo = recentSource.getFeatures();
                 //console.log("sourceFeatureInfo: ",sourceFeatureInfo);
@@ -230,3 +276,53 @@ const recentLayer = new ol.layer.Vector({
     },
 });
 map.addLayer(recentLayer);
+
+
+// DATE RANGE PICKER //
+$( function() {
+    console.log("recentDates in datepicker load: ",recentDate1,"-",recentDate2);
+    var dateFormat = "mm/dd/yy",
+    from = $( "#from" ).datepicker({
+        defaultDate: recentDate1,
+        changeMonth: true,
+        numberOfMonths: 1,
+        minDate: pubDate1,
+    }).on( "change", function() {
+        to.datepicker( "option", "minDate", getDate( this ) );
+    }),
+    to = $( "#to" ).datepicker({
+        defaultDate: recentDate2,
+        changeMonth: true,
+        numberOfMonths: 1,
+        maxDate: pubDate2,
+    }).on( "change", function() {
+        from.datepicker( "option", "maxDate", getDate( this ) );
+    });
+    fromI = $( "#fromI" ).datepicker({
+        defaultDate: new Date(),
+        changeMonth: true,
+        numberOfMonths: 1,
+        minDate: iDate1,
+    }).on( "change", function() {
+        toI.datepicker( "option", "minDate", getDate( this ) );
+    }),
+    toI = $( "#toI" ).datepicker({
+        defaultDate: new Date(),
+        changeMonth: true,
+        numberOfMonths: 1,
+        maxDate: iDate2
+    }).on( "change", function() {
+        fromI.datepicker( "option", "maxDate", getDate( this ) );
+    });
+
+    function getDate( element ) {
+        var date;
+        try {
+            date = $.datepicker.parseDate( dateFormat, element.value );
+        } catch( error ) {
+            date = null;
+        }
+    
+        return date;
+    }
+});

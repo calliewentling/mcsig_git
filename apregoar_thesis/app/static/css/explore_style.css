@@ -29,6 +29,8 @@ top: 3em;
     transition: width 250ms;
 }
 
+/* MULTICHECK BOX */
+
 .MultiCheckBox {
     border:1px solid #e2e2e2;
     padding: 5px;
@@ -50,6 +52,7 @@ top: 3em;
     display:none;
     position:absolute;
     border:1px solid #e2e2e2;
+    background-color:#ffffff;
     overflow-y:hidden;
 }
 
@@ -93,4 +96,46 @@ top: 3em;
         top: 5px;
         left: 24px;
         color:#fff;
+    }
+
+    /* Distributing screen */
+    .split {
+        height: 100%;
+        width: 50%;
+        position: fixed;
+        z-index: 1;
+        overflow-x: hidden;
+        overflow-y: hidden;
+    }
+
+    .left {
+        left: 0;
+    }
+
+    .right {
+        right: 0;
+    }
+
+    .top {
+        top: 0;
+        height: 60%;
+        position: fixed;
+        /*overflow: hidden;*/
+    }
+
+    .bottom {
+        bottom: 0;
+        height: 40%;
+        position: fixed;
+        overflow-x: auto;
+        overflow-y: auto;
+    }
+
+    /* Filter Elements in a Line */
+    .filterLine {
+        white-space: nowrap;
+        overflow-x: auto;
+    }
+    .filterItem {
+        display: inline-block;
     }
