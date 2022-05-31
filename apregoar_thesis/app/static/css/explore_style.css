@@ -50,7 +50,7 @@ top: 3em;
 
 .MultiCheckBoxDetail {
     display:none;
-    position:absolute;
+    position:relative; /*cgw updated! Originally absolute (must scroll to find if filter is already scrolled). Fixed gets lost if scrolled. Sticky & static makes incur spaces to accommodate the list but its clear where it is and returns after*/
     border:1px solid #e2e2e2;
     background-color:#ffffff;
     overflow-y:hidden;
@@ -71,7 +71,7 @@ top: 3em;
     }
 
     .MultiCheckBoxDetailBody > div > div {
-        float:left;
+        float:left; 
     }
 
 .MultiCheckBoxDetail>div>div:nth-child(1) {
@@ -100,6 +100,7 @@ top: 3em;
 
     /* Distributing screen */
     .split {
+        
         height: 100%;
         width: 50%;
         position: fixed;

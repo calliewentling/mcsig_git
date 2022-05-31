@@ -38,9 +38,10 @@ def cleanLists(list_in, s_id, i_id,list_out):
             item = "*sim valor"
         if item == " ":
             item = "*sim valor"
-        print(item," - ",type(item))
-        if type(item) == "str":
+        #print(item," - ",type(item))
+        if isinstance(item,str):
             item_p = item.strip().lower()
+            #print("item_p for stirngs: ",item_p)
         else:
             item_p = item
         if item_p not in list_out:
@@ -63,6 +64,7 @@ def cleanLists(list_in, s_id, i_id,list_out):
             if i_id:
                 list_out[item_p]["i_ids"].append(i_id)
                 list_out[item_p]["total_i"] = len(list_out[item_p]["i_ids"])
+    #print()
     return list_out
 
 
@@ -112,7 +114,9 @@ def explore():
         }
         print("Result: ",result)
         for row in result:
+            #print("tags")
             tags = cleanLists(list_in = list(row["tags"].replace('"','\\\"').replace("'","\\\'").split(",")), s_id = row["s_id"], i_id=row["i_id"],list_out = tags)
+            #print("not tags")
             sections= cleanLists(list_in = list(row["section"].replace('"','\\\"').replace("'","\\\'").split(",")), s_id = row["s_id"],i_id=row["i_id"],list_out = sections)
             authors = cleanLists(list_in = list(row["author"].replace('"','\\\"').replace("'","\\\'").split(",")), s_id = row["s_id"],i_id=row["i_id"],list_out = authors)
             publications = cleanLists(list_in = [row["publication"].replace('"','\\\"').replace("'","\\\'")], s_id = row["s_id"],i_id=row["i_id"],list_out = publications)
@@ -161,11 +165,12 @@ def explore():
         else:
             conn.close()
             for row in result2:
-                e_names[row["e_name"]] = {
+                e_names[row["e_name"].lower()] = {
                     "total_i": row["total_count"],
                     "e_id": row["e_id"]
                 }
             e_names = sorted(e_names.items())
+            #print("e_names: ",e_names)
     return render_template("explore/explore_map.html", tags = tags, sections = sections, authors = authors, publications = publications, t_types=t_types, p_types = p_types, e_names = e_names, pub_dates = pub_dates, i_range = i_range)
     
 
