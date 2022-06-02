@@ -9,10 +9,14 @@ import flask
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import *
+from flask_sqlalchemy import SQLAlchemy as SQLAlchemyF
 from sqlalchemy.orm import *
 from geoalchemy2 import *
 
 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://postgres:thesis2021@localhost/postgres'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemyF(app)
 
 #ensure the instance folder exists
 try:
@@ -45,3 +49,5 @@ from app import user_views
 from app import publisher_views
 from app import jornal_views
 from app import explore_views
+
+

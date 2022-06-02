@@ -9,90 +9,93 @@
 <h2>Explorar a mapa</h2>
 
 <div id="map" class="map"></div>
-<div class="filterLine">
-    <h5>Filtros Histórias</h5>
-    <div class = "filterItem">
-        <label for="from">De</label>
-        <input type="text" id="from" name="from">
-        <label for="to">à</label>
-        <input type="text" id="to" name="to">
+<form method ="post">
+    <div class="filterLine">
+        <h5>Filtros Histórias</h5>
+        <div class = "filterItem">
+            <label for="from">De</label>
+            <input type="text" id="from" name="from">
+            <label for="to">à</label>
+            <input type="text" id="to" name="to">
+        </div>
+        <div class = "filterItem">
+            <select id="checksTags">
+                {% for i in tags %}
+                    {% set name = i %}
+                    {% set count = tags[i]["total_t"] %}
+                    <option value="{{ name }}">{{ name }} ({{ count }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class = "filterItem">
+            <select id="checksSections">
+                {% for i in sections %}
+                    {% set name = i[0] %}
+                    {% set count = i[1].total_s %}
+                    <option value="{{ name }}">{{ name }} ({{ count }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class = "filterItem">
+            <select id="checksPublications">
+                {% for i in publications %}
+                    {% set name = i[0] %}
+                    {% set count = i[1].total_s %}
+                    <option value="{{ name }}">{{ name }} ({{ count }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class = "filterItem">
+            <select id="checksAuthors">
+                {% for i in authors %}
+                    {% set name = i[0] %}
+                    {% set count = i[1].total_s %}
+                    <option value="{{ name }}">{{ name }} ({{ count }})</option>
+                {% endfor %}
+            </select>
+        </div>
     </div>
-    <div class = "filterItem">
-        <select id="checksTags">
-            {% for i in tags %}
-                {% set name = i[0] %}
-                {% set count = i[1].total_s %}
-                <option value="{{ name }}">{{ name }} ({{ count }})</option>
-            {% endfor %}
-        </select>
+    <div class="filterLine">
+        <h5>Filtros de Instâncias</h5>
+        <div class = "filterItem">
+            <label for="fromI">De</label>
+            <input type="text" id="fromI" name="fromI">
+            <label for="to">à</label>
+            <input type="text" id="toI" name="toI">
+        </div>
+        <div class = "filterItem">
+            <select id="checksT_types">
+                {% for i in t_types %}
+                    {% set name = i[0] %}
+                    {% set count = i[1].total_s %}
+                    <option value="{{ name }}">{{ name }} ({{ count }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class = "filterItem">
+            <select id="checksP_types">
+                {% for i in p_types %}
+                    {% set name = i[0] %}
+                    {% set count = i[1].total_s %}
+                    <option value="{{ name }}">{{ name }} ({{ count }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class = "filterItem">
+            <select id="checksE_names">
+                {% for i in e_names %}
+                    {% set name = i[0] %}
+                    {% set count = i[1].total_i %}
+                    <option value="{{ name }}">{{ name }} ({{ count }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class = "filterItem">
+            <input type="text" id="pNameSearch" placeholder="Pesquisar lugares">
+        </div>
     </div>
-    <div class = "filterItem">
-        <select id="checksSections">
-            {% for i in sections %}
-                {% set name = i[0] %}
-                {% set count = i[1].total_s %}
-                <option value="{{ name }}">{{ name }} ({{ count }})</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class = "filterItem">
-        <select id="checksPublications">
-            {% for i in publications %}
-                {% set name = i[0] %}
-                {% set count = i[1].total_s %}
-                <option value="{{ name }}">{{ name }} ({{ count }})</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class = "filterItem">
-        <select id="checksAuthors">
-            {% for i in authors %}
-                {% set name = i[0] %}
-                {% set count = i[1].total_s %}
-                <option value="{{ name }}">{{ name }} ({{ count }})</option>
-            {% endfor %}
-        </select>
-    </div>
-</div>
-<div class="filterLine">
-    <h5>Filtros de Instâncias</h5>
-    <div class = "filterItem">
-        <label for="fromI">De</label>
-        <input type="text" id="fromI" name="fromI">
-        <label for="to">à</label>
-        <input type="text" id="toI" name="toI">
-    </div>
-    <div class = "filterItem">
-        <select id="checksT_types">
-            {% for i in t_types %}
-                {% set name = i[0] %}
-                {% set count = i[1].total_s %}
-                <option value="{{ name }}">{{ name }} ({{ count }})</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class = "filterItem">
-        <select id="checksP_types">
-            {% for i in p_types %}
-                {% set name = i[0] %}
-                {% set count = i[1].total_s %}
-                <option value="{{ name }}">{{ name }} ({{ count }})</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class = "filterItem">
-        <select id="checksE_names">
-            {% for i in e_names %}
-                {% set name = i[0] %}
-                {% set count = i[1].total_i %}
-                <option value="{{ name }}">{{ name }} ({{ count }})</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class = "filterItem">
-        <input type="text" id="pNameSearch" placeholder="Pesquisar lugares">
-    </div>
-</div>
+    <button type="submit">Filtrar</button>
+</form>
 
 <br>
 

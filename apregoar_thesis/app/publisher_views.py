@@ -527,7 +527,6 @@ def review():
                         {'title':story["title"],'summary':story["summary"], 'pub_date':story["pub_date"], 'web_link': story["web_link"], 'section': story["section"], 'tags': story["tags"], 'author': story["author"], 'publication':story["publication"], 'u_id':fsession["u_id"]}
                     )
                     s_id = cur.fetchone()[0]
-                    con.commit()
                     print("Story added to database. s_id: ",s_id)
         except psycopg2.Error as e:
             #If not submitted, attempt to create again
@@ -539,8 +538,68 @@ def review():
             con.close()
             return render_template("publisher/create.html")
         else:
-            con.close()
             story["s_id"] = s_id
+            if story["tags"]:
+                tags = story["tags"].split(",")
+                try:
+                    with engine.connect() as conn:
+                        SQL = text("SELECT * FROM apregoar.tags")
+                        print(SQL)
+                        result = conn.execute(SQL)
+                except:
+                    print("Error in extracting desired story from database")
+                    feedback=f"Erro"
+                    flash(feedback,"danger")
+                else:
+                    existing_tags = {}
+                    for row in result:
+                        existing_tags[row["tag_name"]] = row["tag_id"]
+                    for tag in tags:
+                        tag.strip().lower()
+                        if tag not in existing_tags:
+                            try:
+                                with con:
+                                    with con.cursor() as cur:
+                                        cur.execute("""
+                                            INSERT INTO apregoar.tags (tag_name)
+                                            VALUES (%(tag)s)
+                                            RETURNING tag_id
+                                            ;""",
+                                            {'tag':tag}
+                                        )
+                                        t_id = cur.fetchone()[0]
+                            except psycopg2.Error as e:
+                                print(e.pgerror)
+                                print(e.diag.message_primary)
+                                con.rollback()
+                                con.close()
+                            else:
+                                print("added tag to db")
+                        elif tag in existing_tags:
+                            t_id = existing_tags[tag]
+                            print("existing tag =",t_id," ",tag)
+                        else:
+                            print("how did we get here?")
+                        try:
+                            with con:
+                                with con.cursor() as cur:
+                                    cur.execute("""
+                                        INSERT INTO apregoar.tagging (s_id,t_id)
+                                        VALUES (%(s_id)s,%(t_id)s)
+                                        ;""",
+                                        {'s_id':story["s_id"], 't_id':t_id}
+                                    )
+                                    print("Tagging relation added to database")
+                        except psycopg2.Error as e:
+                            print(e.pgerror)
+                            print(e.diag.message_primary)
+                            con.rollback()
+                            con.close()
+                            return render_template("publisher/create.html")
+                        else:
+                            print("Successful association to existing tags!")
+            con.commit()
+            con.close()
             return render_template("publisher/review.html", story=story, sID = s_id)
     
     return render_template("publisher/dashboard.html")

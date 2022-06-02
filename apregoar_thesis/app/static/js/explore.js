@@ -67,7 +67,20 @@ $(document).ready(function () {
 
 var defaultMultiCheckBoxOption = { width: '220px', defaultText: "Selecionar", height: '200px' };
 
-let allFilters = {};
+var allFilters = {
+    "Tags": [],
+    "Sections": [],
+    "Authors": [],
+    "Publications": [],
+    "T_types": [],
+    "P_types": [],
+    "E_names": [],
+    "pubDateR1": "",
+    "pubDateR2": "",
+    "iDateR1": "",
+    "iDateR2": "",
+    "pNameSearch": "",
+};
 jQuery.fn.extend({
     CreateMultiCheckBox: function (options) {
 
@@ -196,83 +209,96 @@ function refineFeatures(feature){
 var recentDate1 = new Date();
 var recentDate2 = new Date();
 var maxLisbonExtent = [-9.500526607165842, 38.40907442337447,-8.490972125626802, 39.31772866134256];
-//Preload recent entries (100)
-var recentSource = new ol.source.Vector({
-    format: new ol.format.GeoJSON(),
-    loader: function (extent, resolution, projection, success, failure) {
-        var proj = projection.getCode();
-        url = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
-            'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
-            'count=100&'+
-            'sortby=pub_date+D&'+
-            'outputFormat=application/json&srsname='+proj;
-        console.log("url: ",url)
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET',url);
-        var onError = function() {
-            console.log("Error in loading vector source");
-            recentSource.removeLoadedExtent(extent);
-            failure();
-        }
-        xhr.onerror = onError;
-        xhr.onload = function() {
-            if (xhr.status == 200){
-                var features = recentSource.getFormat().readFeatures(xhr.responseText);
-                recentSource.addFeatures(features);
-                var noFeatures = false;
-                if (features.length == 1) {
-                    if (features[0]["A"]["geometry"] == null){
-                        console.log("no instances here");
-                        noFeatures = true;
-                    }
-                }
-                success(features);
-                if (noFeatures == false) {
-                    layerExtent = recentSource.getExtent();
-                    console.log("layerExtent: ",layerExtent);
-                    filterMaxExtent = layerExtent;
-                    if (layerExtent[0] < maxLisbonExtent[0]){
-                        filterMaxExtent[0] = maxLisbonExtent[0];
-                    };
-                    if (layerExtent[1] < maxLisbonExtent[1]){
-                        filterMaxExtent[1] = maxLisbonExtent[1];
-                    };
-                    if (layerExtent[2] > maxLisbonExtent[2]){
-                        filterMaxExtent[2] = maxLisbonExtent[2];
-                    };
-                    if (layerExtent[3] > maxLisbonExtent[3]){
-                        filterMaxExtent[3] = maxLisbonExtent[3];
-                    };
-                    map.getView().fit(ol.extent.buffer(filterMaxExtent, .01)); //What does this number mean??
-                    
 
-                    //Getting info of preloaded features
-                    preloadF = [];
-                    console.log("features: ",features);
-                    for (i = 0; i<features.length; i++){
-                        refinedFeature = refineFeatures(features[i]["A"]);
-                        preloadF.push(refinedFeature);
-                    }
-                    recentDate1 = preloadF[preloadF.length-1]["pub_date"];
-                    allFilters["pubDateR1"] = recentDate1;
-                    recentDate2 = preloadF[0]["pub_date"];
-                    allFilters["pubDateR2"] = recentDate2;
-                    document.getElementById("from").defaultValue = recentDate1.toDateString();
-                    document.getElementById("to").defaultValue = recentDate2.toDateString();
-                }
-                var sourceFeatureInfo = recentSource.getFeatures();
-                //console.log("sourceFeatureInfo: ",sourceFeatureInfo);
-                numStoryFeatures = sourceFeatureInfo.length;
-                //console.log("Number of features in story: ", numStoryFeatures);
-                console.log("Successful loading of vector source");
-            } else {
-                onError();
+
+//General update of layerExtent to be called on filters
+function updateViewExtent(inputSource){
+    layerExtent = inputSource.getExtent();
+    console.log("layerExtent: ",layerExtent);
+    filterMaxExtent = layerExtent;
+    if (layerExtent[0] < maxLisbonExtent[0]){
+        filterMaxExtent[0] = maxLisbonExtent[0];
+    };
+    if (layerExtent[1] < maxLisbonExtent[1]){
+        filterMaxExtent[1] = maxLisbonExtent[1];
+    };
+    if (layerExtent[2] > maxLisbonExtent[2]){
+        filterMaxExtent[2] = maxLisbonExtent[2];
+    };
+    if (layerExtent[3] > maxLisbonExtent[3]){
+        filterMaxExtent[3] = maxLisbonExtent[3];
+    };
+    map.getView().fit(ol.extent.buffer(filterMaxExtent, .01));
+}
+
+//Load source. Returns 
+function loadSourceToExplore(wfs_url) {
+    var tempSource = new ol.source.Vector({
+        format: new ol.format.GeoJSON(),
+        loader: function (extent, resolution, projection, success, failure) {
+            var proj = projection.getCode();
+            url = wfs_url
+            console.log("url: ",url)
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET',url);
+            var onError = function() {
+                console.log("Error in loading vector source");
+                tempSource.removeLoadedExtent(extent);
+                failure();
             }
+            xhr.onerror = onError;
+            xhr.onload = function() {
+                if (xhr.status == 200){
+                    var features = tempSource.getFormat().readFeatures(xhr.responseText);
+                    tempSource.addFeatures(features);
+                    var noFeatures = false;
+                    if (features.length == 1) {
+                        if (features[0]["A"]["geometry"] == null){
+                            console.log("no instances here");
+                            noFeatures = true;
+                        }
+                    }
+                    success(features);
+                    if (noFeatures == false) {
+                        updateViewExtent(inputSource = tempSource);
+                        //Getting info of preloaded features
+                        preloadF = [];
+                        console.log("features: ",features);
+                        for (i = 0; i<features.length; i++){
+                            refinedFeature = refineFeatures(features[i]["A"]);
+                            preloadF.push(refinedFeature);
+                        }
+                        recentDate1 = preloadF[preloadF.length-1]["pub_date"];
+                        allFilters["pubDateR1"] = recentDate1;
+                        recentDate2 = preloadF[0]["pub_date"];
+                        allFilters["pubDateR2"] = recentDate2;
+                        document.getElementById("from").defaultValue = recentDate1.toDateString();
+                        document.getElementById("to").defaultValue = recentDate2.toDateString();
+                    }
+                    var sourceFeatureInfo = recentSource.getFeatures();
+                    //console.log("sourceFeatureInfo: ",sourceFeatureInfo);
+                    numStoryFeatures = sourceFeatureInfo.length;
+                    //console.log("Number of features in story: ", numStoryFeatures);
+                    console.log("Successful loading of vector source");
+                } else {
+                    onError();
+                }
+            }
+            xhr.send();
+            console.log("source load complete");
+            //console.log("Passed send of xhr");
         }
-        xhr.send();
-        //console.log("Passed send of xhr");
-    }
-});
+    });  
+    return tempSource
+};
+
+//Preload recent entries (100)
+urlRecent = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
+    'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
+    'count=100&'+
+    'sortby=pub_date+D&'+
+    'outputFormat=application/json&srsname=EPSG:4326';
+var recentSource = loadSourceToExplore(wfs_url = urlRecent);
 const recentLayer = new ol.layer.Vector({
     source: recentSource,
     style: function(feature) {
@@ -281,6 +307,11 @@ const recentLayer = new ol.layer.Vector({
     },
 });
 map.addLayer(recentLayer);
+//Preload all entries in the background for filtering
+urlAll = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
+    'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
+    'outputFormat=application/json&srsname=EPSG:4326';
+var allSource = loadSourceToExplore(wfs_url = urlAll);
 
 
 // DATE RANGE PICKER + Other filters//
@@ -355,98 +386,46 @@ function extractTerms(list){
     for (i=0; i<list.length; i++){
         item = list[i];
         item.trim();
-        if (i == 0){
-            terms = "'%(";
-        }
-        if (i == list.length-1){
-            terms = terms + "(" + item + "))%'";
+        if (list.length == 1){
+            terms = "like '%"+item+"%'";
         } else {
-            terms = terms + "(" + item + ")|";
-        }
-    }
+            if (i == 0){
+                terms = "in ('%";
+            }
+            if (i == list.length-1){
+                terms = terms + item + "%')";
+            } else {
+                terms = terms + item + "%','%";
+            };
+        };
+    };
     terms.toLowerCase();
     return terms;
 }
 
-let tagSource;
 function filterAllVals(){
     console.log("allFilters: ",allFilters);
-    var cql = "";
-    if (allFilters["Tags"]) {
-        cql = cql + "strToLowerCase(tags) similar to "+extractTerms(allFilters["Tags"])+" and "; //Edit this bad boy to filter on the fly
-    }
-    if (cql == ""){
-        console.log("no filters");
-    } else {
-        cql = cql.substring(0,cql.length-5);
-        console.log("cql pre-formating: ",cql);
-    }
-    cql = "cql_filter="+cql.replace(/%/gi,"%25").replace(/'/gi,"%27").replace(/ /gi,"%20")+"&"; //Globals
-    console.log("cql: ",cql);
-    var tagSource = new ol.source.Vector({
-        format: new ol.format.GeoJSON(),
-        loader: function (extent, resolution, projection, success, failure) {
-            var proj = projection.getCode();
-            url = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
-                'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
-                cql +
-                'outputFormat=application/json&srsname='+proj;
-            console.log(url);
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET',url);
-            var onError = function() {
-                console.log("Error in loading vector source (tags)");
-                tagSource.removeLoadedExtent(extent);
-                failure();
-            }
-            xhr.onerror = onError;
-            xhr.onload = function() {
-                if (xhr.status == 200){
-                    var features = tagSource.getFormat().readFeatures(xhr.responseText);
-                    tagSource.addFeatures(features);
-                    var noFeatures = false;
-                    if (features.length == 1){
-                        if (features[0]["A"]["geometry"] == null){
-                            console.log("no instances here")
-                            alert("Desculpa: a pesquisa não deu qualquer resultado")
-                            noFeatures = true;
-                        }
-                    }
-                    success(features);
-                    if (noFeatures == false) {
-                        layerExtent = tagSource.getExtent();
-                        filterMaxExtent = layerExtent;
-                        if (layerExtent[0] < maxLisbonExtent[0]){
-                            filterMaxExtent[0] = maxLisbonExtent[0];
-                        };
-                        if (layerExtent[1] < maxLisbonExtent[1]){
-                            filterMaxExtent[1] = maxLisbonExtent[1];
-                        };
-                        if (layerExtent[2] > maxLisbonExtent[2]){
-                            filterMaxExtent[2] = maxLisbonExtent[2];
-                        };
-                        if (layerExtent[3] > maxLisbonExtent[3]){
-                            filterMaxExtent[3] = maxLisbonExtent[3];
-                        };
-                        map.getView().fit(ol.extent.buffer(filterMaxExtent, .01)); //What does this number mean??
-                    }
-                    var tagFeatureInfo = tagSource.getFeatures();
-                    numStoryFeatures = tagFeatureInfo.length;
-                } else {
-                    onError();
-                }
-            }
-            xhr.send();
-        }
+    bodyContent = JSON.stringify(allFilters);
+    console.log("bodyContent: ",bodyContent);
+    fetch(`${window.origin}/explore/map`, {
+        method: "POST",
+        credentials: "include",
+        body: bodyContent,
+        cache: "no-cache",
+        headers: new Headers({
+            "content-type": "application/json"
+        })
     })
-    var tagLayer = new ol.layer.Vector({
-        source: tagSource,
-        style: function(feature) {
-            style.getText().setText(feature.get('p_name'));
-            return style;
-        },
-    });
-    map.removeLayer(recentLayer);
-    map.addLayer(tagLayer);
+    .then(function(response){
+        if (response.status !== 200){
+            window.alert("Erro no filtros");
+            console.log(`Error status code: ${response.status}`);
+            return;
+        }
+        response.json().then(function(sIDs){
+            console.log(sIDs);
+        })
+    })
 
+    //Connect to python for dynamic filtering. Return SIDs, search these in OL (OR WFS) and load.
 };
