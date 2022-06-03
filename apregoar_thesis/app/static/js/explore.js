@@ -160,23 +160,25 @@ const view = new ol.View({
     center: [-9.150404956762742,38.72493479806579],
     zoom: 12
 });
+
+const backDrop = new ol.layer.Tile({
+    source: new ol.source.Stamen({
+        layer: 'toner-lite',
+    }),
+});
  
 var map = new ol.Map({
-    layers: [
-        new ol.layer.Tile({
-            source: new ol.source.Stamen({
-                layer: 'toner-lite',
-            }),
-        }),
-    ],
     //overlays: [overlay],
     target: 'map',
     view: view,
 });
+map.addLayer(backDrop);
 
 /* Preparing highlight maps of selected instances */
 fill1 = 'rgba(255,255,255,0.3)';
 fill2 = 'rgba(156,34,15,1)';
+fill3 = 'rgba(83, 176, 126,1)';
+fill4 = 'rgba(239, 223, 142,0.6)';
 const style = new ol.style.Style({
     fill: new ol.style.Fill({
         color: fill1,
@@ -196,6 +198,34 @@ const style = new ol.style.Style({
         }),
     }),
 })
+const filterStyle = new ol.style.Style({
+    fill: new ol.style.Fill({
+        color: fill4,
+    }),
+    stroke: new ol.style.Stroke({
+        color: fill3,
+        width: 10,
+    }),
+    text: new ol.style.Text({
+        font: '12px Calibri,sans-serif',
+        fill: new ol.style.Fill({
+            color: fill2,
+        }),
+        stroke: new ol.style.Stroke({
+            color: '#fff',
+            width: 3,
+        }),
+    }),
+});
+const nullStyle = new ol.style.Style({
+    fill: new ol.style.Fill({
+        color: [255,255,255,0],
+    }),
+    stroke: new ol.style.Stroke({
+        color: [244,244,255,0],
+        width: 0,
+    }),
+});
 
 var popupSource = new ol.source.Vector();
 
@@ -232,7 +262,7 @@ function updateViewExtent(inputSource){
 }
 
 //Load source. Returns 
-function loadSourceToExplore(wfs_url) {
+function loadSourceToExplore(wfs_url, loadType) {
     var tempSource = new ol.source.Vector({
         format: new ol.format.GeoJSON(),
         loader: function (extent, resolution, projection, success, failure) {
@@ -247,9 +277,16 @@ function loadSourceToExplore(wfs_url) {
                 failure();
             }
             xhr.onerror = onError;
+            xhr.onloadstart = function() {
+                console.log(loadType," load begun");
+            };
+            xhr.onloadend = function() {
+                console.log(loadType," load end");
+            }
             xhr.onload = function() {
                 if (xhr.status == 200){
-                    var features = tempSource.getFormat().readFeatures(xhr.responseText);
+                    var features = [];
+                    features = tempSource.getFormat().readFeatures(xhr.responseText);
                     tempSource.addFeatures(features);
                     var noFeatures = false;
                     if (features.length == 1) {
@@ -280,25 +317,40 @@ function loadSourceToExplore(wfs_url) {
                     numStoryFeatures = sourceFeatureInfo.length;
                     //console.log("Number of features in story: ", numStoryFeatures);
                     console.log("Successful loading of vector source");
+                    if (loadType == "recent"){
+                        console.log("recent features loaded")
+                    }
+                    if (loadType == "all") {
+                        console.log("All resources loaded")
+                    }
                 } else {
                     onError();
                 }
             }
             xhr.send();
-            console.log("source load complete");
             //console.log("Passed send of xhr");
         }
     });  
     return tempSource
 };
-
+//Preload all entries in the background for filtering
+urlAll = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
+    'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
+    'outputFormat=application/json&srsname=EPSG:4326';
+var allSource = loadSourceToExplore(wfs_url = urlAll, loadType = "all");
+const allLayer = new ol.layer.Vector({
+    source: allSource,
+    style: nullStyle,
+})
+map.addLayer(allLayer);
+//map.removeLayer(filteredLayer);
 //Preload recent entries (100)
 urlRecent = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
     'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
     'count=100&'+
     'sortby=pub_date+D&'+
     'outputFormat=application/json&srsname=EPSG:4326';
-var recentSource = loadSourceToExplore(wfs_url = urlRecent);
+var recentSource = loadSourceToExplore(wfs_url = urlRecent, loadType = "recent");
 const recentLayer = new ol.layer.Vector({
     source: recentSource,
     style: function(feature) {
@@ -307,11 +359,11 @@ const recentLayer = new ol.layer.Vector({
     },
 });
 map.addLayer(recentLayer);
-//Preload all entries in the background for filtering
-urlAll = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
-    'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
-    'outputFormat=application/json&srsname=EPSG:4326';
-var allSource = loadSourceToExplore(wfs_url = urlAll);
+
+
+
+
+
 
 
 // DATE RANGE PICKER + Other filters//
@@ -402,8 +454,20 @@ function extractTerms(list){
     terms.toLowerCase();
     return terms;
 }
-
+let filteredSource = new ol.source.Vector();
+var filteredLayer = new ol.layer.Vector({
+    style: function(feature) {
+        filterStyle.getText().setText(feature.get('p_name'));
+        return filterStyle;
+    },
+});
 function filterAllVals(){
+    currentLayers = map.getLayers();
+    console.log("currentLayers: ",currentLayers);
+    map.removeLayer(allLayer);
+    map.removeLayer(recentLayer);
+    map.removeLayer(filteredLayer);
+    filteredSource.clear();
     console.log("allFilters: ",allFilters);
     bodyContent = JSON.stringify(allFilters);
     console.log("bodyContent: ",bodyContent);
@@ -422,10 +486,28 @@ function filterAllVals(){
             console.log(`Error status code: ${response.status}`);
             return;
         }
-        response.json().then(function(sIDs){
-            console.log(sIDs);
+        response.json().then(function(resp){
+            console.log(resp);
+            sIDs = resp["sIDs"];
+            if (sIDs.length > 0){
+                sIDFilter = "s_id IN ("+sIDs+")";
+                console.log(sIDFilter);
+                cqlFilter = sIDFilter.replace(/%/gi,"%25").replace(/'/gi,"%27").replace(/ /gi,"%20");
+                urlFiltered = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
+                    'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
+                    'cql_filter='+cqlFilter+'&'+
+                    'sortby=pub_date+D&'+
+                    'outputFormat=application/json&srsname=EPSG:4326';
+                filteredSource = loadSourceToExplore(wfs_url=urlFiltered, loadType="filtered")
+                filteredLayer.setSource(filteredSource);// how do I define this?
+                map.addLayer(filteredLayer);
+            } else {
+                console.log("no features meeting criteria")
+                map.removeLayer(filteredLayer);
+                map.addLayer(recentLayer);
+            }
+            
         })
     })
-
     //Connect to python for dynamic filtering. Return SIDs, search these in OL (OR WFS) and load.
 };

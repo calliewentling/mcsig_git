@@ -93,18 +93,26 @@ def explore():
         req = request.get_json()
         sIDs = []
         print("received data: ",req)
+        response ={}
         if len(req["Tags"])>0:
             print(req["Tags"])
-            sIDs = []
+            s_ids = []
+            i_ids = []
             #foundTags = Tags.query.filter(Tags.tag_name.in_(req["Tags"])).all()
-            query = select(Tagging,Tags).join_from(Tags.where(Tags.tag_name.in_(req["Tags"])),Tagging) #THIS IS NOT FUNCTIONING INA JOIN AND CERTAINLY WE NEED IT TO!
-
-            #for tag in session.scalars(query):
-            #    sIDs.append(tag.tag_name)
-            for result in session.scalars(query):
-                sIDs.append(result.s_id)
-            print("sIDs: ", sIDs)
-        return make_response(jsonify("Returned"),200)
+            #print("foundTags: ",foundTags)
+            subq = (select(Tags).where(Tags.tag_name.in_(req["Tags"])).subquery())
+            stmt = select(Tagging).join(subq, Tagging.t_id == subq.c.tag_id)
+            duplicates = 0
+            for result in session.scalars(stmt):
+                if result.s_id not in sIDs:
+                    s_ids.append(result.s_id)
+                else:
+                    duplicates += 1
+            print("sIDs (",len(sIDs),"): ", sIDs)
+            print("duplicates: ",duplicates)
+        response["sIDs"] = s_ids
+        response["iIDs"] = i_ids
+        return make_response(jsonify(response),200)
     else:
         #Getting values for user filtering
         try:
