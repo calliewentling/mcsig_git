@@ -9,15 +9,25 @@
 <h2>Explorar a mapa</h2>
 
 <div id="map" class="map"></div>
+<div id="filterResults">
+    <div id="storyResults"></div>
+    <div id="instanceResults"></div>
+</div>
 <form method ="post">
-    <div class="filterLine">
-        <h5>Filtros Histórias</h5>
+    <h5>Filtros Histórias</h5>
+    <div class="filterLine" id="datesP">
         <div class = "filterItem">
             <label for="from">De</label>
             <input type="text" id="from" name="from">
             <label for="to">à</label>
             <input type="text" id="to" name="to">
         </div>
+        <div class = "filterItem">
+            <input type="checkbox" id="allPub"></input>
+            <label for="allPub">Todos</label>
+        </div>
+    </div>
+    <div class="filterLine" id="filtersP">
         <div class = "filterItem">
             <select id="checksTags">
                 {% for i in tags %}
@@ -55,14 +65,21 @@
             </select>
         </div>
     </div>
-    <div class="filterLine">
-        <h5>Filtros de Instâncias</h5>
+    <br>
+    <h5>Filtros de Instâncias</h5>
+    <div class="filterLine" id="datesI">
         <div class = "filterItem">
             <label for="fromI">De</label>
             <input type="text" id="fromI" name="fromI">
             <label for="to">à</label>
             <input type="text" id="toI" name="toI">
         </div>
+        <div class = "filterItem">
+            <input type="checkbox" id="allInst"></input>
+            <label for="allInst">Todas datas</label>
+        </div>
+    </div>
+    <div class="filterLine" id="filtersI">
         <div class = "filterItem">
             <select id="checksT_types">
                 {% for i in t_types %}

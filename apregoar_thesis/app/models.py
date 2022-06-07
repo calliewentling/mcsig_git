@@ -2,9 +2,24 @@ from app import db
 from sqlalchemy import create_engine, ForeignKey, PrimaryKeyConstraint
 from sqlalchemy.orm import relationship
 
+class Users(db.Model):
+    __tablename__ = "users"
+
+    u_id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.Text)
+    #password = db.Column(db.Text)
+    organization = db.Column(db.Text)
+    #email = db.Column(db.Text)
+    #created = db.Column(db.Text)
+    #edited = db.Column(db.Text)
+
+    __table_args__ = {
+        "schema":"apregoar"
+    }
 
 class Stories(db.Model):
     __tablename__ = "stories"
+
     s_id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.Text)
     summary = db.Column(db.Text)
@@ -14,17 +29,20 @@ class Stories(db.Model):
     tags = db.Column(db.Text)
     author = db.Column(db.Text)
     publication =db.Column(db.Text)
-    u_id = db.Column(db.Integer)
+    u_id = db.Column(db.Integer, ForeignKey("apregoar.users.u_id"))
     created = db.Column(db.DateTime)
     edited = db.Column(db.DateTime)
+
     __table_args__ = {
         "schema":"apregoar"
     }
 
 class Tags(db.Model):
     __tablename__ = "tags"
+
     tag_id = db.Column(db.Integer, primary_key=True)
     tag_name = db.Column(db.Text)
+
     __table_args__ = {
         "schema":"apregoar"
     }
@@ -34,12 +52,104 @@ class Tags(db.Model):
 
 class Tagging(db.Model):
     __tablename__ = "tagging"
+
     s_id = db.Column(db.Integer, ForeignKey("apregoar.stories.s_id"))
     t_id = db.Column(db.Integer, ForeignKey("apregoar.tags.tag_id"))
+
     __table_args__ = (
         PrimaryKeyConstraint(t_id, s_id),
         {"schema":"apregoar"},
     )
     name = relationship("Tags", back_populates="s_ids")
 
-    
+class Instances(db.Model):
+    __tablename__ = "instances"
+
+    i_id = db.Column(db.Integer, primary_key=True)
+    t_begin = db.Column(db.DateTime)
+    t_end = db.Column(db.DateTime)
+    t_type = db.Column(db.Text)
+    t_desc = db.Column(db.Text)
+    p_desc = db.Column(db.Text)
+    s_id = db.Column(db.Integer, ForeignKey("apregoar.stories.s_id"))
+    u_id = db.Column(db.Integer, ForeignKey("apregoar.users.u_id"))
+    p_name = db.Column(db.Text)
+    #created = db.Column(db.DateTime)
+    #edited = db.Column(db.DateTime)
+
+    __table_args__ = {
+        "schema":"apregoar"
+    }
+
+class Ugazetteer(db.Model):
+    __tablename__ = "ugazetteer"
+
+    p_id = db.Column(db.Integer, primary_key=True)
+    p_name = db.Column(db.Text)
+    #geom = db.Column(db.Geometry)
+    u_id = db.Column(db.Integer, ForeignKey("apregoar.users.u_id"))
+    p_desc = db.Column(db.Text)
+    #created = db.Column(db.DateTime)
+    #edited = db.Column(db.DateTime)
+
+    __table_args__ = {
+        "schema":"apregoar"
+    }
+
+class Egazetteer(db.Model):
+    __tablename__ = "egazetteer"
+
+    e_id = db.Column(db.Integer, primary_key=True)
+    #o_id = db.Column(db.Integer)
+    #source = db.Column(db.Text)
+    type = db.Column(db.Text)
+    name = db.Column(db.Text)
+    #geom = db.Column(db.Geometry) #Not certain about type (untested)
+    #date_created = db.Column(db.DateTime)
+
+    __table_args__ = {
+        "schema":"apregoar"
+    }
+
+class Spatial_assoc(db.Model):
+    __tablename__ = "spatial_assoc"
+
+    p_id = db.Column(db.Integer, ForeignKey("apregoar.ugazetteer.p_id"))
+    relation = db.Column(db.Text)
+    e_id = db.Column(db.Integer, ForeignKey("apregoar.egazetteer.e_id"))
+
+    __table_args__ = (
+        PrimaryKeyConstraint(p_id, e_id),
+        {
+            "schema":"apregoar"
+        }
+    )
+
+class Instance_egaz(db.Model):
+    __tablename__ = "instance_egaz"
+
+    i_id = db.Column(db.Integer, ForeignKey("apregoar.instances.i_id"))
+    explicit = db.Column(db.Text)
+    last_edited = db.Column(db.DateTime)
+    e_id = db.Column(db.Integer, ForeignKey("apregoar.egazetteer.e_id"))
+
+    __table_args__ = (
+        PrimaryKeyConstraint(i_id, e_id),
+        {
+            "schema":"apregoar"
+        }
+    )
+
+class Instance_ugaz(db.Model):
+    __tablename__ = "instance_ugaz"
+
+    i_id = db.Column(db.Integer, ForeignKey("apregoar.instances.i_id"))
+    p_id = db.Column(db.Integer, ForeignKey("apregoar.egazetteer.p_id"))
+    original = db.Column(db.Text)    
+
+    __table_args__ = (
+        PrimaryKeyConstraint(i_id, p_id),
+        {
+            "schema":"apregoar"
+        }
+    )

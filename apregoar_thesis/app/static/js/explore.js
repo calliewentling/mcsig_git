@@ -175,7 +175,7 @@ var map = new ol.Map({
 map.addLayer(backDrop);
 
 /* Preparing highlight maps of selected instances */
-fill1 = 'rgba(255,255,255,0.3)';
+fill1 = 'rgba(156,34,15,0.2)';
 fill2 = 'rgba(156,34,15,1)';
 fill3 = 'rgba(83, 176, 126,1)';
 fill4 = 'rgba(239, 223, 142,0.6)';
@@ -183,18 +183,14 @@ const style = new ol.style.Style({
     fill: new ol.style.Fill({
         color: fill1,
     }),
-    stroke: new ol.style.Stroke({
-        color: fill2,
-        width: 1,
-    }),
     text: new ol.style.Text({
-        font: '12px Calibri,sans-serif',
+        font: '16px Calibri,sans-serif',
         fill: new ol.style.Fill({
-            color: fill2,
+            color: 'rgba(255,255,255,1)',
         }),
         stroke: new ol.style.Stroke({
-            color: '#fff',
-            width: 3,
+            color: fill2,
+            width: 1,
         }),
     }),
 })
@@ -262,6 +258,7 @@ function updateViewExtent(inputSource){
 }
 
 //Load source. Returns 
+let firstPubDate, lastPubDate, firstInstDate, lastInstDate;
 function loadSourceToExplore(wfs_url, loadType) {
     var tempSource = new ol.source.Vector({
         format: new ol.format.GeoJSON(),
@@ -364,8 +361,6 @@ map.addLayer(recentLayer);
 
 
 
-
-
 // DATE RANGE PICKER + Other filters//
 $( function() {
     //console.log("recentDates in datepicker load: ",recentDate1,"-",recentDate2);
@@ -378,8 +373,10 @@ $( function() {
     }).on( "change", function() {
         to.datepicker( "option", "minDate", getDate( this ) );
         allFilters["pubDateR1"] = getDate(this);
+        allFilters["pubDateFilter"] = true;
         filterAllVals();
     }),
+
     to = $( "#to" ).datepicker({
         defaultDate: recentDate2,
         changeMonth: true,
@@ -388,8 +385,10 @@ $( function() {
     }).on( "change", function() {
         from.datepicker( "option", "maxDate", getDate( this ) );
         allFilters["pubDateR2"] = getDate(this);
+        allFilters["pubDateFilter"] = true;
         filterAllVals();
-    });
+    }),
+
     fromI = $( "#fromI" ).datepicker({
         defaultDate: new Date(),
         changeMonth: true,
@@ -398,8 +397,10 @@ $( function() {
     }).on( "change", function() {
         toI.datepicker( "option", "minDate", getDate( this ) );
         allFilters["iDateR1"] = getDate(this);
+        allFilters["iDateFilter"] = true;
         filterAllVals();
     }),
+
     toI = $( "#toI" ).datepicker({
         defaultDate: new Date(),
         changeMonth: true,
@@ -408,8 +409,21 @@ $( function() {
     }).on( "change", function() {
         fromI.datepicker( "option", "maxDate", getDate( this ) );
         allFilters["iDateR2"] = getDate(this);
+        allFilters["iDateFilter"] = true;
         filterAllVals();
-    });
+    }),
+
+    allPub = $( "#allPub" ).on("checked", function () {
+        from.datepicker( "option", "maxDate", getDate(pubDate2));
+        to.datepicker("option", "minDate", getDate(pubDate1));
+        allFilter["pubDateFilter"] = false;
+    }),
+
+    allInst = $( "#allInst" ).on("checked", function () {
+        fromI.datepicker( "option", "maxDate", getDate(iDate2));
+        toI.datepicker("option", "minDate", getDate(iDate1));
+        allFilter["iDateFilter"] = false;
+    })
 
     function getDate( element ) {
         var date;
@@ -461,6 +475,10 @@ var filteredLayer = new ol.layer.Vector({
         return filterStyle;
     },
 });
+var sIDs = [];
+var iIDs = [];
+var instanceResults = document.getElementById("instanceResults");
+var storyResults = document.getElementById("storyResults");
 function filterAllVals(){
     currentLayers = map.getLayers();
     console.log("currentLayers: ",currentLayers);
@@ -489,10 +507,11 @@ function filterAllVals(){
         response.json().then(function(resp){
             console.log(resp);
             sIDs = resp["sIDs"];
-            if (sIDs.length > 0){
-                sIDFilter = "s_id IN ("+sIDs+")";
-                console.log(sIDFilter);
-                cqlFilter = sIDFilter.replace(/%/gi,"%25").replace(/'/gi,"%27").replace(/ /gi,"%20");
+            iIDs = resp["iIDs"];
+            if (iIDs.length > 0){
+                iIDFilter = "s_id IN ("+iIDs+")";
+                console.log(iIDFilter);
+                cqlFilter = iIDFilter.replace(/%/gi,"%25").replace(/'/gi,"%27").replace(/ /gi,"%20");
                 urlFiltered = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
                     'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
                     'cql_filter='+cqlFilter+'&'+
@@ -501,10 +520,14 @@ function filterAllVals(){
                 filteredSource = loadSourceToExplore(wfs_url=urlFiltered, loadType="filtered")
                 filteredLayer.setSource(filteredSource);// how do I define this?
                 map.addLayer(filteredLayer);
+                instanceResults.innerHTML=`<p>Instâncias: ${iIDs.length}: ${iIDs}</p>`;
+                storyResults.innerHTML=`<p>Histórias: ${sIDs.length}: ${sIDs}</p>`;
             } else {
                 console.log("no features meeting criteria")
                 map.removeLayer(filteredLayer);
                 map.addLayer(recentLayer);
+                instanceResults.innerHTML=`<p>Sim instâncias</p>`;
+                storyResults.innerHTML=`<p>Sim histórias</p>`;
             }
             
         })

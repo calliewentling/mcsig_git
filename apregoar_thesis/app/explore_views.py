@@ -46,7 +46,7 @@ def init_db():
     from app import models
     Base.metadata.create_all(bind=engine)
 init_db()
-from app.models import Tags, Tagging, Stories
+from app.models import Users, Stories, Tags, Tagging, Instances, Ugazetteer, Egazetteer, Instance_egaz, Instance_ugaz
 
 session = Session(engine)
 
@@ -92,26 +92,57 @@ def explore():
     if request.method == "POST":
         req = request.get_json()
         sIDs = []
+        iIDs = []
         print("received data: ",req)
         response ={}
+        s_ids = []
+        i_ids = []
+        dupS = 0
+        dupI = 0
+        is_filtered = False
+        stmt = select(Instances).join(Stories, Instances.s_id == Stories.s_id)
+
+        ### STORY LEVEL FILTERS ###
+        #Add dates
         if len(req["Tags"])>0:
+            is_filtered = True
             print(req["Tags"])
-            s_ids = []
-            i_ids = []
-            #foundTags = Tags.query.filter(Tags.tag_name.in_(req["Tags"])).all()
-            #print("foundTags: ",foundTags)
-            subq = (select(Tags).where(Tags.tag_name.in_(req["Tags"])).subquery())
-            stmt = select(Tagging).join(subq, Tagging.t_id == subq.c.tag_id)
-            duplicates = 0
+            subqT = (select(Tags).where(Tags.tag_name.in_(req["Tags"])).subquery())
+            stmt.join(Tagging, Stories.s_id == Tagging.s_id).join(subqT, Tagging.t_id == subqT.c.tag_id)        
+        if len(req["Sections"])>0:
+            is_filtered = True
+            print(req["Sections"])
+            stmt = stmt.where(func.lower(Stories.section).in_(req["Sections"]))
+        if len(req["Authors"])>0:
+            is_filtered = True
+            print(req["Authors"])
+            stmt = stmt.where(func.lower(Stories.author).in_(req["Authors"]))
+        if len(req["Publications"])>0:
+            is_filtered = True
+            print(req["Publications"]) 
+            stmt = stmt.where(func.lower(Stories.publication).in_(req["Publications"]))
+        
+
+        ### INSTANCE LEVEL FILTERS ###
+       
+        
+        
+        if is_filtered is True:
             for result in session.scalars(stmt):
-                if result.s_id not in sIDs:
+                if result.s_id not in s_ids:
                     s_ids.append(result.s_id)
                 else:
-                    duplicates += 1
-            print("sIDs (",len(sIDs),"): ", sIDs)
-            print("duplicates: ",duplicates)
+                    dupS += 1
+                if result.i_id not in i_ids:
+                    i_ids.append(result.i_id)
+                else:
+                    dupI += 1
+            print("s_ids (",len(s_ids),"): ", s_ids)
+            print("i_ids (",len(i_ids),"): ",i_ids)
+        print("dupS: ",dupS,". dupI: ",dupI)
         response["sIDs"] = s_ids
         response["iIDs"] = i_ids
+        print("response: ",response)
         return make_response(jsonify(response),200)
     else:
         #Getting values for user filtering
