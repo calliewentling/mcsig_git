@@ -67,6 +67,8 @@ $(document).ready(function () {
 
 var defaultMultiCheckBoxOption = { width: '220px', defaultText: "Selecionar", height: '200px' };
 
+//var recentDate1 = new Date();
+//var recentDate2 = new Date();
 var allFilters = {
     "Tags": [],
     "Sections": [],
@@ -80,6 +82,9 @@ var allFilters = {
     "iDateR1": "",
     "iDateR2": "",
     "pNameSearch": "",
+    "iDateFilter": false,
+    "pubDateFilterMin":false,
+    "pubDateFilterMax":false,
 };
 jQuery.fn.extend({
     CreateMultiCheckBox: function (options) {
@@ -225,6 +230,11 @@ const nullStyle = new ol.style.Style({
 
 var popupSource = new ol.source.Vector();
 
+//Get interactive areas
+var instanceResults = document.getElementById("instanceResults");
+var storyResults = document.getElementById("storyResults");
+var recentResults = document.getElementById("recentResults");
+
 
 function refineFeatures(feature){
     feature["pub_date"] = new Date(feature["pub_date"]);
@@ -232,8 +242,7 @@ function refineFeatures(feature){
     feature["t_end"] = new Date(feature["t_end"]);
     return feature
 }
-var recentDate1 = new Date();
-var recentDate2 = new Date();
+
 var maxLisbonExtent = [-9.500526607165842, 38.40907442337447,-8.490972125626802, 39.31772866134256];
 
 
@@ -254,11 +263,12 @@ function updateViewExtent(inputSource){
     if (layerExtent[3] > maxLisbonExtent[3]){
         filterMaxExtent[3] = maxLisbonExtent[3];
     };
+    console.log("new layer extent: ",filterMaxExtent);
     map.getView().fit(ol.extent.buffer(filterMaxExtent, .01));
 }
 
 //Load source. Returns 
-let firstPubDate, lastPubDate, firstInstDate, lastInstDate;
+//let firstPubDate, lastPubDate, firstInstDate, lastInstDate;
 function loadSourceToExplore(wfs_url, loadType) {
     var tempSource = new ol.source.Vector({
         format: new ol.format.GeoJSON(),
@@ -294,6 +304,7 @@ function loadSourceToExplore(wfs_url, loadType) {
                     }
                     success(features);
                     if (noFeatures == false) {
+                        console.log("Features in ",loadType," exist!");
                         updateViewExtent(inputSource = tempSource);
                         //Getting info of preloaded features
                         preloadF = [];
@@ -302,12 +313,26 @@ function loadSourceToExplore(wfs_url, loadType) {
                             refinedFeature = refineFeatures(features[i]["A"]);
                             preloadF.push(refinedFeature);
                         }
-                        recentDate1 = preloadF[preloadF.length-1]["pub_date"];
-                        allFilters["pubDateR1"] = recentDate1;
-                        recentDate2 = preloadF[0]["pub_date"];
-                        allFilters["pubDateR2"] = recentDate2;
-                        document.getElementById("from").defaultValue = recentDate1.toDateString();
-                        document.getElementById("to").defaultValue = recentDate2.toDateString();
+                        if (loadType == "recent") {
+                            const recentDate1 = new Date(preloadF[preloadF.length-1]["pub_date"]);
+                            allFilters["pubDateR1"] = recentDate1;
+                            const recentDate2 = new Date(preloadF[0]["pub_date"]);
+                            allFilters["pubDateR2"] = recentDate2;
+                            console.log("recentDate1: ",recentDate1,". recentDate2: ",recentDate2);
+                            $( "#from" ).datepicker("option", "minDate", pubDate1);
+                            $( "#from" ).datepicker("option","maxDate", recentDate2);
+                            $( "#from" ).datepicker("setDate", new Date(recentDate1.getFullYear(), recentDate1.getMonth(), recentDate1.getDate()));
+                            $( "#to" ).datepicker("option", "minDate", recentDate1);
+                            $( "#to" ).datepicker( "option", "maxDate", pubDate2 );
+                            $( "#to" ).datepicker("setDate", new Date(recentDate2.getFullYear(), recentDate2.getMonth(), recentDate2.getDate()));
+                            //document.getElementById("from").defaultValue = recentDate1.toDateString();
+                            //document.getElementById("from").value = recentDate1.toDateString();
+                            //document.getElementById("to").value = recentDate2.toDateString();
+                            //document.getElementById("to").defaultValue = recentDate2.toDateString();
+                            recentResults.innerHTML="<p>Monstrando as "+numRecent+" publicações mais recentes</p>";
+                            console.log("allFilters after loading of recents: ",allFilters);
+                        }
+                        
                     }
                     var sourceFeatureInfo = recentSource.getFeatures();
                     //console.log("sourceFeatureInfo: ",sourceFeatureInfo);
@@ -342,9 +367,10 @@ const allLayer = new ol.layer.Vector({
 map.addLayer(allLayer);
 //map.removeLayer(filteredLayer);
 //Preload recent entries (100)
+const numRecent = 100;
 urlRecent = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
     'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
-    'count=100&'+
+    'count='+numRecent+'&'+
     'sortby=pub_date+D&'+
     'outputFormat=application/json&srsname=EPSG:4326';
 var recentSource = loadSourceToExplore(wfs_url = urlRecent, loadType = "recent");
@@ -357,6 +383,8 @@ const recentLayer = new ol.layer.Vector({
 });
 map.addLayer(recentLayer);
 
+var fromSelect = document.getElementById("from");
+var toSelect = document.getElementById("to");
 
 
 
@@ -365,27 +393,38 @@ map.addLayer(recentLayer);
 $( function() {
     //console.log("recentDates in datepicker load: ",recentDate1,"-",recentDate2);
     var dateFormat = "mm/dd/yy",
+    //var dateFormat = "D M dd yyyy",
     from = $( "#from" ).datepicker({
-        defaultDate: recentDate1,
+        gotoCurrent: true,
+        altFormat: "D, d M y",
         changeMonth: true,
         numberOfMonths: 1,
         minDate: pubDate1,
+        maxDate: pubDate2,
     }).on( "change", function() {
         to.datepicker( "option", "minDate", getDate( this ) );
+        to.value = getDate ( allFilters["pubDateR2"] );
+        from.value = getDate( this ).toDateString();
         allFilters["pubDateR1"] = getDate(this);
-        allFilters["pubDateFilter"] = true;
+        checkDates(thisDate = getDate( this ), tofrom = "from");
+        allFilters["pubDateFilterMin"] = true;
         filterAllVals();
     }),
 
     to = $( "#to" ).datepicker({
-        defaultDate: recentDate2,
+        gotoCurrent: true,
+        altFormat: "D, d M y",
         changeMonth: true,
         numberOfMonths: 1,
+        minDate: pubDate1,
         maxDate: pubDate2,
     }).on( "change", function() {
         from.datepicker( "option", "maxDate", getDate( this ) );
+        from.value = getDate(allFilters["pubDateR1"]);
+        to.value = getDate( this );
         allFilters["pubDateR2"] = getDate(this);
-        allFilters["pubDateFilter"] = true;
+        checkDates(thisDate = getDate( this ), tofrom = "to");
+        allFilters["pubDateFilterMax"] = true;
         filterAllVals();
     }),
 
@@ -394,6 +433,7 @@ $( function() {
         changeMonth: true,
         numberOfMonths: 1,
         minDate: iDate1,
+        maxDate: iDate2,
     }).on( "change", function() {
         toI.datepicker( "option", "minDate", getDate( this ) );
         allFilters["iDateR1"] = getDate(this);
@@ -405,27 +445,59 @@ $( function() {
         defaultDate: new Date(),
         changeMonth: true,
         numberOfMonths: 1,
+        minDate: iDate1,
         maxDate: iDate2
     }).on( "change", function() {
         fromI.datepicker( "option", "maxDate", getDate( this ) );
         allFilters["iDateR2"] = getDate(this);
         allFilters["iDateFilter"] = true;
         filterAllVals();
-    }),
-
-    allPub = $( "#allPub" ).on("checked", function () {
-        from.datepicker( "option", "maxDate", getDate(pubDate2));
-        to.datepicker("option", "minDate", getDate(pubDate1));
-        allFilter["pubDateFilter"] = false;
-    }),
-
-    allInst = $( "#allInst" ).on("checked", function () {
-        fromI.datepicker( "option", "maxDate", getDate(iDate2));
-        toI.datepicker("option", "minDate", getDate(iDate1));
-        allFilter["iDateFilter"] = false;
     })
 
+    //Handling autochecking of alldates, also reinserting the current value
+    function checkDates(thisDate, tofrom) {
+        console.log();
+        console.log("entering check date");
+        console.log("thisDate: ",thisDate,". Tofrom: ",tofrom);
+        console.log("to.value: ",to.value,". from.value: ",from.value);
+        console.log("pubDateR2: ",allFilters["pubDateR2"],". pubDateR1: ",allFilters["pubDateR1"]);
+        if (tofrom == "from"){    
+            if (thisDate > allFilters["pubDateR2"] ){
+                console.log("from loop: from value exceeds existing to value");
+                to.value = thisDate.toDateString();
+                allFilters["pubDateR2"] = thisDate;
+            } else {
+                console.log("from loop: from value less than existing to value");
+                to.value = allFilters["pubDateR2"];
+            }
+        } else if (tofrom == "to") {
+            if (thisDate < allFilters["pubDateR1"] ){
+                console.log("to loop: to value exceeds existing from value");
+                from.value = thisDate.toDateString();
+                allFilters["pubDateR1"] = thisDate;
+            } else {
+                console.log("to loop: to value greater than existing to value");
+                from.value = allFilters["pubDateR1"];
+            }
+        } else {
+            console.log("How did we end up here?");
+        }
+        if (allFilters["pubDateR1"].toDateString() != pubDate1.toDateString()){
+            console.log("From is not min date");
+            allPub.checked = false;
+        } else if (allFilters["pubDateR2"].toDateString() != pubDate2.toDateString()){
+            console.log("To is not max date");
+            allPub.checked = false;
+        } else{
+            console.log("Full range achieved")
+            allPub.checked = true;
+        }
+        console.log("leaving check date");
+        console.log();
+    }
+
     function getDate( element ) {
+        console.log("getDate element: ",element)
         var date;
         try {
             date = $.datepicker.parseDate( dateFormat, element.value );
@@ -435,6 +507,42 @@ $( function() {
         return date;
     }
 
+});
+
+
+//Incorporating "Select all" for publish date and instance occurances
+const allPub = document.getElementById('allPub');
+allPub.addEventListener('change', (event) => {
+    if (event.currentTarget.checked) {
+        console.log("allPub checked");
+        $( "#from" ).datepicker("option", "minDate", pubDate1);
+        $( "#from" ).datepicker("option","maxDate", pubDate2);
+        $( "#from" ).datepicker("setDate", new Date(pubDate1.getFullYear(), pubDate1.getMonth(), pubDate1.getDate()));
+        $( "#to" ).datepicker("option", "minDate", pubDate1);
+        $( "#to" ).datepicker( "option", "maxDate", pubDate2 );
+        $( "#to" ).datepicker("setDate", new Date(pubDate2.getFullYear(), pubDate2.getMonth(), pubDate2.getDate()));
+        allFilters["pubDateR1"] = pubDate1;
+        allFilters["pubDateR2"] = pubDate2;
+        allFilters["pubDateFilterMin"] = true;
+        allFilters["pubDateFilterMax"] = true;
+        filterAllVals();
+    }
+});
+const allInst = document.getElementById('allInst');
+allInst.addEventListener('change', (event) => {
+    if (event.currentTarget.checked) {
+        console.log("allInst checked");
+        $( "#fromI" ).datepicker("option", "minDate", iDate1);
+        $( "#fromI" ).datepicker("option","maxDate", iDate2);
+        $( "#toI" ).datepicker("option", "minDate", iDate1);
+        $( "#toI" ).datepicker( "option", "maxDate", iDate2 );
+        fromI.value = iDate1.toDateString();
+        toI.value = iDate2.toDateString();
+        allFilters["iDateR1"] = iDate1;
+        allFilters["iDateR2"] = iDate2;
+        allFilters["iDateFilter"] = false;
+        filterAllVals();
+    }
 });
 
 /*INCLUDE TEXT SEARCH FIELDS IN FILTERING */
@@ -477,8 +585,6 @@ var filteredLayer = new ol.layer.Vector({
 });
 var sIDs = [];
 var iIDs = [];
-var instanceResults = document.getElementById("instanceResults");
-var storyResults = document.getElementById("storyResults");
 function filterAllVals(){
     currentLayers = map.getLayers();
     console.log("currentLayers: ",currentLayers);
@@ -509,7 +615,7 @@ function filterAllVals(){
             sIDs = resp["sIDs"];
             iIDs = resp["iIDs"];
             if (iIDs.length > 0){
-                iIDFilter = "s_id IN ("+iIDs+")";
+                iIDFilter = "i_id IN ("+iIDs+")";
                 console.log(iIDFilter);
                 cqlFilter = iIDFilter.replace(/%/gi,"%25").replace(/'/gi,"%27").replace(/ /gi,"%20");
                 urlFiltered = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
@@ -520,12 +626,14 @@ function filterAllVals(){
                 filteredSource = loadSourceToExplore(wfs_url=urlFiltered, loadType="filtered")
                 filteredLayer.setSource(filteredSource);// how do I define this?
                 map.addLayer(filteredLayer);
+                recentResults.style.display = "none";
                 instanceResults.innerHTML=`<p>Instâncias: ${iIDs.length}: ${iIDs}</p>`;
                 storyResults.innerHTML=`<p>Histórias: ${sIDs.length}: ${sIDs}</p>`;
             } else {
                 console.log("no features meeting criteria")
                 map.removeLayer(filteredLayer);
                 map.addLayer(recentLayer);
+                recentResults.style.display = "block";
                 instanceResults.innerHTML=`<p>Sim instâncias</p>`;
                 storyResults.innerHTML=`<p>Sim histórias</p>`;
             }

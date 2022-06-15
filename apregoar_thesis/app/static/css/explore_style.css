@@ -136,7 +136,10 @@ top: 3em;
     .filterLine {
         white-space: nowrap;
         overflow-x: auto;
+        padding-top: 10px;
     }
     .filterItem {
         display: inline-block;
+        padding-right: 10px;
+        padding-left: 10px;
     }

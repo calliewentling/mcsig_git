@@ -1,3 +1,4 @@
+import re
 from pytz import NonExistentTimeError
 from app import app
 
@@ -100,15 +101,16 @@ def explore():
         dupS = 0
         dupI = 0
         is_filtered = False
-        stmt = select(Instances).join(Stories, Instances.s_id == Stories.s_id)
-
+        stmt = select(Instances).join(Stories, Instances.s_id == Stories.s_id) #This loses stories without instances
+        #stmt = select(Stories).join(Instances, Stories.s_id == Instances.s_id) #This loses access to the instance.i_id column
+        
         ### STORY LEVEL FILTERS ###
-        #Add dates
         if len(req["Tags"])>0:
             is_filtered = True
             print(req["Tags"])
             subqT = (select(Tags).where(Tags.tag_name.in_(req["Tags"])).subquery())
-            stmt.join(Tagging, Stories.s_id == Tagging.s_id).join(subqT, Tagging.t_id == subqT.c.tag_id)        
+            stmt = stmt.join(Tagging, Stories.s_id == Tagging.s_id).join(subqT, Tagging.t_id == subqT.c.tag_id)
+            print("STMT after Tags: ",stmt)        
         if len(req["Sections"])>0:
             is_filtered = True
             print(req["Sections"])
@@ -121,14 +123,22 @@ def explore():
             is_filtered = True
             print(req["Publications"]) 
             stmt = stmt.where(func.lower(Stories.publication).in_(req["Publications"]))
+        if req["pubDateFilterMax"] == True:
+            if req["pubDateFilterMin"] == True:
+                is_filtered = True
+                print("Date range: ",req["pubDateR1"]," - ",req["pubDateR2"])
+                print(type(req["pubDateR2"]))
+                stmt = stmt.where(Stories.pub_date.between(req["pubDateR1"],req["pubDateR2"][0:11]+"23:59:59.999Z"))
+        #if req["pubDateFilter"] == False:
+        #    is_filtered = True
+        #    print("Date range: all")
         
 
         ### INSTANCE LEVEL FILTERS ###
        
         
-        
         if is_filtered is True:
-            for result in session.scalars(stmt):
+            for result in session.scalars(stmt).all():
                 if result.s_id not in s_ids:
                     s_ids.append(result.s_id)
                 else:
@@ -221,6 +231,11 @@ def explore():
             publications = sorted(publications.items())
             t_types = sorted(t_types.items())
             pub_dates = sorted(pub_dates.items())
+            pub_date_range = {
+                "min": min(pub_dates)[0],
+                "max": max(pub_dates)[0]
+            }
+            print("pub_date_range: ",pub_date_range)
             p_types = sorted(p_types.items())
             e_names = {}
             try:
@@ -256,6 +271,6 @@ def explore():
                     print(tags[tag]["total_t"])
                     break
             conn.close()
-    return render_template("explore/explore_map.html", tags = tags, sections = sections, authors = authors, publications = publications, t_types=t_types, p_types = p_types, e_names = e_names, pub_dates = pub_dates, i_range = i_range)
+    return render_template("explore/explore_map.html", tags = tags, sections = sections, authors = authors, publications = publications, t_types=t_types, p_types = p_types, e_names = e_names, pub_dates = pub_dates, i_range = i_range, pubDateRange = pub_date_range)
     
 

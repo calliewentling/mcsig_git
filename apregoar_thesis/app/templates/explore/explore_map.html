@@ -10,12 +10,19 @@
 
 <div id="map" class="map"></div>
 <div id="filterResults">
+    <div id="recentResults"></div>
     <div id="storyResults"></div>
     <div id="instanceResults"></div>
 </div>
+
+<div id = "resultsList"></div>
+
 <form method ="post">
-    <h5>Filtros Histórias</h5>
+    <!-- STORY LEVEL FILTERS -->
     <div class="filterLine" id="datesP">
+        <div class = "filterItem">
+            <h5>Filtros Histórias</h5>
+        </div>
         <div class = "filterItem">
             <label for="from">De</label>
             <input type="text" id="from" name="from">
@@ -66,15 +73,16 @@
         </div>
     </div>
     <br>
-    <h5>Filtros de Instâncias</h5>
+    <!-- STORY LEVEL FILTERS -->
     <div class="filterLine" id="datesI">
+        <div class = "filterItem">
+            <h5>Filtros de Instâncias</h5>
+        </div>
         <div class = "filterItem">
             <label for="fromI">De</label>
             <input type="text" id="fromI" name="fromI">
             <label for="to">à</label>
             <input type="text" id="toI" name="toI">
-        </div>
-        <div class = "filterItem">
             <input type="checkbox" id="allInst"></input>
             <label for="allInst">Todas datas</label>
         </div>
@@ -114,22 +122,14 @@
     <button type="submit">Guardar</button>
 </form>
 
-<br>
-
-<h5>This is h5</h5>
-<em>This is em</em>
-<p> This is a p</p>
-
-
-
-
-
-
 <script>
-    pubDate1 = new Date('{{ pub_dates[0][0] }}');
-    pubDate2 = new Date('{{ pub_dates[-1][0] }}');
-    iDate1 = new Date ('{{ i_range["i_start"]}} ');
-    iDate2 = new Date ('{{ i_range["i_end"]}} ');
+    //const pubDate1 = new Date('{{ pub_dates[0][0] }}');
+    const pubDate1 = new Date('{{ pubDateRange["min"] }}');
+
+    const pubDate2 = new Date('{{ pubDateRange["max"] }}');
+    //const pubDate2 = new Date('{{ pub_dates[-1][0] }}');
+    const iDate1 = new Date ('{{ i_range["i_start"]}} ');
+    const iDate2 = new Date ('{{ i_range["i_end"]}} ');
     console.log("pubDate range: ", pubDate1," - ",pubDate2)
     console.log("type of pubDates: ",typeof pubDate1);
 </script>
