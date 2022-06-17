@@ -539,70 +539,161 @@ def review():
             return render_template("publisher/create.html")
         else:
             story["s_id"] = s_id
+            #Saving Tags
             if story["tags"]:
                 tags = story["tags"].split(",")
-                try:
-                    with engine.connect() as conn:
-                        SQL = text("SELECT * FROM apregoar.tags")
-                        print(SQL)
-                        result = conn.execute(SQL)
-                except:
-                    print("Error in extracting desired story from database")
-                    feedback=f"Erro"
-                    flash(feedback,"danger")
+                for tag in tags:
+                    if tag == "":
+                        tags.remove(tag)
+                    if tag == " ":
+                        tags.remove(tag)
+                if len(tags)>0:
+                    savingAttributes(attr = "tag",s_id=s_id,con=con,attr_vals=tags)
                 else:
-                    existing_tags = {}
-                    for row in result:
-                        existing_tags[row["tag_name"]] = row["tag_id"]
-                    for tag in tags:
-                        tag.strip().lower()
-                        if tag not in existing_tags:
-                            try:
-                                with con:
-                                    with con.cursor() as cur:
-                                        cur.execute("""
-                                            INSERT INTO apregoar.tags (tag_name)
-                                            VALUES (%(tag)s)
-                                            RETURNING tag_id
-                                            ;""",
-                                            {'tag':tag}
-                                        )
-                                        t_id = cur.fetchone()[0]
-                            except psycopg2.Error as e:
-                                print(e.pgerror)
-                                print(e.diag.message_primary)
-                                con.rollback()
-                                con.close()
-                            else:
-                                print("added tag to db")
-                        elif tag in existing_tags:
-                            t_id = existing_tags[tag]
-                            print("existing tag =",t_id," ",tag)
-                        else:
-                            print("how did we get here?")
-                        try:
-                            with con:
-                                with con.cursor() as cur:
-                                    cur.execute("""
-                                        INSERT INTO apregoar.tagging (s_id,t_id)
-                                        VALUES (%(s_id)s,%(t_id)s)
-                                        ;""",
-                                        {'s_id':story["s_id"], 't_id':t_id}
-                                    )
-                                    print("Tagging relation added to database")
-                        except psycopg2.Error as e:
-                            print(e.pgerror)
-                            print(e.diag.message_primary)
-                            con.rollback()
-                            con.close()
-                            return render_template("publisher/create.html")
-                        else:
-                            print("Successful association to existing tags!")
+                    print("Actually, no real tags associated")
+                    emptyAttribute(attr="tag", s_id = s_id, con=con)
+            else:  
+                print("No tags associated")
+                emptyAttribute(attr="tag", s_id = s_id, con=con) 
+            #Saving Authors
+            if story["author"]:
+                authors = story["author"].split(",")
+                for author in authors:
+                    if author == "":
+                        authors.remove(author)
+                    if author == " ":
+                        authors.remove(author)
+                if len(authors)>0:
+                    savingAttributes(attr = "author",s_id=s_id,con=con,attr_vals=authors)
+                else:
+                    print("Actually, no real authors associated")
+                    emptyAttribute(attr="author", s_id = s_id, con=con)
+            else:  
+                print("No authors associated")
+                emptyAttribute(attr="author", s_id = s_id, con=con)
+            #Saving Sections
+            if story["section"]:
+                section = story["section"]
+                if section == "":
+                    emptyAttribute(attr="section", s_id = s_id, con=con)
+                elif section == " ":
+                    emptyAttribute(attr="section", s_id = s_id, con=con)
+                else:
+                    savingAttributes(attr = "section",s_id=s_id,con=con,attr_vals=[section])
+                    
+            else:  
+                print("No authors associated")
+                emptyAttribute(attr="section", s_id = s_id, con=con)
+            #Saving Publication
+            if story["publication"]:
+                publication = story["publication"]
+                if publication == "":
+                    emptyAttribute(attr="publication", s_id = s_id, con=con)
+                elif publication == " ":
+                    emptyAttribute(attr="publication", s_id = s_id, con=con)
+                else:
+                    savingAttributes(attr = "publication",s_id=s_id,con=con,attr_vals=[publication])
+                    
+            else:  
+                print("No authors associated")
+                emptyAttribute(attr="publication", s_id = s_id, con=con)
             con.commit()
             con.close()
             return render_template("publisher/review.html", story=story, sID = s_id)
-    
     return render_template("publisher/dashboard.html")
+
+def savingAttributes(attr,s_id,con,attr_vals):
+    print("Saving: "+attr)
+    try:
+        with engine.connect() as conn:
+            SQL = text("SELECT * FROM apregoar."+attr+"s")
+            print(SQL)
+            result = conn.execute(SQL)
+    except:
+        print("Error in extracting "+attr+"s from database")
+        feedback=f"Erro"
+        flash(feedback,"danger")
+    else:
+        existing_vals = {}
+        attr_id_name = attr[0]+"_id"
+        if attr == "tag":
+            attr_ing = "tagging"
+        else:
+            attr_ing = attr+"ing"
+        for row in result:
+            existing_vals[row[attr+"_name"]] = row[attr+"_id"]
+        for val in attr_vals:
+            val.strip().lower()
+            if val not in existing_vals:
+                try:
+                    with con:
+                        with con.cursor() as cur:
+                            cur.execute(
+                                "INSERT INTO apregoar."+attr+"s ("+attr+"_name) VALUES (%(attr_name)s) RETURNING "+attr+"_id;",
+                                {'attr_name':val}
+                            )
+                            id = cur.fetchone()[0]
+                except psycopg2.Error as e:
+                    print(e.pgerror)
+                    print(e.diag.message_primary)
+                    con.rollback()
+                    con.close()
+                else:
+                    print("extracted "+attr+"s from db")
+            elif val in existing_vals:
+                id = existing_vals[val]
+                print("existing "+attr+"s =",id," ",val)
+            else:
+                print("how did we get here?")
+            try:
+                with con:
+                    with con.cursor() as cur:
+                        cur.execute(
+                            "INSERT INTO apregoar."+attr_ing+" (story_id,"+attr_id_name+") VALUES (%(s_id)s,%(attr_id)s);",
+                            {'s_id':s_id, 'attr_id':id}
+                        )
+                        print(attr+"relation added to database")
+            except psycopg2.Error as e:
+                print(e.pgerror)
+                print(e.diag.message_primary)
+                con.rollback()
+                con.close()
+                return render_template("publisher/create.html")
+            else:
+                print("Successful association to existing "+attr+"!")
+
+
+def emptyAttribute(attr,s_id,con):
+    print(attr)
+    if attr == "tag":
+        attr_ing = "tagging"
+    else:
+        attr_ing = attr+"ing"
+    no_vals = {
+        "tag": 102,
+        "author": 1,
+        "section": 1,
+        "publication": 9
+    }
+    attr_id_val = no_vals[attr]
+    attr_id_name = attr[0]+"_id"
+    print("attr_id_val: ",attr_id_val," attr_id_name: ",attr_id_name)
+    try:
+        with con:
+            with con.cursor() as cur:
+                cur.execute("INSERT INTO apregoar."+attr_ing+" (story_id,"+attr_id_name+") VALUES (%(s_id)s,%(attr_id)s);",
+                    {'s_id':s_id, 'attr_id':attr_id_val}
+                )
+                print(attr+" relation added to database")
+    except psycopg2.Error as e:
+        print(e.pgerror)
+        print(e.diag.message_primary)
+        con.rollback()
+        con.close()
+        return render_template("publisher/create.html")
+    else:
+        print("Successful association to '*sim valor' of "+attr)
+
 
 #########################
 ###### New Instance

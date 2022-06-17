@@ -53,14 +53,89 @@ class Tags(db.Model):
 class Tagging(db.Model):
     __tablename__ = "tagging"
 
-    s_id = db.Column(db.Integer, ForeignKey("apregoar.stories.s_id"))
+    story_id = db.Column(db.Integer, ForeignKey("apregoar.stories.s_id"))
     t_id = db.Column(db.Integer, ForeignKey("apregoar.tags.tag_id"))
 
     __table_args__ = (
-        PrimaryKeyConstraint(t_id, s_id),
+        PrimaryKeyConstraint(t_id, story_id),
         {"schema":"apregoar"},
     )
     name = relationship("Tags", back_populates="s_ids")
+
+class Authors(db.Model):
+    __tablename__ = "authors"
+
+    author_id = db.Column(db.Integer, primary_key=True)
+    author_name = db.Column(db.Text)
+
+    __table_args__ = {
+        "schema":"apregoar"
+    }
+    
+    s_ids = relationship("Authoring", back_populates="name")
+
+
+class Authoring(db.Model):
+    __tablename__ = "authoring"
+
+    story_id = db.Column(db.Integer, ForeignKey("apregoar.stories.s_id"))
+    a_id = db.Column(db.Integer, ForeignKey("apregoar.authors.author_id"))
+
+    __table_args__ = (
+        PrimaryKeyConstraint(a_id, story_id),
+        {"schema":"apregoar"},
+    )
+    name = relationship("Authors", back_populates="s_ids")
+
+class Sections(db.Model):
+    __tablename__ = "sections"
+
+    section_id = db.Column(db.Integer, primary_key=True)
+    section_name = db.Column(db.Text)
+
+    __table_args__ = {
+        "schema":"apregoar"
+    }
+    
+    s_ids = relationship("Sectioning", back_populates="name")
+
+
+class Sectioning(db.Model):
+    __tablename__ = "sectioning"
+
+    story_id = db.Column(db.Integer, ForeignKey("apregoar.stories.s_id"))
+    s_id = db.Column(db.Integer, ForeignKey("apregoar.sections.section_id"))
+
+    __table_args__ = (
+        PrimaryKeyConstraint(s_id, story_id),
+        {"schema":"apregoar"},
+    )
+    name = relationship("Sections", back_populates="s_ids")
+
+class Publications(db.Model):
+    __tablename__ = "publications"
+
+    publication_id = db.Column(db.Integer, primary_key=True)
+    publication_name = db.Column(db.Text)
+
+    __table_args__ = {
+        "schema":"apregoar"
+    }
+    
+    s_ids = relationship("Publicationing", back_populates="name")
+
+
+class Publicationing(db.Model):
+    __tablename__ = "publicationing"
+
+    story_id = db.Column(db.Integer, ForeignKey("apregoar.stories.s_id"))
+    p_id = db.Column(db.Integer, ForeignKey("apregoar.publications.publication_id"))
+
+    __table_args__ = (
+        PrimaryKeyConstraint(p_id, story_id),
+        {"schema":"apregoar"},
+    )
+    name = relationship("Publications", back_populates="s_ids")
 
 class Instances(db.Model):
     __tablename__ = "instances"

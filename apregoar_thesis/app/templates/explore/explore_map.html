@@ -47,8 +47,8 @@
         <div class = "filterItem">
             <select id="checksSections">
                 {% for i in sections %}
-                    {% set name = i[0] %}
-                    {% set count = i[1].total_s %}
+                    {% set name = i %}
+                    {% set count = sections[i]["total_s"] %}
                     <option value="{{ name }}">{{ name }} ({{ count }})</option>
                 {% endfor %}
             </select>
@@ -56,8 +56,8 @@
         <div class = "filterItem">
             <select id="checksPublications">
                 {% for i in publications %}
-                    {% set name = i[0] %}
-                    {% set count = i[1].total_s %}
+                    {% set name = i %}
+                    {% set count = publications[i]["total_p"] %}
                     <option value="{{ name }}">{{ name }} ({{ count }})</option>
                 {% endfor %}
             </select>
@@ -65,8 +65,8 @@
         <div class = "filterItem">
             <select id="checksAuthors">
                 {% for i in authors %}
-                    {% set name = i[0] %}
-                    {% set count = i[1].total_s %}
+                    {% set name = i %}
+                    {% set count = authors[i]["total_a"] %}
                     <option value="{{ name }}">{{ name }} ({{ count }})</option>
                 {% endfor %}
             </select>

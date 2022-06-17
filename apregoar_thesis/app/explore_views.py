@@ -47,7 +47,7 @@ def init_db():
     from app import models
     Base.metadata.create_all(bind=engine)
 init_db()
-from app.models import Users, Stories, Tags, Tagging, Instances, Ugazetteer, Egazetteer, Instance_egaz, Instance_ugaz
+from app.models import Users, Stories, Tags, Tagging, Instances, Sectioning, Sections, Authoring, Authors, Publications, Publicationing, Ugazetteer, Egazetteer, Instance_egaz, Instance_ugaz
 
 session = Session(engine)
 
@@ -109,20 +109,26 @@ def explore():
             is_filtered = True
             print(req["Tags"])
             subqT = (select(Tags).where(Tags.tag_name.in_(req["Tags"])).subquery())
-            stmt = stmt.join(Tagging, Stories.s_id == Tagging.s_id).join(subqT, Tagging.t_id == subqT.c.tag_id)
+            stmt = stmt.join(Tagging, Stories.s_id == Tagging.story_id).join(subqT, Tagging.t_id == subqT.c.tag_id)
             print("STMT after Tags: ",stmt)        
         if len(req["Sections"])>0:
             is_filtered = True
             print(req["Sections"])
-            stmt = stmt.where(func.lower(Stories.section).in_(req["Sections"]))
+            #stmt = stmt.where(func.lower(Stories.section).in_(req["Sections"]))
+            subqS = (select(Sections).where(Sections.section_name.in_(req["Sections"])).subquery())
+            stmt = stmt.join(Sectioning, Stories.s_id == Sectioning.story_id).join(subqS, Sectioning.s_id == subqS.c.section_id)
         if len(req["Authors"])>0:
             is_filtered = True
             print(req["Authors"])
-            stmt = stmt.where(func.lower(Stories.author).in_(req["Authors"]))
+            #stmt = stmt.where(func.lower(Stories.author).in_(req["Authors"]))
+            subqA = (select(Authors).where(Authors.author_name.in_(req["Authors"])).subquery())
+            stmt = stmt.join(Authoring, Stories.s_id == Authoring.story_id).join(subqA, Authoring.a_id == subqA.c.author_id)
         if len(req["Publications"])>0:
             is_filtered = True
             print(req["Publications"]) 
-            stmt = stmt.where(func.lower(Stories.publication).in_(req["Publications"]))
+            #stmt = stmt.where(func.lower(Stories.publication).in_(req["Publications"]))
+            subqP = (select(Publications).where(Publications.publication_name.in_(req["Publications"])).subquery())
+            stmt = stmt.join(Publicationing, Stories.s_id == Publicationing.story_id).join(subqP, Publicationing.p_id == subqP.c.publication_id)
         if req["pubDateFilterMax"] == True:
             if req["pubDateFilterMin"] == True:
                 is_filtered = True
@@ -138,11 +144,16 @@ def explore():
        
         
         if is_filtered is True:
-            for result in session.scalars(stmt).all():
+            result1 = session.scalars(stmt).all()
+            #for result in session.scalars(stmt).all():
+            for result in result1:
+                print("Result: ",result)
                 if result.s_id not in s_ids:
                     s_ids.append(result.s_id)
                 else:
                     dupS += 1
+                for inst in result.instances:
+                    print(inst.i_id)
                 if result.i_id not in i_ids:
                     i_ids.append(result.i_id)
                 else:
@@ -197,8 +208,8 @@ def explore():
             }
             print("Result: ",result)
             for row in result:
-                sections= cleanLists(list_in = list(row["section"].replace('"','\\\"').replace("'","\\\'").split(",")), s_id = row["s_id"],i_id=row["i_id"],list_out = sections)
-                authors = cleanLists(list_in = list(row["author"].replace('"','\\\"').replace("'","\\\'").split(",")), s_id = row["s_id"],i_id=row["i_id"],list_out = authors)
+                #sections= cleanLists(list_in = list(row["section"].replace('"','\\\"').replace("'","\\\'").split(",")), s_id = row["s_id"],i_id=row["i_id"],list_out = sections)
+                #authors = cleanLists(list_in = list(row["author"].replace('"','\\\"').replace("'","\\\'").split(",")), s_id = row["s_id"],i_id=row["i_id"],list_out = authors)
                 publications = cleanLists(list_in = [row["publication"].replace('"','\\\"').replace("'","\\\'")], s_id = row["s_id"],i_id=row["i_id"],list_out = publications)
                 t_types = cleanLists(list_in = [row["t_type"]], s_id = row["s_id"],i_id=row["i_id"],list_out = t_types)
                 pub_dates = cleanLists(list_in = [row["pub_date"]], s_id = row["s_id"],i_id=row["i_id"],list_out = pub_dates)
@@ -226,8 +237,8 @@ def explore():
             p_types["administrativo"]["total_s"] = len(p_types["administrativo"]["s_ids"])  
             p_types["administrativo"]["total_i"] = len(p_types["administrativo"]["i_ids"])
             print("i_range: ",i_range)
-            sections = sorted(sections.items())
-            authors = sorted(authors.items())
+            #sections = sorted(sections.items())
+            #authors = sorted(authors.items())
             publications = sorted(publications.items())
             t_types = sorted(t_types.items())
             pub_dates = sorted(pub_dates.items())
@@ -270,6 +281,48 @@ def explore():
                 for tag in tags:
                     print(tags[tag]["total_t"])
                     break
+            sections = {}
+            try:
+                with engine.connect() as conn:
+                    SQL = text("SELECT s.s_id, sections.section_name, count FROM (SELECT s_id, count(*) FROM apregoar.sectioning GROUP BY s_id) s LEFT JOIN apregoar.sections on s.s_id = sections.section_id ORDER BY count DESC")
+                    result = conn.execute(SQL)
+            except: 
+                conn.close()
+                print("Error in distracting filters from database")
+            else:
+                for row in result:
+                    sections[row["section_name"]] = {
+                        "total_s": row["count"],
+                        "s_id": row["s_id"],
+                    }
+            authors = {}
+            try:
+                with engine.connect() as conn:
+                    SQL = text("SELECT a.a_id, authors.author_name, count FROM (SELECT a_id, count(*) FROM apregoar.authoring GROUP BY a_id) a LEFT JOIN apregoar.authors on a.a_id = authors.author_id ORDER BY count DESC")
+                    result = conn.execute(SQL)
+            except: 
+                conn.close()
+                print("Error in distracting filters from database")
+            else:
+                for row in result:
+                    authors[row["author_name"]] = {
+                        "total_a": row["count"],
+                        "a_id": row["a_id"],
+                    }
+            publications = {}
+            try:
+                with engine.connect() as conn:
+                    SQL = text("SELECT p.p_id, publications.publication_name, count FROM (SELECT p_id, count(*) FROM apregoar.publicationing GROUP BY p_id) p LEFT JOIN apregoar.publications on p.p_id = publications.publication_id ORDER BY count DESC")
+                    result = conn.execute(SQL)
+            except: 
+                conn.close()
+                print("Error in distracting filters from database")
+            else:
+                for row in result:
+                    publications[row["publication_name"]] = {
+                        "total_p": row["count"],
+                        "p_id": row["p_id"],
+                    }
             conn.close()
     return render_template("explore/explore_map.html", tags = tags, sections = sections, authors = authors, publications = publications, t_types=t_types, p_types = p_types, e_names = e_names, pub_dates = pub_dates, i_range = i_range, pubDateRange = pub_date_range)
     
