@@ -175,12 +175,12 @@ class Egazetteer(db.Model):
     __tablename__ = "egazetteer"
 
     e_id = db.Column(db.Integer, primary_key=True)
-    #o_id = db.Column(db.Integer)
-    #source = db.Column(db.Text)
+    o_id = db.Column(db.Integer)
+    source = db.Column(db.Text)
     type = db.Column(db.Text)
     name = db.Column(db.Text)
     #geom = db.Column(db.Geometry) #Not certain about type (untested)
-    #date_created = db.Column(db.DateTime)
+    date_created = db.Column(db.DateTime)
 
     __table_args__ = {
         "schema":"apregoar"
