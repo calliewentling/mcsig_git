@@ -37,6 +37,11 @@ class Stories(db.Model):
         "schema":"apregoar"
     }
 
+    instancing = relationship("Instances", back_populates="stories")
+
+    def __repr__(self):
+        return "<Story(s_id='%s', title='%s')>" % (self.s_id, self.title)
+
 class Tags(db.Model):
     __tablename__ = "tags"
 
@@ -155,6 +160,12 @@ class Instances(db.Model):
     __table_args__ = {
         "schema":"apregoar"
     }
+
+    stories = relationship("Stories", back_populates="instancing")
+
+    def __repr__(self):
+        return f"Instances(i_id={self.i_id!r}, s_id={self.s_id!r})"
+    
 
 class Ugazetteer(db.Model):
     __tablename__ = "ugazetteer"

@@ -103,52 +103,63 @@ def explore():
         noInst = []
         story_filtered = False
         instance_filtered = False
-        story_include = False
-        stmt = select(Instances).join(Stories, Instances.s_id == Stories.s_id) #This loses stories without instances
-        #stmt = select(Stories).join(Instances, Stories.s_id == Instances.s_id, isouter=True) #This loses access to the instance.i_id column
-        '''
-        if len(req["P_types"])>0:
-            instance_filtered = True
-            subqAdmin = (select(Instance_egaz.i_id).distinct().subquery())
-            subqCustom = (select(Instance_ugaz.i_id).distinct().subquery())
-            if len(req["P_types"]) == 3:
-                story_include = True
-            if len(req["P_type"])  == 1:
-                if "administrativo" in req["P_types"]:
-                    stmt = stmt.join(subqAdmin, Instances.i_id == subqAdmin.c.i_id)
-                elif "personalizado" in req["P_types"]:
-                    stmt = stmt.join(subqCustom, Instances.i_id == subqCustom.c.i_id)
-                else:
-                    stmt = select(Stories)            
-            stmt.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id, isouter = True).join(Instance_ugaz, Instances.i_id == Instance_ugaz.i_id, isouter = True)
-            if "administrativo" in req["P_types"]:
-                print("administrativo selected")
-        ''' 
-        '''
+        is_filtered = False
+        #The default stmt is an inner join between Stories and Instancs, followed by if statements that will allow the filtering to stories with instances (unless otherwise specified). In the event that no isntance filters are applied, the stmt will change to a stmtLeft which includes an outer join, such that stories without instances will be included as well.
+        stmt = select(Stories, Instances).join(Stories.instancing).order_by(Stories.s_id,Instances.i_id)
+        stmtLeft = select(Stories, Instances).join(Stories.instancing, isouter=True).order_by(Stories.s_id,Instances.i_id)
+        
         if len(req["E_names"])>0:
             instance_filtered = True
             print(req["E_names"])
-            subq1 = (select(Egazetteer).where(Egazetteer.name.in_(req["E_names"])).subquery()) #Connect to egaz vals
-            subq2 = (select(Spatial_assoc).where(Spatial_assoc.e_id.in_(subq1.c.e_id)).subquery())
-            stmt = stmt.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).join()
-            print(stmt)
-            print("INTERIM RESULT")
-            results = session.scalars(stmt).all()
-            for result in results:
-                print(result)
-                if result.i_id not in i_ids:
-                    i_ids.append(result.i_id)
-                if result.s_id not in s_ids:
-                    s_ids.append(result.s_id)
-            print("S_IDS (",len(s_ids),"): ",s_ids," I_IDS(",len(i_ids),"): ",i_ids)
+            #Spatial Assoc previously associates all ugaz items to intersecting egaz values.
+            #Should I do the same for all egaz entries (associate them with other intersecting egaz entries?)
+            subqCustom1 = (select(Egazetteer).where(Egazetteer.name.in_(req["E_names"])).subquery())
+            subqCustom2 = (select(Spatial_assoc.e_id.label("e_id"),Instance_ugaz.i_id.label("i_id")).join_from(subqCustom1,Spatial_assoc, subqCustom1.c.e_id == Spatial_assoc.e_id).join(Instance_ugaz, Spatial_assoc.p_id == Instance_ugaz.p_id).subquery())
+            subqAdmin1 = (select(Egazetteer).where(Egazetteer.name.in_(req["E_names"])).subquery())
+            subqAdmin2 = (select(Instance_egaz.e_id.label("e_id"),Instance_egaz.i_id.label("i_id")).join_from(subqAdmin1,Instance_egaz, subqAdmin1.c.e_id == Instance_egaz.e_id).subquery())
+            print("subqCustom2: ",subqCustom2)
+            print("subqAdmin2: ",subqAdmin2)
+            subqU = (union(select(subqCustom2),select(subqAdmin2)).subquery())
+            stmt = stmt.join(subqU, Instances.i_id == subqU.c.i_id)     
+        
         if len(req["T_types"])>0:
             instance_filtered = True
             print(req["T_types"])
             stmt = stmt.where(Instances.t_type.in_(req["T_types"]))
 
-        '''
+        #This is at the end of instance filters because it will determine how the rest of hte 
+        if len(req["P_types"])>0:
+            instance_filtered = True
+            #Make a select subquery for each scenario. Union those relevant
+            emptySelect = (select(Stories.s_id,Instances.i_id).join(Stories.instancing).where(Instances.i_id == None).subquery())
+            if "sim definição" in req["P_types"]:
+                print("p_types include stories without instances")
+                subqNoInst = (select(Stories.s_id,Instances.i_id).join(Stories.instancing, isouter=True).where(Instances.i_id == None).subquery())
+            else:
+                subqNoInst = emptySelect
+            if "administrativo" in req["P_types"]:
+                print("includes admin types")
+                subqAdmin = (select(Stories.s_id,Instances.i_id).join(Stories.instancing).join_from(Instances, Instance_egaz, Instances.i_id == Instance_egaz.i_id).where(Instance_egaz.e_id != None).subquery())
+            else:
+                subqAdmin = emptySelect
+            if "personalizado" in req["P_types"]:
+                print("includes custom types")
+                subqCustom = (select(Stories.s_id,Instances.i_id).join(Stories.instancing).join_from(Instances, Instance_ugaz, Instances.i_id == Instance_ugaz.i_id).where(Instance_ugaz.p_id != None).subquery())
+            else:
+                subqCustom = emptySelect
+            #Create a union of the three use cases (using empty selects if they aren't present)
+            subqP = (union(select(subqNoInst),select(subqAdmin),select(subqCustom)).subquery())
+            #Join the ongoing stmt to this, so that it appropriately filters.
+            stmt = subqP.join(stmt, subqP.c.s_id == Stories.s_id)
+            print("After PType: ",stmt)
+        
+        #If no instance filters, defaultot story level filters (using the left join)
         if instance_filtered is False:
-            stmt = select(Stories) #In the event of no instances filtering, this returns to only story filtering (including any stories without instances)
+            print("No instance filters applied")
+            stmt = stmtLeft
+        else:
+            print("Instance filters applied")
+            is_filtered = True
         
         ### STORY LEVEL FILTERS ###
         if len(req["Tags"])>0:
@@ -160,19 +171,16 @@ def explore():
         if len(req["Sections"])>0:
             story_filtered = True
             print(req["Sections"])
-            #stmt = stmt.where(func.lower(Stories.section).in_(req["Sections"]))
             subqS = (select(Sections).where(Sections.section_name.in_(req["Sections"])).subquery())
             stmt = stmt.join(Sectioning, Stories.s_id == Sectioning.story_id).join(subqS, Sectioning.s_id == subqS.c.section_id)
         if len(req["Authors"])>0:
             story_filtered = True
             print(req["Authors"])
-            #stmt = stmt.where(func.lower(Stories.author).in_(req["Authors"]))
             subqA = (select(Authors).where(Authors.author_name.in_(req["Authors"])).subquery())
             stmt = stmt.join(Authoring, Stories.s_id == Authoring.story_id).join(subqA, Authoring.a_id == subqA.c.author_id)
         if len(req["Publications"])>0:
             story_filtered = True
             print(req["Publications"]) 
-            #stmt = stmt.where(func.lower(Stories.publication).in_(req["Publications"]))
             subqP = (select(Publications).where(Publications.publication_name.in_(req["Publications"])).subquery())
             stmt = stmt.join(Publicationing, Stories.s_id == Publicationing.story_id).join(subqP, Publicationing.p_id == subqP.c.publication_id)
         if req["pubDateFilterMax"] == True:
@@ -186,80 +194,38 @@ def explore():
         #    print("Date range: all")
 
         
+        if story_filtered is True:
+            print("Story filters applied")
+            is_filtered = True
 
-        
-
-        if instance_filtered is True:
-            print("Filtered instances")
-            print("Final STMT: ",stmt)
-            results = session.scalars(stmt).all()
-            for result in results:
-                print(result)
-                if result.i_id not in i_ids:
-                    i_ids.append(result.i_id)
-                if result.s_id not in s_ids:
-                    s_ids.append(result.s_id)
-            print("S_IDS (",len(s_ids),"): ",s_ids," I_IDS(",len(i_ids),"): ",i_ids)
-        
-
-        elif story_filtered is True:
-            print("No instance filters")
-            results = session.scalars(stmt).all()
-            for result in results:
-                if result.s_id not in s_ids:
-                    s_ids.append(result.s_id)
-                else:
-                    dupS += 1
-            if len(s_ids)>0:
-                subqS = (stmt.subquery())
-                stmt2 = select(Instances).join(subqS, Instances.s_id == subqS.c.s_id)
-                results2 = session.scalars(stmt2).all()
-                s_ids2 = []
-                for result in results2:
-                    #print("I_ID: ",result.i_id,", S_ID: ",result.s_id)
-                    if result.i_id not in i_ids:
-                        i_ids.append(result.i_id)
-                    if result.s_id not in s_ids2:
-                        s_ids2.append(result.s_id) #This is unnecessary if no instances are being filtered
-                print("S_IDS (",len(s_ids),"): ",s_ids," I_IDS(",len(i_ids),"): ",i_ids," S_IDS2(",len(s_ids2),"): ", s_ids2)
-        
-
-
-        ### INSTANCE LEVEL FILTERS ###
-        #stmt = stmt.join(Stories, Instances.s_id == Stories.s_id) #This loses stories without instances
-        '''
-        #query = (select(*Stories.__table__.columns, *Instances.__table__.columns).select_from(stmt).subquery())
-        query = (select(Stories.s_id,Instances.i_id).select_from(stmt).subquery())
-        print("query: ",query)
+        #If filters have been activated:
         if is_filtered is True:
-            #results = (session.scalars(*Stories.__table__.columns, *Instances.__table__.columns).select_from(stmt)).all()
-            results = session.query(query).all()
+            print("executing filtering statement")
+            results = session.execute(stmt)
+            # results = session.scalars(stmt).all()
+            count = 0
             for result in results:
-                print("Result: ",result.s_id," , ",result.i_id)
-                
-                if result.s_id not in s_ids:
-                    s_ids.append(result.s_id)
+                count +=1
+                print ("Story: ",result.Stories)
+                if result.Stories.s_id not in s_ids:
+                    s_ids.append(result.Stories.s_id)
                 else:
                     dupS += 1
-                #for inst in result.instances:
-                #    print(inst.i_id)
-                if result.i_id:
-                    if result.id not in i_ids:
-                        i_ids.append(result.i_id)
-                    else:
-                        dupI += 1
+                if result.Instances.i_id:
+                    print("Instance: ",result.Instances)
+                    if result.Instances.i_id not in i_ids:
+                        i_ids.append(result.Instances.i_id)
+
                 else:
-                    print(result.s_id," does not have any associated instances")
-                    noInst.append(result.s_id)
-                
-            print("s_ids (",len(s_ids),"): ", s_ids)
-            print("i_ids (",len(i_ids),"): ",i_ids)
-        print("dupS: ",dupS,". dupI: ",dupI)
-        '''
+                    print("no instance")
+            print("Number of results: ",count,", # s_ids: ",len(s_ids),", # i_ids: ", len(i_ids))
+        
         response["sIDs"] = s_ids 
         response["iIDs"] = i_ids
         print("response: ",response)
         return make_response(jsonify(response),200)
+
+    #INITIATING MAP EXPLORE PAGE
     else:
         #Getting values for user filtering
         try:
@@ -332,9 +298,7 @@ def explore():
             p_types["administrativo"]["total_s"] = len(p_types["administrativo"]["s_ids"])  
             p_types["administrativo"]["total_i"] = len(p_types["administrativo"]["i_ids"])
             print("i_range: ",i_range)
-            #sections = sorted(sections.items())
-            #authors = sorted(authors.items())
-            publications = sorted(publications.items())
+                       
             t_types = sorted(t_types.items())
             pub_dates = sorted(pub_dates.items())
             pub_date_range = {
@@ -361,7 +325,7 @@ def explore():
             tags = {}
             try:
                 with engine.connect() as conn:
-                    SQL = text("SELECT t.t_id, tags.tag_name, count FROM (SELECT t_id, count(*) FROM apregoar.tagging GROUP BY t_id) t LEFT JOIN apregoar.tags on t.t_id = tags.tag_id ORDER BY count DESC")
+                    SQL = text("SELECT t.t_id, tags.tag_name, count FROM (SELECT t_id, count(*) FROM apregoar.tagging GROUP BY t_id) t LEFT JOIN apregoar.tags on t.t_id = tags.tag_id ORDER BY tag_name")
                     result = conn.execute(SQL)
             except: 
                 conn.close()
@@ -379,7 +343,7 @@ def explore():
             sections = {}
             try:
                 with engine.connect() as conn:
-                    SQL = text("SELECT s.s_id, sections.section_name, count FROM (SELECT s_id, count(*) FROM apregoar.sectioning GROUP BY s_id) s LEFT JOIN apregoar.sections on s.s_id = sections.section_id ORDER BY count DESC")
+                    SQL = text("SELECT s.s_id, sections.section_name, count FROM (SELECT s_id, count(*) FROM apregoar.sectioning GROUP BY s_id) s LEFT JOIN apregoar.sections on s.s_id = sections.section_id ORDER BY section_name")
                     result = conn.execute(SQL)
             except: 
                 conn.close()
@@ -393,7 +357,7 @@ def explore():
             authors = {}
             try:
                 with engine.connect() as conn:
-                    SQL = text("SELECT a.a_id, authors.author_name, count FROM (SELECT a_id, count(*) FROM apregoar.authoring GROUP BY a_id) a LEFT JOIN apregoar.authors on a.a_id = authors.author_id ORDER BY count DESC")
+                    SQL = text("SELECT a.a_id, authors.author_name, count FROM (SELECT a_id, count(*) FROM apregoar.authoring GROUP BY a_id) a LEFT JOIN apregoar.authors on a.a_id = authors.author_id ORDER BY author_name")
                     result = conn.execute(SQL)
             except: 
                 conn.close()
@@ -407,7 +371,7 @@ def explore():
             publications = {}
             try:
                 with engine.connect() as conn:
-                    SQL = text("SELECT p.p_id, publications.publication_name, count FROM (SELECT p_id, count(*) FROM apregoar.publicationing GROUP BY p_id) p LEFT JOIN apregoar.publications on p.p_id = publications.publication_id ORDER BY count DESC")
+                    SQL = text("SELECT p.p_id, publications.publication_name, count FROM (SELECT p_id, count(*) FROM apregoar.publicationing GROUP BY p_id) p LEFT JOIN apregoar.publications on p.p_id = publications.publication_id ORDER BY publication_name")
                     result = conn.execute(SQL)
             except: 
                 conn.close()
