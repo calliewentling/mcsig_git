@@ -637,7 +637,6 @@ function filterAllVals(){
                 instanceResults.innerHTML=`<p>Sim instâncias</p>`;
                 storyResults.innerHTML=`<p>Sim histórias</p>`;
             }
-            
         })
     })
     //Connect to python for dynamic filtering. Return SIDs, search these in OL (OR WFS) and load.
