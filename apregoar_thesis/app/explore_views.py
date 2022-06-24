@@ -106,8 +106,9 @@ def explore():
         instance_filtered = False
         is_filtered = False
         #The default stmt is an inner join between Stories and Instancs, followed by if statements that will allow the filtering to stories with instances (unless otherwise specified). In the event that no isntance filters are applied, the stmt will change to a stmtLeft which includes an outer join, such that stories without instances will be included as well.
+        #stmtBase = select(Stories,Instances).join(Stories.instancing).order_by(Stories.s_id, Instances.i_id)
         stmtBase = select(Stories, Instances).join(Stories.instancing).order_by(Stories.s_id,Instances.i_id)
-        stmt = stmtBase
+        stmtI = stmtBase
         stmtLeft = select(Stories, Instances).join(Stories.instancing, isouter=True).order_by(Stories.s_id,Instances.i_id)
         
         if len(req["E_names"])>0:
@@ -122,156 +123,122 @@ def explore():
             print("subqCustom2: ",subqCustom2)
             print("subqAdmin2: ",subqAdmin2)
             subqU = (union(select(subqCustom2),select(subqAdmin2)).subquery())
-            stmt = stmt.join(subqU, Instances.i_id == subqU.c.i_id)     
+            stmtI = stmtI.join(subqU, Instances.i_id == subqU.c.i_id)     
         
         if len(req["T_types"])>0:
             instance_filtered = True
             print(req["T_types"])
-            stmt = stmt.where(Instances.t_type.in_(req["T_types"]))
+            stmtI = stmtI.where(Instances.t_type.in_(req["T_types"]))
 
         #This is at the end of instance filters so that it takes all current instance filters into account 
+        ptype_filtered = False
         if len(req["P_types"])>0:
+            ptype_filtered = True
             instance_filtered = True
             #Make a select subquery for each scenario. Union those relevant
-            emptySelect = (stmtBase.where(Instances.i_id == None).subquery())
-            subqBase = stmt.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id).join(Instance_ugaz, Instances.i_id == Instance_ugaz.i_id)
-
-            """
-            #THIS IS FUNCTIONALISH (works for admin, not for personalizado)
-            if "sim definição" in req["P_types"]:
-                print("p_types include stories without instances")
-                subqNoInst = (select(Stories.s_id,Instances.i_id).join(Stories.instancing, isouter=True).where(Instances.i_id == None).subquery())
-            else:
-                print("No 'sim definição' filter")
-                subqNoInst = emptySelect
-            if "administrativo" in req["P_types"]:
-                print("includes admin types")
-                subqAdmin = (stmt.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id).where(Instance_egaz.e_id != None).subquery())
-            else:
-                print("No Admin fitler")
-                subqAdmin = emptySelect
-            if "personalizado" in req["P_types"]:
-                print("includes custom types")
-                subqCustom = (stmt.join(Instance_ugaz, Instances.i_id == Instance_ugaz.i_id).where(Instance_ugaz.p_id != None).subquery())
-            else:
-                print("No custom filter")
-                subqCustom = emptySelect
-            #Create a union of the three use cases (using empty selects if they aren't present)
-            #subqP = (union(select(subqNoInst),select(subqAdmin),select(subqCustom)).subquery())
-            print("Commencing union")
-            subqU = (union(select(subqNoInst.c.s_id,subqNoInst.c.i_id),select(subqAdmin.c.s_id,subqAdmin.c.i_id),select(subqCustom.c.s_id,subqAdmin.c.i_id)).subquery())
-
-
-            print("Joining to base")
-            stmt = stmtBase.join(subqU, Stories.s_id == subqU.c.s_id)
-            #Join the ongoing stmt to this, so that it appropriately filters.
-            #stmt = subqP.join(stmt, Stories.s_id == stmt.s_id, isouter = True)
-            print("After PType: ",stmt)
-            """
-            """
-            if "sim definição" in req["P_types"]:
-                subqNoInst = (select(Stories, Instances).join(Stories.instancing, isouter=True).order_by(Stories.s_id,Instances.i_id).where(Instances.i_id.is_(None)).subquery())
-                if "administrativo" in req["P_types"]:
-                    if "personalizado" in req["P_types"]:
-                        print("Union all three")
-                        subqBase = stmt.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id, isouter=True).join(Instance_ugaz, Instances.i_id == Instance_ugaz.i_id, isouter=True).where(or_(Instance_egaz.e_id != None,Instance_ugaz.p_id !=None))
-                    else:
-                        print("Only uion sem and admin")
-                        subqBase = stmt.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id, isouter=True).where(Instance_egaz.e_id != None)
-                    subqUnion = (union(select(subqNoInst.c.s_id,subqNoInst.c.i_id),select(subqBase.c.s_id,subqBase.c.i_id)).subquery())
-                    stmt = stmtBase.join(subqUnion, Stories.s_id == subqUnion.c.s_id) #why was this subqU only?
-                elif "personalizado" in req["P_types"]:
-                    print("Union none and custom")
-                    subqBase = stmt.join(Instance_ugaz, Instances.i_id == Instance_ugaz.i_id, isouter=True).where(Instance_ugaz.p_id !=None)
-                    subqUnion = (union(select(subqNoInst.c.s_id,subqNoInst.c.i_id),select(subqBase.c.s_id,subqBase.c.i_id)).subquery())
-                    stmt = stmtBase.join(subqUnion, Stories.s_id == subqUnion.c.s_id) #why was this subqU only?
-                else:
-                    stmt = select(Stories, Instances).join(Stories.instancing, isouter=True).order_by(Stories.s_id,Instances.i_id).where(Instances.i_id.is_(None))
-            elif "administrativo" in req["P_types"]:
-                if "personalizado" in req["P_types"]:
-                    stmt = stmt.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id, isouter=True).join(Instance_ugaz, Instances.i_id == Instance_ugaz.i_id, isouter=True).where(or_(Instance_egaz.e_id != None,Instance_ugaz.p_id !=None))
-                else:
-                    stmt = stmt.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id, isouter=True).where(Instance_egaz.e_id != None)
-            else:
-                stmt = stmt.join(Instance_ugaz, Instances.i_id == Instance_ugaz.i_id, isouter=True).where(Instance_ugaz.p_id !=None)
-            """
-            
-            stmt = stmt.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id, isouter=True).join(Instance_ugaz,Instances.i_id==Instance_ugaz.i_id,isouter=True)
+            subqBase = stmtI.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id).join(Instance_ugaz, Instances.i_id == Instance_ugaz.i_id)
+            p_type_mixed = False
+            p_type_sem = False
+            stmtP = stmtI.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id, isouter=True).join(Instance_ugaz,Instances.i_id==Instance_ugaz.i_id,isouter=True)
             if "sem lugares" in req["P_types"]:
                 #subqNoInst = select(Stories, Instances).join(Stories.instancing, isouter=True).join(Instance_ugaz,Instances.i_id == Instance_ugaz.i_id,isouter=True).join(Instance_egaz,Instances.i_id ==Instance_egaz.i_id, isouter=True).order_by(Stories.s_id,Instances.i_id).where(Instances.i_id.is_(None))
                 subqNoInst = select(Stories, Instances).join(Stories.instancing, isouter=True).order_by(Stories.s_id,Instances.i_id).where(Instances.i_id.is_(None))
                 if "administrativo" in req["P_types"]:
+                    p_type_mixed = True
                     if "personalizado" in req["P_types"]:
                         print("sem definição, administrativo, personalizado")
-                        subqBase = stmt.where(or_(Instance_egaz.e_id != None,Instance_ugaz.p_id !=None))
+                        subqBase = stmtP.where(or_(Instance_egaz.e_id != None,Instance_ugaz.p_id !=None))
                     else:
                         print("Sem definição, administrativo")
-                        subqBase = stmt.where(Instance_egaz.e_id != None)
-                    subqUnion = (union(select(subqNoInst.c.s_id,subqNoInst.c.i_id),select(subqBase.c.s_id,subqBase.c.i_id)).subquery())
-                    stmt = stmtBase.join(subqUnion, (Stories.s_id == subqUnion.c.s_id) & (Instances.i_id == subqUnion.c.i_id)) #wMISSING SORIES WIHOUT INSTANCES, THERE ARE GETTING LOST IN THE JOIN
+                        subqBase = stmtP.where(Instance_egaz.e_id != None)
                 elif "personalizado" in req["P_types"]:
                     print("Sem definição, personalizado")
-                    subqBase = stmt.where(Instance_ugaz.p_id !=None)
-                    subqUnion = (union(select(subqNoInst.c.s_id,subqNoInst.c.i_id),select(subqBase.c.s_id,subqBase.c.i_id)).subquery())
-                    stmt = stmtBase.join(subqUnion, (Stories.s_id == subqUnion.c.s_id) & (Instances.i_id == subqUnion.c.i_id)) #MISSING STORIES WITHOUT INSTANCES; GETTING LOST IN THE JOIN
+                    p_type_mixed = True
+                    subqBase = stmtP.where(Instance_ugaz.p_id !=None)  
                 else:
                     print("sem definição")
-                    stmt = subqNoInst
+                    instance_filtered = False
+                    p_type_sem = True
             elif "administrativo" in req["P_types"]:
                 if "personalizado" in req["P_types"]:
                     print("Administrativo, personalizado")
-                    stmt = stmt.where(or_(Instance_egaz.e_id != None,Instance_ugaz.p_id !=None))
+                    stmtP = (stmtP.where(or_(Instance_egaz.e_id != None,Instance_ugaz.p_id !=None)).subquery())
                 else:
                     print("Administrativo")
-                    stmt = stmt.where(Instance_egaz.e_id != None)
+                    stmtP = (stmtP.where(Instance_egaz.e_id != None).subquery())
             else:
                 print("Personalizado")
-                stmt = stmt.where(Instance_ugaz.p_id !=None)    
+                stmtP = (stmtP.where(Instance_ugaz.p_id !=None).subquery())    
 
         #If no """instance filters, defaultot story level filters (using the left join)
         if instance_filtered is False:
             print("No instance filters applied")
-            stmt = stmtLeft
         else:
             print("Instance filters applied")
             is_filtered = True
+            #stmtI = (stmtI.subquery())
         
         ### STORY LEVEL FILTERS ###
+        stmtS = stmtLeft
         if len(req["Tags"])>0:
             story_filtered = True
             print(req["Tags"])
             subqT = (select(Tags).where(Tags.tag_name.in_(req["Tags"])).subquery())
-            stmt = stmt.join(Tagging, Stories.s_id == Tagging.story_id).join(subqT, Tagging.t_id == subqT.c.tag_id)
-            print("STMT after Tags: ",stmt)        
+            stmtS = stmtS.join(Tagging, Stories.s_id == Tagging.story_id).join(subqT, Tagging.t_id == subqT.c.tag_id)
+            #print("STMT after Tags: ",stmtS)        
         if len(req["Sections"])>0:
             story_filtered = True
             print(req["Sections"])
             subqS = (select(Sections).where(Sections.section_name.in_(req["Sections"])).subquery())
-            stmt = stmt.join(Sectioning, Stories.s_id == Sectioning.story_id).join(subqS, Sectioning.s_id == subqS.c.section_id)
+            stmtS = stmtS.join(Sectioning, Stories.s_id == Sectioning.story_id).join(subqS, Sectioning.s_id == subqS.c.section_id)
         if len(req["Authors"])>0:
             story_filtered = True
             print(req["Authors"])
             subqA = (select(Authors).where(Authors.author_name.in_(req["Authors"])).subquery())
-            stmt = stmt.join(Authoring, Stories.s_id == Authoring.story_id).join(subqA, Authoring.a_id == subqA.c.author_id)
+            stmtS = stmtS.join(Authoring, Stories.s_id == Authoring.story_id).join(subqA, Authoring.a_id == subqA.c.author_id)
         if len(req["Publications"])>0:
             story_filtered = True
             print(req["Publications"]) 
             subqP = (select(Publications).where(Publications.publication_name.in_(req["Publications"])).subquery())
-            stmt = stmt.join(Publicationing, Stories.s_id == Publicationing.story_id).join(subqP, Publicationing.p_id == subqP.c.publication_id)
+            stmtS = stmtS.join(Publicationing, Stories.s_id == Publicationing.story_id).join(subqP, Publicationing.p_id == subqP.c.publication_id)
         if req["pubDateFilterMax"] == True:
             if req["pubDateFilterMin"] == True:
                 story_filtered = True
                 print("Date range: ",req["pubDateR1"]," - ",req["pubDateR2"])
                 print(type(req["pubDateR2"]))
-                stmt = stmt.where(Stories.pub_date.between(req["pubDateR1"],req["pubDateR2"][0:11]+"23:59:59.999Z"))
+                stmtS = stmtS.where(Stories.pub_date.between(req["pubDateR1"],req["pubDateR2"][0:11]+"23:59:59.999Z"))
         #if req["pubDateFilter"] == False:
         #    is_filtered = True
         #    print("Date range: all")
+
+        if req["pNameSearch"] is not None:
+            print("pNameSearch: ",req["pNameSearch"]) 
 
         
         if story_filtered is True:
             print("Story filters applied")
             is_filtered = True
+
+        if ptype_filtered is True:
+            is_filtered = True
+            if p_type_mixed == True:
+                subqUnion = (union(select(subqNoInst.c.s_id,subqNoInst.c.i_id),select(subqBase.c.s_id,subqBase.c.i_id)).subquery())
+                stmt = stmtS.join(subqUnion, (Stories.s_id == subqUnion.c.s_id) & (func.coalesce(Instances.i_id,0) == func.coalesce(subqUnion.c.i_id,0))) #MISSING STORIES WITHOUT INSTANCES; GETTING LOST IN THE JOIN                  
+            elif p_type_sem == True:
+                stmt = stmtS.where(Instances.i_id.is_(None))
+            else: #IF NOT MIXED; NOT SEM DEFINITION
+                stmt = stmtS.join(stmtP, Instances.i_id == stmtP.c.i_id) #THIS INS'T WORKING NOW
+        elif story_filtered is True:
+            is_filtered = True
+            if instance_filtered is True:
+                stmtI = (stmtI.subquery())
+                stmt = stmtS.join(stmtI, Instances.i_id == stmtI.c.i_id)
+            else:
+                stmt = stmtS
+        elif instance_filtered is True:
+            is_filtered = True
+            stmt = stmtI
+
 
         #If filters have been activated:
         if is_filtered is True:
@@ -283,9 +250,10 @@ def explore():
                 count +=1
                 #print ("Story: ",result.Stories)
                 if result.Stories.s_id not in s_ids:
+                    #print("SID: ",result.Stories.s_id)
                     s_ids.append(result.Stories.s_id)
                     stories[result.Stories.s_id] = {
-                        "pub_date": result.Stories.pub_date,
+                        "pub_date": str(result.Stories.pub_date),
                         "tags": result.Stories.tags,
                         "section": result.Stories.section,
                         "publication": result.Stories.publication,
@@ -298,8 +266,8 @@ def explore():
                     if result.Instances.i_id not in i_ids:
                         i_ids.append(result.Instances.i_id)
                         stories[result.Stories.s_id][result.Instances.i_id] = {
-                            "t_begin": result.Instances.t_begin,
-                            "t_end": result.Instances.t_end,
+                            "t_begin": str(result.Instances.t_begin),
+                            "t_end": str(result.Instances.t_end),
                             "t_type": result.Instances.t_type,
                             "p_desc": result.Instances.p_desc,
                             "p_name": result.Instances.p_name
@@ -310,11 +278,15 @@ def explore():
         
         response["sIDs"] = s_ids 
         response["iIDs"] = i_ids
-        #response["stories"] = stories
-        #print("response: ",response)
-        return make_response(jsonify(response),200)
+        response["stories"] = stories
+        response = json.dumps(response)
+        print("response: ",response)
+        return make_response(response,200)
 
-    #INITIATING MAP EXPLORE PAGE
+#####################################
+########  INITIATING MAP EXPLORE PAGE
+#####################################
+
     else:
         #Getting values for user filtering
         try:
