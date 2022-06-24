@@ -634,8 +634,8 @@ function filterAllVals(){
                 map.removeLayer(filteredLayer);
                 map.addLayer(recentLayer);
                 recentResults.style.display = "block";
-                instanceResults.innerHTML=`<p>Sim instâncias</p>`;
-                storyResults.innerHTML=`<p>Sim histórias</p>`;
+                instanceResults.innerHTML=`<p>Sem lugares</p>`;
+                storyResults.innerHTML=`<p>Sem histórias</p>`;
             }
         })
     })

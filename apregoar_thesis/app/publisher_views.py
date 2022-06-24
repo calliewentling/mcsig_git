@@ -692,7 +692,7 @@ def emptyAttribute(attr,s_id,con):
         con.close()
         return render_template("publisher/create.html")
     else:
-        print("Successful association to '*sim valor' of "+attr)
+        print("Successful association to '*sem valor' of "+attr)
 
 
 #########################

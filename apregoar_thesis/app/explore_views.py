@@ -55,9 +55,9 @@ session = Session(engine)
 def cleanLists(list_in, s_id, i_id,list_out):
     for item in list_in:
         if not item:
-            item = "*sim valor"
+            item = "*sem valor"
         if item == " ":
-            item = "*sim valor"
+            item = "*sem valor"
         #print(item," - ",type(item))
         if isinstance(item,str):
             item_p = item.strip().lower()
@@ -168,34 +168,67 @@ def explore():
             #stmt = subqP.join(stmt, Stories.s_id == stmt.s_id, isouter = True)
             print("After PType: ",stmt)
             """
-
+            """
             if "sim definição" in req["P_types"]:
                 subqNoInst = (select(Stories, Instances).join(Stories.instancing, isouter=True).order_by(Stories.s_id,Instances.i_id).where(Instances.i_id.is_(None)).subquery())
                 if "administrativo" in req["P_types"]:
                     if "personalizado" in req["P_types"]:
                         print("Union all three")
-                        subqBase = stmt.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id).join(Instance_ugaz, Instances.i_id == Instance_ugaz.i_id).where(or_(Instance_egaz.e_id != None,Instance_ugaz.p_id !=None))
+                        subqBase = stmt.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id, isouter=True).join(Instance_ugaz, Instances.i_id == Instance_ugaz.i_id, isouter=True).where(or_(Instance_egaz.e_id != None,Instance_ugaz.p_id !=None))
                     else:
                         print("Only uion sem and admin")
-                        subqBase = stmt.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id).where(Instance_egaz.e_id != None)
+                        subqBase = stmt.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id, isouter=True).where(Instance_egaz.e_id != None)
                     subqUnion = (union(select(subqNoInst.c.s_id,subqNoInst.c.i_id),select(subqBase.c.s_id,subqBase.c.i_id)).subquery())
                     stmt = stmtBase.join(subqUnion, Stories.s_id == subqUnion.c.s_id) #why was this subqU only?
                 elif "personalizado" in req["P_types"]:
                     print("Union none and custom")
-                    subqBase = stmt.join(Instance_ugaz, Instances.i_id == Instance_ugaz.i_id).where(Instance_ugaz.p_id !=None)
+                    subqBase = stmt.join(Instance_ugaz, Instances.i_id == Instance_ugaz.i_id, isouter=True).where(Instance_ugaz.p_id !=None)
                     subqUnion = (union(select(subqNoInst.c.s_id,subqNoInst.c.i_id),select(subqBase.c.s_id,subqBase.c.i_id)).subquery())
                     stmt = stmtBase.join(subqUnion, Stories.s_id == subqUnion.c.s_id) #why was this subqU only?
                 else:
                     stmt = select(Stories, Instances).join(Stories.instancing, isouter=True).order_by(Stories.s_id,Instances.i_id).where(Instances.i_id.is_(None))
             elif "administrativo" in req["P_types"]:
                 if "personalizado" in req["P_types"]:
-                    stmt = stmt.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id).join(Instance_ugaz, Instances.i_id == Instance_ugaz.i_id).where(or_(Instance_egaz.e_id != None,Instance_ugaz.p_id !=None))
+                    stmt = stmt.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id, isouter=True).join(Instance_ugaz, Instances.i_id == Instance_ugaz.i_id, isouter=True).where(or_(Instance_egaz.e_id != None,Instance_ugaz.p_id !=None))
                 else:
-                    stmt = stmt.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id).where(Instance_egaz.e_id != None)
+                    stmt = stmt.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id, isouter=True).where(Instance_egaz.e_id != None)
             else:
-                stmt = stmt.join(Instance_ugaz, Instances.i_id == Instance_ugaz.i_id).where(Instance_ugaz.p_id !=None)
-        
-        #If no instance filters, defaultot story level filters (using the left join)
+                stmt = stmt.join(Instance_ugaz, Instances.i_id == Instance_ugaz.i_id, isouter=True).where(Instance_ugaz.p_id !=None)
+            """
+            
+            stmt = stmt.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id, isouter=True).join(Instance_ugaz,Instances.i_id==Instance_ugaz.i_id,isouter=True)
+            if "sem lugares" in req["P_types"]:
+                #subqNoInst = select(Stories, Instances).join(Stories.instancing, isouter=True).join(Instance_ugaz,Instances.i_id == Instance_ugaz.i_id,isouter=True).join(Instance_egaz,Instances.i_id ==Instance_egaz.i_id, isouter=True).order_by(Stories.s_id,Instances.i_id).where(Instances.i_id.is_(None))
+                subqNoInst = select(Stories, Instances).join(Stories.instancing, isouter=True).order_by(Stories.s_id,Instances.i_id).where(Instances.i_id.is_(None))
+                if "administrativo" in req["P_types"]:
+                    if "personalizado" in req["P_types"]:
+                        print("sem definição, administrativo, personalizado")
+                        subqBase = stmt.where(or_(Instance_egaz.e_id != None,Instance_ugaz.p_id !=None))
+                    else:
+                        print("Sem definição, administrativo")
+                        subqBase = stmt.where(Instance_egaz.e_id != None)
+                    subqUnion = (union(select(subqNoInst.c.s_id,subqNoInst.c.i_id),select(subqBase.c.s_id,subqBase.c.i_id)).subquery())
+                    stmt = stmtBase.join(subqUnion, (Stories.s_id == subqUnion.c.s_id) & (Instances.i_id == subqUnion.c.i_id)) #wMISSING SORIES WIHOUT INSTANCES, THERE ARE GETTING LOST IN THE JOIN
+                elif "personalizado" in req["P_types"]:
+                    print("Sem definição, personalizado")
+                    subqBase = stmt.where(Instance_ugaz.p_id !=None)
+                    subqUnion = (union(select(subqNoInst.c.s_id,subqNoInst.c.i_id),select(subqBase.c.s_id,subqBase.c.i_id)).subquery())
+                    stmt = stmtBase.join(subqUnion, (Stories.s_id == subqUnion.c.s_id) & (Instances.i_id == subqUnion.c.i_id)) #MISSING STORIES WITHOUT INSTANCES; GETTING LOST IN THE JOIN
+                else:
+                    print("sem definição")
+                    stmt = subqNoInst
+            elif "administrativo" in req["P_types"]:
+                if "personalizado" in req["P_types"]:
+                    print("Administrativo, personalizado")
+                    stmt = stmt.where(or_(Instance_egaz.e_id != None,Instance_ugaz.p_id !=None))
+                else:
+                    print("Administrativo")
+                    stmt = stmt.where(Instance_egaz.e_id != None)
+            else:
+                print("Personalizado")
+                stmt = stmt.where(Instance_ugaz.p_id !=None)    
+
+        #If no """instance filters, defaultot story level filters (using the left join)
         if instance_filtered is False:
             print("No instance filters applied")
             stmt = stmtLeft
@@ -313,7 +346,7 @@ def explore():
                     "i_ids": [],
                     "total_i": 0,
                 },
-                "sim definição": {
+                "sem lugares": {
                     "s_ids": [],
                     "total_s": 0,
                 }
@@ -328,7 +361,7 @@ def explore():
                 t_types = cleanLists(list_in = [row["t_type"]], s_id = row["s_id"],i_id=row["i_id"],list_out = t_types)
                 pub_dates = cleanLists(list_in = [row["pub_date"]], s_id = row["s_id"],i_id=row["i_id"],list_out = pub_dates)
                 if not row["i_id"]:
-                    p_types["sim definição"]["s_ids"].append(row["s_id"])
+                    p_types["sem lugares"]["s_ids"].append(row["s_id"])
                 else: 
                     if row["p_id"]:
                         if row["s_id"] not in p_types["personalizado"]["s_ids"]:
@@ -345,7 +378,7 @@ def explore():
                         if i_range["i_end"] < row["t_end"]:
                             i_range["i_end"] = row["t_end"]
             #Calculate all lengths of lists: 
-            p_types["sim definição"]["total_s"]=len(p_types["sim definição"]["s_ids"])
+            p_types["sem lugares"]["total_s"]=len(p_types["sem lugares"]["s_ids"])
             p_types["personalizado"]["total_s"] = len(p_types["personalizado"]["s_ids"])
             p_types["personalizado"]["total_i"] = len(p_types["personalizado"]["i_ids"])
             p_types["administrativo"]["total_s"] = len(p_types["administrativo"]["s_ids"])  
