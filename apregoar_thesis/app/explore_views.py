@@ -111,6 +111,7 @@ def explore():
         stmtI = stmtBase
         stmtLeft = select(Stories, Instances).join(Stories.instancing, isouter=True).order_by(Stories.s_id,Instances.i_id)
         
+
         if len(req["E_names"])>0:
             instance_filtered = True
             print(req["E_names"])
@@ -129,6 +130,7 @@ def explore():
             instance_filtered = True
             print(req["T_types"])
             stmtI = stmtI.where(Instances.t_type.in_(req["T_types"]))
+        
 
         #This is at the end of instance filters so that it takes all current instance filters into account 
         ptype_filtered = False
@@ -207,13 +209,16 @@ def explore():
                 print("Date range: ",req["pubDateR1"]," - ",req["pubDateR2"])
                 print(type(req["pubDateR2"]))
                 stmtS = stmtS.where(Stories.pub_date.between(req["pubDateR1"],req["pubDateR2"][0:11]+"23:59:59.999Z"))
+        
         #if req["pubDateFilter"] == False:
         #    is_filtered = True
         #    print("Date range: all")
 
         if req["pNameSearch"] is not None:
             print("pNameSearch: ",req["pNameSearch"]) 
-
+            instance_filtered = True
+            story_filtered = True
+            search_filtered = True
         
         if story_filtered is True:
             print("Story filters applied")
@@ -227,7 +232,7 @@ def explore():
             elif p_type_sem == True:
                 stmt = stmtS.where(Instances.i_id.is_(None))
             else: #IF NOT MIXED; NOT SEM DEFINITION
-                stmt = stmtS.join(stmtP, Instances.i_id == stmtP.c.i_id) #THIS INS'T WORKING NOW
+                stmt = stmtS.join(stmtP, Instances.i_id == stmtP.c.i_id)
         elif story_filtered is True:
             is_filtered = True
             if instance_filtered is True:
@@ -239,6 +244,19 @@ def explore():
             is_filtered = True
             stmt = stmtI
 
+        if search_filtered is True:
+            #Doing this after all other filtering
+            pNameSearch = "%{}%".format(req["pNameSearch"].lower())
+            subqEgaz = (select(Egazetteer).where(func.lower(Egazetteer.name).like(pNameSearch)).subquery())
+            subqEgaz2 = (select(Instance_egaz.i_id).join(subqEgaz,Instance_egaz.e_id==subqEgaz.c.e_id).subquery())
+            subqUgaz = (select(Ugazetteer).where(or_(func.lower(Ugazetteer.p_name).like(pNameSearch),func.lower(Ugazetteer.p_desc).like(pNameSearch))).subquery())
+            subqUgaz2= (select(Instance_ugaz.i_id).join(subqUgaz, Instance_ugaz.p_id == subqUgaz.c.p_id).subquery())
+            subqInst = (select(Instances.i_id).where(func.lower(Instances.p_name).like(pNameSearch)).subquery())
+            subqU = (union(select(subqEgaz2),select(subqUgaz2),select(subqInst)).subquery())
+            stmtSearchI = (stmtBase.join(subqU, Instances.i_id == subqU.c.i_id).subquery())
+            stmtSearchS = (stmtLeft.where(or_(func.lower(Stories.title).like(pNameSearch),func.lower(Stories.summary).like(pNameSearch))).subquery())
+            subqU = (union(select(stmtSearchI.c.s_id,stmtSearchI.c.i_id), select(stmtSearchS.c.s_id,stmtSearchS.c.i_id)).subquery())
+            stmt = stmt.join(subqU, (Stories.s_id == subqU.c.s_id) & (func.coalesce(Instances.i_id,0)==func.coalesce(subqU.c.i_id,0))) 
 
         #If filters have been activated:
         if is_filtered is True:
