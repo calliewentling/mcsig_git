@@ -130,7 +130,15 @@ def explore():
             instance_filtered = True
             print(req["T_types"])
             stmtI = stmtI.where(Instances.t_type.in_(req["T_types"]))
-        
+
+        if len(req["iDateR1"])>0:
+            instance_filtered = True
+            print(req["iDateR1"])
+            stmtI = stmtI.where(Instances.t_begin >= req["iDateR1"])
+        if len(req["iDateR2"])>0:
+            instance_filtered = True
+            print(req["iDateR2"])
+            stmtI = stmtI.where(Instances.t_end <= req["iDateR2"])      
 
         #This is at the end of instance filters so that it takes all current instance filters into account 
         ptype_filtered = False
@@ -182,48 +190,45 @@ def explore():
         
         ### STORY LEVEL FILTERS ###
         stmtS = stmtLeft
+        
         if len(req["Tags"])>0:
             story_filtered = True
             print(req["Tags"])
             subqT = (select(Tags).where(Tags.tag_name.in_(req["Tags"])).subquery())
             stmtS = stmtS.join(Tagging, Stories.s_id == Tagging.story_id).join(subqT, Tagging.t_id == subqT.c.tag_id)
             #print("STMT after Tags: ",stmtS)        
+        
         if len(req["Sections"])>0:
             story_filtered = True
             print(req["Sections"])
             subqS = (select(Sections).where(Sections.section_name.in_(req["Sections"])).subquery())
             stmtS = stmtS.join(Sectioning, Stories.s_id == Sectioning.story_id).join(subqS, Sectioning.s_id == subqS.c.section_id)
+        
         if len(req["Authors"])>0:
             story_filtered = True
             print(req["Authors"])
             subqA = (select(Authors).where(Authors.author_name.in_(req["Authors"])).subquery())
             stmtS = stmtS.join(Authoring, Stories.s_id == Authoring.story_id).join(subqA, Authoring.a_id == subqA.c.author_id)
+
         if len(req["Publications"])>0:
             story_filtered = True
             print(req["Publications"]) 
             subqP = (select(Publications).where(Publications.publication_name.in_(req["Publications"])).subquery())
             stmtS = stmtS.join(Publicationing, Stories.s_id == Publicationing.story_id).join(subqP, Publicationing.p_id == subqP.c.publication_id)
-        if req["pubDateFilterMax"] == True:
-            if req["pubDateFilterMin"] == True:
-                story_filtered = True
-                print("Date range: ",req["pubDateR1"]," - ",req["pubDateR2"])
-                print(type(req["pubDateR2"]))
-                stmtS = stmtS.where(Stories.pub_date.between(req["pubDateR1"],req["pubDateR2"][0:11]+"23:59:59.999Z"))
         
-        #if req["pubDateFilter"] == False:
-        #    is_filtered = True
-        #    print("Date range: all")
-
-        if req["pNameSearch"] is not None:
+        #Pubdate filters
+        story_filtered = True
+        stmtS = stmtS.where(Stories.pub_date.between(req["pubDateR1"],req["pubDateR2"][0:11]+"23:59:59.999Z"))
+        
+       #pNameSearch filter
+        search_filtered = False
+        if req["pNameSearch"] is not "":
             print("pNameSearch: ",req["pNameSearch"]) 
             instance_filtered = True
             story_filtered = True
             search_filtered = True
-        
-        if story_filtered is True:
-            print("Story filters applied")
-            is_filtered = True
-
+    
+        #pType Filtering. Incorporates separate queries unioned for stories and instances (in a mixed context: sem definição and admin/custom)
         if ptype_filtered is True:
             is_filtered = True
             if p_type_mixed == True:
@@ -244,6 +249,7 @@ def explore():
             is_filtered = True
             stmt = stmtI
 
+        #pNameSearch filtering (part 2)
         if search_filtered is True:
             #Doing this after all other filtering
             pNameSearch = "%{}%".format(req["pNameSearch"].lower())
@@ -297,7 +303,8 @@ def explore():
         response["sIDs"] = s_ids 
         response["iIDs"] = i_ids
         response["stories"] = stories
-        response = json.dumps(response)
+        print("Stories pre dumps: ",response["stories"])
+        response = json.dumps(response, ensure_ascii=False) #Should this be True (default), then decoded on the otherside in js? Safer...
         print("response: ",response)
         return make_response(response,200)
 

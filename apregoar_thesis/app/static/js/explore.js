@@ -621,7 +621,8 @@ function filterAllVals(){
                 urlFiltered = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
                     'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
                     'cql_filter='+cqlFilter+'&'+
-                    'sortby=pub_date+D&'+
+                    //'sortby=pub_date+D&'+
+                    'sortby=area+D&'+
                     'outputFormat=application/json&srsname=EPSG:4326';
                 filteredSource = loadSourceToExplore(wfs_url=urlFiltered, loadType="filtered")
                 filteredLayer.setSource(filteredSource);// how do I define this?
