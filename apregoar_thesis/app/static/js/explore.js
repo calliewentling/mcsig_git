@@ -85,6 +85,8 @@ var allFilters = {
     "iDateFilter": false,
     "pubDateFilterMin":false,
     "pubDateFilterMax":false,
+    "boundaryPolys":[],
+    "boundaryDefinition":"containPartial",
 };
 jQuery.fn.extend({
     CreateMultiCheckBox: function (options) {
@@ -230,6 +232,25 @@ const nullStyle = new ol.style.Style({
 
 var popupSource = new ol.source.Vector();
 
+//Initiate drawMap
+var drawSource = new ol.source.Vector({wrapX: false});
+var drawVector = new ol.layer.Vector({
+    source: drawSource,
+});
+
+const drawMap = new ol.Map({
+    layers: [backDrop, drawVector], //includes basemap layer (backDrop) for consistency
+    target: 'filterMap', //create target called 'filterMap'
+    view: view, //use hte same base view as the main map ('map'). When 'map' view is updated, also setting 'filterMap'.
+});
+
+let draw = new ol.interaction.Draw({
+    source: drawSource,
+    type: "Polygon",
+    freehand: true,
+});
+drawMap.addInteraction(draw);
+
 //Get interactive areas
 var instanceResults = document.getElementById("instanceResults");
 var storyResults = document.getElementById("storyResults");
@@ -244,7 +265,6 @@ function refineFeatures(feature){
 }
 
 var maxLisbonExtent = [-9.500526607165842, 38.40907442337447,-8.490972125626802, 39.31772866134256];
-
 
 //General update of layerExtent to be called on filters
 function updateViewExtent(inputSource){
@@ -265,6 +285,7 @@ function updateViewExtent(inputSource){
     };
     console.log("new layer extent: ",filterMaxExtent);
     map.getView().fit(ol.extent.buffer(filterMaxExtent, .01));
+    drawMap.getView().fit(ol.extent.buffer(filterMaxExtent, .01));
 }
 
 //Load source. Returns 
@@ -583,6 +604,55 @@ var filteredLayer = new ol.layer.Vector({
         return filterStyle;
     },
 });
+
+//Drawing and saving custom polygons
+let polyJson = {};
+function drawResults() {
+    console.log("Begin drawResults");
+    console.log("DrawSource: ",drawSource);
+    drawFeatures = drawSource.getFeatures();
+    console.log("drawFeatures: ",drawFeatures);
+    if (drawFeatures.length > 0){
+        var allCoords = [];
+        for (let i = 0; i < drawFeatures.length; i++) {
+            geom = drawFeatures[i].getGeometry();
+            //console.log("geom ",geom);
+            coords = geom.getCoordinates()[0];
+            //console.log("coords: ",coords);
+            poly = coords
+            allCoords.push(poly);
+        }
+        var multiPoly = {
+            "type": "MultiPolygon",
+            "coordinates": allCoords
+        };
+        console.log("number of polygons: ",drawFeatures.length);
+        //console.log("multiPoly: ",multiPoly);
+        polyJson = JSON.stringify(multiPoly);
+        console.log("polyJson: ",polyJson);        
+    } else {
+        console.log("No polygons drawn");
+    };
+    return polyJson;
+}
+
+function clearDraw(){
+    console.log("Clearing drawn polygon filter")
+    allFilters["boundaryPolys"] = "";
+    drawSource.clear();
+    console.log("drawSource: ",drawSource);
+    console.log("boundarPolys: ",allFilters["boundaryPolys"]);
+}
+
+function saveDraw(){
+    var drawFType = document.querySelector('input[name="drawFType"]:checked').value;
+    console.log("drawFType: ",drawFType);
+    allFilters["boundaryDefinition"] = drawFType;
+    allFilters["boundaryPolys"] = drawResults();
+    filterAllVals();
+}
+
+//Communication with Python backend for filtering
 var sIDs = [];
 var iIDs = [];
 function filterAllVals(){
@@ -592,9 +662,9 @@ function filterAllVals(){
     map.removeLayer(recentLayer);
     map.removeLayer(filteredLayer);
     filteredSource.clear();
-    console.log("allFilters: ",allFilters);
+    //console.log("allFilters: ",allFilters);
     bodyContent = JSON.stringify(allFilters);
-    console.log("bodyContent: ",bodyContent);
+    //console.log("bodyContent: ",bodyContent);
     fetch(`${window.origin}/explore/map`, {
         method: "POST",
         credentials: "include",
@@ -642,3 +712,6 @@ function filterAllVals(){
     })
     //Connect to python for dynamic filtering. Return SIDs, search these in OL (OR WFS) and load.
 };
+
+
+

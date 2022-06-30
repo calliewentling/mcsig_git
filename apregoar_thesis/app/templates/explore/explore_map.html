@@ -119,8 +119,25 @@
             <input type="text" id="pNameSearch" placeholder="Pesquisar lugares">
         </div>
     </div>
+    <div class="filterLine">
+        <div class="filterItem">
+            <p>Filtra os resultados para lhes que as áreas desenhadas:</p>
+            <input type="radio" id="containTotal" name="drawFType" value="containTotal">
+            <label for="containTotal">Contêm completamente</label>
+            <input type="radio" id="containPartial" name="drawFType" value="containPartial" checked="checked">
+            <label for="containPartial">Contêm completamente ou partialmente</label>
+            <input type="radio" id="intersects" name="drawFType" value="intersects">
+            <label for="intersects">Contêm ou por quais são contidos </label>
+            <input type="radio" id="disjoint" name="drawFType" value="disjoint">
+            <label for="disjoint">Não correspondem</label>
+        </div>
+    </div>
     <button type="submit">Guardar</button>
 </form>
+<button id="saveFilters" onclick="saveDraw()">Guardar Filtros</button>
+<button id="limparDraw" onclick="clearDraw()">Limpar</button>
+
+<div id="filterMap" class = "map"></div>
 
 <script>
     //const pubDate1 = new Date('{{ pub_dates[0][0] }}');

@@ -25,6 +25,7 @@ import datetime
 from sqlalchemy import *
 from sqlalchemy.orm import *
 from geoalchemy2 import *
+from geoalchemy2 import Geometry
 from geoalchemy2.shape import from_shape
 import shapely
 import shapely.wkt
@@ -111,6 +112,43 @@ def explore():
         stmtI = stmtBase
         stmtLeft = select(Stories, Instances).join(Stories.instancing, isouter=True).order_by(Stories.s_id,Instances.i_id)
         
+        if len(req["boundaryPolys"]) > 0:
+            instance_filtered = True
+            print("boundaryPolys exist")
+            features = json.loads(req["boundaryPolys"])
+            multiShape=[]
+            shapeP = None
+            #Prepare feature geometry
+            all_coords = features['coordinates']
+            for i in range(len(all_coords)):
+                shape_coords = all_coords[i]
+                #print(shape_coords)
+                shapeP = Polygon(shape_coords)
+                multiShape.append(shapeP)
+            multiP = MultiPolygon(multiShape)
+            new_geom = 'SRID=4326;'+multiP.wkt
+            #Spatial filtering
+            if req["boundaryPolys"] == "containTotal":
+                print("containComplete")
+                subqUArea = (select(Instance_ugaz.i_id) .join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(func.ST_Contains(func.ST_makeValid(Ugazetteer.geom), func.ST_makeValid(func.ST_GeomFromEWKT(new_geom)))).subquery())
+                subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(func.ST_Contains(func.ST_makeValid(Egazetteer.geom),func.ST_makeValid(func.ST_GeomFromEWKT(new_geom)))).subquery())
+            elif req["boundaryPolys"] == "intersects":
+                print("intersect")
+                subqUArea = (select(Instance_ugaz.i_id).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(func.ST_Intersects(func.ST_makeValid(Ugazetteer.geom),func.ST_makeValid(func.ST_GeomFromEWKT(new_geom)))).subquery())
+                subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(func.ST_Intersects(func.ST_makeValid(Egazetteer.geom),func.ST_makeValid(func.ST_GeomFromEWKT(new_geom)))).subquery())
+            elif req["boundaryPolys"] == "disjoint":
+                print("disjoint")
+                subqUArea = (select(Instance_ugaz.i_id).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(func.ST_Disjoint(func.ST_makeValid(Ugazetteer.geom),func.ST_makeValid(func.ST_GeomFromEWKT(new_geom)))).subquery())
+                subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(func.ST_Disjoint(func.ST_makeValid(Egazetteer.geom),func.ST_makeValid(func.ST_GeomFromEWKT(new_geom)))).subquery())
+            else:
+                if req["boundaryPolys"] == "containPartial":
+                    print("containPartial")
+                else:
+                    print("no selection. defaulting to contains partial")
+                subqUArea = (select(Instance_ugaz.i_id).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(or_(func.ST_Contains(func.ST_makeValid(Ugazetteer.geom),func.ST_makeValid(func.ST_GeomFromEWKT(new_geom))),func.ST_Overlaps(func.ST_makeValid(Ugazetteer.geom),func.ST_makeValid(func.ST_GeomFromEWKT(new_geom))))).subquery())
+                subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(or_(func.ST_Contains(func.ST_makeValid(Egazetteer.geom),func.ST_makeValid(func.ST_GeomFromEWKT(new_geom))),func.ST_Overlaps(func.ST_makeValid(Egazetteer.geom),func.ST_makeValid(func.ST_GeomFromEWKT(new_geom))))).subquery())
+            subqArea = (union(select(subqUArea),select(subqEArea)).subquery())
+            stmtI = stmtI.join(subqArea,Instances.i_id == subqArea.c.i_id)
 
         if len(req["E_names"])>0:
             instance_filtered = True
@@ -222,7 +260,7 @@ def explore():
         
        #pNameSearch filter
         search_filtered = False
-        if req["pNameSearch"] is not "":
+        if req["pNameSearch"] != "":
             print("pNameSearch: ",req["pNameSearch"]) 
             instance_filtered = True
             story_filtered = True
@@ -303,7 +341,7 @@ def explore():
         response["sIDs"] = s_ids 
         response["iIDs"] = i_ids
         response["stories"] = stories
-        print("Stories pre dumps: ",response["stories"])
+        #print("Stories pre dumps: ",response["stories"])
         response = json.dumps(response, ensure_ascii=False) #Should this be True (default), then decoded on the otherside in js? Safer...
         print("response: ",response)
         return make_response(response,200)
