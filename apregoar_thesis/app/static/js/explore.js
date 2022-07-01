@@ -606,10 +606,13 @@ var filteredLayer = new ol.layer.Vector({
 });
 
 //Drawing and saving custom polygons
-let polyJson = {};
+let polyJson;
+let drawFeatures;
 function drawResults() {
     console.log("Begin drawResults");
     console.log("DrawSource: ",drawSource);
+    drawFeatures = [];
+    polyJson = {};
     drawFeatures = drawSource.getFeatures();
     console.log("drawFeatures: ",drawFeatures);
     if (drawFeatures.length > 0){
@@ -629,7 +632,8 @@ function drawResults() {
         console.log("number of polygons: ",drawFeatures.length);
         //console.log("multiPoly: ",multiPoly);
         polyJson = JSON.stringify(multiPoly);
-        console.log("polyJson: ",polyJson);        
+        console.log("polyJson: ",polyJson);
+        console.log("Adding draw vector to main map");        
     } else {
         console.log("No polygons drawn");
     };
@@ -638,16 +642,22 @@ function drawResults() {
 
 function clearDraw(){
     console.log("Clearing drawn polygon filter")
-    allFilters["boundaryPolys"] = "";
+    allFilters["boundaryPolys"] = [];
     drawSource.clear();
+    currentLayers = map.getLayers();
+    if (drawVector in currentLayers) {
+        map.removeLayer(drawVector);
+    }
+    
     console.log("drawSource: ",drawSource);
-    console.log("boundarPolys: ",allFilters["boundaryPolys"]);
+    console.log("boundaryPolys: ",allFilters["boundaryPolys"]);
 }
 
 function saveDraw(){
     var drawFType = document.querySelector('input[name="drawFType"]:checked').value;
     console.log("drawFType: ",drawFType);
     allFilters["boundaryDefinition"] = drawFType;
+    allFilters["boundaryPolys"] = [];
     allFilters["boundaryPolys"] = drawResults();
     filterAllVals();
 }
@@ -697,6 +707,9 @@ function filterAllVals(){
                 filteredSource = loadSourceToExplore(wfs_url=urlFiltered, loadType="filtered")
                 filteredLayer.setSource(filteredSource);// how do I define this?
                 map.addLayer(filteredLayer);
+                if (allFilters["boundaryPolys"].length>0){
+                    map.addLayer(drawVector);
+                }
                 recentResults.style.display = "none";
                 instanceResults.innerHTML=`<p>Instâncias: ${iIDs.length}: ${iIDs}</p>`;
                 storyResults.innerHTML=`<p>Histórias: ${sIDs.length}: ${sIDs}</p>`;

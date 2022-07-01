@@ -111,7 +111,9 @@ def explore():
         stmtBase = select(Stories, Instances).join(Stories.instancing).order_by(Stories.s_id,Instances.i_id)
         stmtI = stmtBase
         stmtLeft = select(Stories, Instances).join(Stories.instancing, isouter=True).order_by(Stories.s_id,Instances.i_id)
-        
+        print()
+        print()
+        print("New request made")
         if len(req["boundaryPolys"]) > 0:
             instance_filtered = True
             print("boundaryPolys exist")
@@ -128,27 +130,49 @@ def explore():
             multiP = MultiPolygon(multiShape)
             new_geom = 'SRID=4326;'+multiP.wkt
             #Spatial filtering
-            if req["boundaryPolys"] == "containTotal":
+            ugaz = (select(Instance_ugaz.i_id, func.ST_Union(func.ST_MakeValid(Ugazetteer.geom)).label('ugeom')).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id, isouter=True).group_by(Instance_ugaz.i_id).subquery()) #.where(Instance_ugaz.p_id != 607)
+            egaz = (select(Instance_egaz.i_id, func.ST_Union(func.ST_MakeValid(Egazetteer.geom)).label('egeom')).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id, isouter=True).group_by(Instance_egaz.i_id).subquery())
+            pregaz = (select(Instances.i_id,func.ST_Union(func.ST_MakeValid(egaz.c.egeom)).label('uegeom'),func.ST_Union(func.ST_MakeValid(ugaz.c.ugeom)).label('uugeom')).join(egaz, Instances.i_id == egaz.c.i_id, isouter=True).join(ugaz,Instances.i_id == ugaz.c.i_id, isouter=True).group_by(Instances.i_id,egaz.c.egeom,ugaz.c.ugeom).subquery())
+            allgaz = (select(pregaz.c.i_id, func.ST_Union(pregaz.c.uegeom, pregaz.c.uugeom).label('geom')).select_from(pregaz).group_by(pregaz.c.i_id,pregaz.c.uegeom,pregaz.c.uugeom).subquery())
+            #allgaz = (select(Instances.i_id, func.ST_Union(func.ST_Union(egaz.c.egeom), func.ST_Union(ugaz.c.ugeom)).label('geom')).join(egaz, Instances.i_id == egaz.c.i_id, isouter=True).join(ugaz,Instances.i_id == ugaz.c.i_id, isouter=True).group_by(Instances.i_id,egaz.c.egeom,ugaz.c.ugeom).subquery())
+            
+            
+
+
+            if req["boundaryDefinition"] == "containTotal":
                 print("containComplete")
-                subqUArea = (select(Instance_ugaz.i_id) .join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(func.ST_Contains(func.ST_makeValid(Ugazetteer.geom), func.ST_makeValid(func.ST_GeomFromEWKT(new_geom)))).subquery())
-                subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(func.ST_Contains(func.ST_makeValid(Egazetteer.geom),func.ST_makeValid(func.ST_GeomFromEWKT(new_geom)))).subquery())
-            elif req["boundaryPolys"] == "intersects":
+                subqArea = (select(allgaz.c.i_id).where(func.ST_Contains(func.ST_GeomFromEWKT(new_geom),allgaz.c.geom)).subquery())
+                #subqUArea = (select(Instance_ugaz.i_id).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(func.ST_Contains(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Ugazetteer.geom))).subquery())
+                #subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(func.ST_Contains(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Egazetteer.geom))).subquery())
+            elif req["boundaryDefinition"] == "intersects":
                 print("intersect")
-                subqUArea = (select(Instance_ugaz.i_id).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(func.ST_Intersects(func.ST_makeValid(Ugazetteer.geom),func.ST_makeValid(func.ST_GeomFromEWKT(new_geom)))).subquery())
-                subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(func.ST_Intersects(func.ST_makeValid(Egazetteer.geom),func.ST_makeValid(func.ST_GeomFromEWKT(new_geom)))).subquery())
-            elif req["boundaryPolys"] == "disjoint":
+                subqArea = (select(allgaz.c.i_id).where(func.ST_Intersects(func.ST_GeomFromEWKT(new_geom),allgaz.c.geom)).subquery())
+                #subqUArea = (select(Instance_ugaz.i_id).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(func.ST_Intersects(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Ugazetteer.geom))).subquery())
+                #subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(func.ST_Intersects(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Egazetteer.geom))).subquery())
+            elif req["boundaryDefinition"] == "disjoint":
                 print("disjoint")
-                subqUArea = (select(Instance_ugaz.i_id).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(func.ST_Disjoint(func.ST_makeValid(Ugazetteer.geom),func.ST_makeValid(func.ST_GeomFromEWKT(new_geom)))).subquery())
-                subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(func.ST_Disjoint(func.ST_makeValid(Egazetteer.geom),func.ST_makeValid(func.ST_GeomFromEWKT(new_geom)))).subquery())
+                subqArea = (select(allgaz.c.i_id).where(func.ST_Disjoint(func.ST_GeomFromEWKT(new_geom),allgaz.c.geom)).subquery())
+                #subqUArea = (select(Instance_ugaz.i_id).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(func.ST_Disjoint(func.ST_GeomFromEWKT(new_geom),func.ST_Buffer(Ugazetteer.geom, 0))).subquery())
+                #subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(func.ST_Disjoint(func.ST_GeomFromEWKT(new_geom),func.ST_Buffer(Egazetteer.geom, 0))).subquery())
             else:
-                if req["boundaryPolys"] == "containPartial":
+                if req["boundaryDefinition"] == "containPartial":
                     print("containPartial")
                 else:
                     print("no selection. defaulting to contains partial")
-                subqUArea = (select(Instance_ugaz.i_id).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(or_(func.ST_Contains(func.ST_makeValid(Ugazetteer.geom),func.ST_makeValid(func.ST_GeomFromEWKT(new_geom))),func.ST_Overlaps(func.ST_makeValid(Ugazetteer.geom),func.ST_makeValid(func.ST_GeomFromEWKT(new_geom))))).subquery())
-                subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(or_(func.ST_Contains(func.ST_makeValid(Egazetteer.geom),func.ST_makeValid(func.ST_GeomFromEWKT(new_geom))),func.ST_Overlaps(func.ST_makeValid(Egazetteer.geom),func.ST_makeValid(func.ST_GeomFromEWKT(new_geom))))).subquery())
-            subqArea = (union(select(subqUArea),select(subqEArea)).subquery())
+                subqArea = (select(allgaz.c.i_id.label('i_id')).where(or_(func.ST_Contains(func.ST_GeomFromEWKT(new_geom),allgaz.c.geom),func.ST_Overlaps(func.ST_makeValid(func.ST_GeomFromEWKT(new_geom)),func.ST_makeValid(allgaz.c.geom)))).subquery())
+                #subqUArea = (select(Instance_ugaz.i_id).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(or_(func.ST_Contains(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Ugazetteer.geom)),func.ST_Overlaps(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Ugazetteer.geom)))).subquery())
+                #subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(or_(func.ST_Contains(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Egazetteer.geom)),func.ST_Overlaps(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Egazetteer.geom)))).subquery())
+            #subqArea = (union(select(subqUArea),select(subqEArea)).subquery())
             stmtI = stmtI.join(subqArea,Instances.i_id == subqArea.c.i_id)
+            
+            #TESTING remove later
+            print("Begin test")
+            stmt = stmtI
+            results = session.execute(stmt)
+            for result in results:
+                print("SID: ",result.Instances.s_id," IID: ",result.Instances.i_id)
+            print("End test")
+        
 
         if len(req["E_names"])>0:
             instance_filtered = True
@@ -301,6 +325,9 @@ def explore():
             stmtSearchS = (stmtLeft.where(or_(func.lower(Stories.title).like(pNameSearch),func.lower(Stories.summary).like(pNameSearch))).subquery())
             subqU = (union(select(stmtSearchI.c.s_id,stmtSearchI.c.i_id), select(stmtSearchS.c.s_id,stmtSearchS.c.i_id)).subquery())
             stmt = stmt.join(subqU, (Stories.s_id == subqU.c.s_id) & (func.coalesce(Instances.i_id,0)==func.coalesce(subqU.c.i_id,0))) 
+
+        #is_filtered = False #Remove after testing
+        #print("Remove: is_filtered=False line")
 
         #If filters have been activated:
         if is_filtered is True:
