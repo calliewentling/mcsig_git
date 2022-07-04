@@ -130,15 +130,12 @@ def explore():
             multiP = MultiPolygon(multiShape)
             new_geom = 'SRID=4326;'+multiP.wkt
             #Spatial filtering
+            geomF = func.ST_MakeValid(func.ST_GeomFromEWKT(new_geom))
             ugaz = (select(Instance_ugaz.i_id, func.ST_Union(func.ST_MakeValid(Ugazetteer.geom)).label('ugeom')).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id, isouter=True).group_by(Instance_ugaz.i_id).subquery()) #.where(Instance_ugaz.p_id != 607)
             egaz = (select(Instance_egaz.i_id, func.ST_Union(func.ST_MakeValid(Egazetteer.geom)).label('egeom')).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id, isouter=True).group_by(Instance_egaz.i_id).subquery())
-            pregaz = (select(Instances.i_id,func.ST_Union(func.ST_MakeValid(egaz.c.egeom)).label('uegeom'),func.ST_Union(func.ST_MakeValid(ugaz.c.ugeom)).label('uugeom')).join(egaz, Instances.i_id == egaz.c.i_id, isouter=True).join(ugaz,Instances.i_id == ugaz.c.i_id, isouter=True).group_by(Instances.i_id,egaz.c.egeom,ugaz.c.ugeom).subquery())
-            allgaz = (select(pregaz.c.i_id, func.ST_Union(pregaz.c.uegeom, pregaz.c.uugeom).label('geom')).select_from(pregaz).group_by(pregaz.c.i_id,pregaz.c.uegeom,pregaz.c.uugeom).subquery())
+            allgaz = (select(Instances.i_id, func.coalesce(func.ST_Union(egaz.c.egeom, ugaz.c.ugeom),func.ST_Collect(egaz.c.egeom, ugaz.c.ugeom)).label('geom')).join(egaz, Instances.i_id==egaz.c.i_id, isouter=True).join(ugaz,Instances.i_id==ugaz.c.i_id, isouter=True).subquery())
             #allgaz = (select(Instances.i_id, func.ST_Union(func.ST_Union(egaz.c.egeom), func.ST_Union(ugaz.c.ugeom)).label('geom')).join(egaz, Instances.i_id == egaz.c.i_id, isouter=True).join(ugaz,Instances.i_id == ugaz.c.i_id, isouter=True).group_by(Instances.i_id,egaz.c.egeom,ugaz.c.ugeom).subquery())
             
-            
-
-
             if req["boundaryDefinition"] == "containTotal":
                 print("containComplete")
                 subqArea = (select(allgaz.c.i_id).where(func.ST_Contains(func.ST_GeomFromEWKT(new_geom),allgaz.c.geom)).subquery())
@@ -159,20 +156,28 @@ def explore():
                     print("containPartial")
                 else:
                     print("no selection. defaulting to contains partial")
-                subqArea = (select(allgaz.c.i_id.label('i_id')).where(or_(func.ST_Contains(func.ST_GeomFromEWKT(new_geom),allgaz.c.geom),func.ST_Overlaps(func.ST_makeValid(func.ST_GeomFromEWKT(new_geom)),func.ST_makeValid(allgaz.c.geom)))).subquery())
+                subqArea = (select(allgaz.c.i_id.label('i_id')).where(or_(func.ST_Contains(geomF,allgaz.c.geom),func.ST_Overlaps(geomF,allgaz.c.geom))).subquery())
                 #subqUArea = (select(Instance_ugaz.i_id).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(or_(func.ST_Contains(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Ugazetteer.geom)),func.ST_Overlaps(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Ugazetteer.geom)))).subquery())
                 #subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(or_(func.ST_Contains(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Egazetteer.geom)),func.ST_Overlaps(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Egazetteer.geom)))).subquery())
             #subqArea = (union(select(subqUArea),select(subqEArea)).subquery())
             stmtI = stmtI.join(subqArea,Instances.i_id == subqArea.c.i_id)
             
+            
             #TESTING remove later
             print("Begin test")
             stmt = stmtI
             results = session.execute(stmt)
+            sIDs = []
+            iIDs = []
             for result in results:
-                print("SID: ",result.Instances.s_id," IID: ",result.Instances.i_id)
+                #print("SID: ",result.Instances.s_id," IID: ",result.Instances.i_id)
+                if result.Instances.s_id not in sIDs:
+                    sIDs.append(result.Instances.s_id)
+                if result.Instances.i_id not in iIDs:
+                    iIDs.append(result.Instances.i_id)
+            print("stories: ",len(sIDs)," instances: ",len(iIDs))
             print("End test")
-        
+            
 
         if len(req["E_names"])>0:
             instance_filtered = True

@@ -143,3 +143,34 @@ top: 3em;
         padding-right: 10px;
         padding-left: 10px;
     }
+
+    /* 
+    Skeleton Loading 
+    https://www.foolishdeveloper.com/2021/09/skeleton-screen-loading-animation.html
+    */
+    .resultsArea {
+        display: flex;
+        align-items: left;
+        justify-content: left;
+        height: 100vh;
+        background: #9ff5be;
+    }
+
+    .story-card {
+        width: 200px;
+        height: 50px;
+        box-shadow: -10px 5px 20px rgba(0,0,0,0.3);
+        border-radius: 15px;
+        overflow: hidden;
+        background: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        transition: box-shadow 0.2s ease-in;
+        cursor: pointer;
+    }
+
+    .story-card:hover {
+        box-shadow: -10px 10px 20px rgba(0,0,0,0.4);
+    }

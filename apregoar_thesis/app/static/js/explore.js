@@ -671,6 +671,10 @@ function filterAllVals(){
     map.removeLayer(allLayer);
     map.removeLayer(recentLayer);
     map.removeLayer(filteredLayer);
+    map.removeLayer(drawVector);
+    if (allFilters["boundaryPolys"].length>0){
+        map.addLayer(drawVector);
+    }
     filteredSource.clear();
     //console.log("allFilters: ",allFilters);
     bodyContent = JSON.stringify(allFilters);
@@ -707,12 +711,10 @@ function filterAllVals(){
                 filteredSource = loadSourceToExplore(wfs_url=urlFiltered, loadType="filtered")
                 filteredLayer.setSource(filteredSource);// how do I define this?
                 map.addLayer(filteredLayer);
-                if (allFilters["boundaryPolys"].length>0){
-                    map.addLayer(drawVector);
-                }
                 recentResults.style.display = "none";
                 instanceResults.innerHTML=`<p>Instâncias: ${iIDs.length}: ${iIDs}</p>`;
                 storyResults.innerHTML=`<p>Histórias: ${sIDs.length}: ${sIDs}</p>`;
+                map.render();
             } else {
                 console.log("no features meeting criteria")
                 map.removeLayer(filteredLayer);
