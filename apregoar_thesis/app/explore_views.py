@@ -347,6 +347,7 @@ def explore():
                     #print("SID: ",result.Stories.s_id)
                     s_ids.append(result.Stories.s_id)
                     stories[result.Stories.s_id] = {
+                        "title": result.Stories.title,
                         "pub_date": str(result.Stories.pub_date),
                         "tags": result.Stories.tags,
                         "section": result.Stories.section,

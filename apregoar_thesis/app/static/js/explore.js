@@ -288,6 +288,7 @@ function updateViewExtent(inputSource){
     drawMap.getView().fit(ol.extent.buffer(filterMaxExtent, .01));
 }
 
+
 //Load source. Returns 
 //let firstPubDate, lastPubDate, firstInstDate, lastInstDate;
 function loadSourceToExplore(wfs_url, loadType) {
@@ -692,12 +693,19 @@ function filterAllVals(){
         if (response.status !== 200){
             window.alert("Erro no filtros");
             console.log(`Error status code: ${response.status}`);
+            resultsArea.style.display="none";
             return;
         }
         response.json().then(function(resp){
             console.log(resp);
             sIDs = resp["sIDs"];
             iIDs = resp["iIDs"];
+            console.log("stories preparse: ",resp["stories"]);
+            stories = resp["stories"];
+            //Testing Cards
+            console.log("stories: ",stories);
+            refreshStoryCards(stories=stories);
+            resultsArea.style.display="block";
             if (iIDs.length > 0){
                 iIDFilter = "i_id IN ("+iIDs+")";
                 console.log(iIDFilter);
@@ -719,6 +727,7 @@ function filterAllVals(){
                 console.log("no features meeting criteria")
                 map.removeLayer(filteredLayer);
                 map.addLayer(recentLayer);
+                resultsArea.style.display="none";
                 recentResults.style.display = "block";
                 instanceResults.innerHTML=`<p>Sem lugares</p>`;
                 storyResults.innerHTML=`<p>Sem histórias</p>`;
@@ -728,5 +737,52 @@ function filterAllVals(){
     //Connect to python for dynamic filtering. Return SIDs, search these in OL (OR WFS) and load.
 };
 
+function loadingCards(){
+    //Prepare results area
+    const $el = document.querySelector(".story-card");
+    // Loading finished
+    /*
+    setTimeout(() => {
+        $el.classList.remove("skeleton");
+        $el
+            .querySelectorAll(".hide-text")
+            .forEach((el) => el.classList.remove("hide-text"));
+    }, 3000);
+    */
+   $el.classList.remove("skeleton");
+   $el
+    .querySelectorAll(".hide-text")
+    .forEach((el) => el.classList.remove("hide-text"));
+}
+const resultsStory = document.getElementById("resultsStory"); 
 
-
+function refreshStoryCards(stories){
+    console.log("Entering refreshStoryCards()")
+    console.log("stories.length: ",stories.length);
+    for(const story in stories){
+        var sCard = document.createElement('div');
+        sCard.className = 'story-card skeleton';
+        var sCardTitle = document.createElement('div');
+        sCardTitle.className = 'story-title hide-text';
+        sCardTitle.innerHTML = story["title"];
+        console.log("title: ",story["title"]);
+        sCard.appendChild(sCardTitle);
+        var sCardSummary = document.createElement('div');
+        sCardSummary.className = 'story-summary hide-text';
+        sCardSummary.innerHTML = story.summary;
+        sCard.appendChild(sCardSummary);
+        var sCardDate = document.createElement('div');
+        sCardDate.className = 'pub-date hide-text';
+        sCardDate.innerHTML = story.pub_date;
+        sCard.appendChild(sCardDate);
+        //Eventually the tags should be broken out so they can lead to a search of just these results
+        var sCardTags = document.createElement('div');
+        sCardTags.className = 'story-tags hide-text';
+        sCardTags.innerHTML = story.tags;
+        sCard.appendChild(sCardTags);
+        document.getElementById('resultsStory').appendChild(sCard);
+        console.log("sCard: ",sCard);
+    }
+    console.log("Leaving refreshStoryCards()")
+    loadingCards();
+}
