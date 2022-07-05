@@ -17,20 +17,23 @@
 
 <div class="resultsArea" id="resultsArea" style="display:none">
     <div class="resultsStory" id="resultsStory">
-        <!--
-        <div class = "story-card skeleton">
-            <div class="story-title hide-text">Title</div>
-            <div class="story-details">
-                <div class="story-summary hide-text">This is a test</div>
-                <div class="pub-date hide-text">Jan 1, 2021</div>
-                <div class="story-tags hide-text">Políticas, Cultura</div>
-            </div>
-        </div>
-        -->
     </div>
 </div>
 
-
+<div id = "storyDeetsOverlay" class="story-deets" style="display:none">
+    <div class="close" onclick="closeDeets()">&times</div>
+    <div class="deets-title" id="deetsTitle"></div>
+    <div class="deets-author" id="deetsAuthor"></div>
+    <div class="deets-pubdate" id="deetsPubdate"></div>
+    <div class="deets-section" id="deetsSection"></div>
+    <div class="deets-tags" id="deetsTags"></div>
+    <div class="deets-summary" id="deetsSummary"></div>
+    <div class="deets-iCount" id="deetsICount"></div>
+    <div id="mapSCard" class="mapStory" style="display:none"></div>
+    <a href="#" id="buttonLink" target="_blank">
+        <button class="deets-button" id="deetsButton">Ver original</button>
+    </a>
+</div>
 
 <div id = "resultsList"></div>
 

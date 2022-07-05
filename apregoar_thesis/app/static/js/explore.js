@@ -69,6 +69,7 @@ var defaultMultiCheckBoxOption = { width: '220px', defaultText: "Selecionar", he
 
 //var recentDate1 = new Date();
 //var recentDate2 = new Date();
+let stories;
 var allFilters = {
     "Tags": [],
     "Sections": [],
@@ -184,8 +185,8 @@ map.addLayer(backDrop);
 /* Preparing highlight maps of selected instances */
 fill1 = 'rgba(156,34,15,0.2)';
 fill2 = 'rgba(156,34,15,1)';
-fill3 = 'rgba(83, 176, 126,1)';
-fill4 = 'rgba(239, 223, 142,0.6)';
+fill3 = 'rgba(0,0,0,0.5)';
+fill4 = 'rgba(155, 185, 193,0.4)';
 const style = new ol.style.Style({
     fill: new ol.style.Fill({
         color: fill1,
@@ -207,7 +208,7 @@ const filterStyle = new ol.style.Style({
     }),
     stroke: new ol.style.Stroke({
         color: fill3,
-        width: 10,
+        width: 5,
     }),
     text: new ol.style.Text({
         font: '12px Calibri,sans-serif',
@@ -694,6 +695,7 @@ function filterAllVals(){
             window.alert("Erro no filtros");
             console.log(`Error status code: ${response.status}`);
             resultsArea.style.display="none";
+            stories = [];
             return;
         }
         response.json().then(function(resp){
@@ -704,7 +706,11 @@ function filterAllVals(){
             stories = resp["stories"];
             //Testing Cards
             console.log("stories: ",stories);
-            refreshStoryCards(stories=stories);
+            if (sIDs.length > 0){
+                refreshStoryCards(stories=stories)
+            } else {
+                document.getElementById("resultsStory").style.display = "none";
+            }
             resultsArea.style.display="block";
             if (iIDs.length > 0){
                 iIDFilter = "i_id IN ("+iIDs+")";
@@ -749,40 +755,140 @@ function loadingCards(){
             .forEach((el) => el.classList.remove("hide-text"));
     }, 3000);
     */
+
+
    $el.classList.remove("skeleton");
    $el
     .querySelectorAll(".hide-text")
     .forEach((el) => el.classList.remove("hide-text"));
 }
+
 const resultsStory = document.getElementById("resultsStory"); 
 
 function refreshStoryCards(stories){
+    var prevStoryCards = document.querySelectorAll(".story-card");
+    prevStoryCards.forEach(card => {
+        card.remove();
+    });
+    const resultsStory = document.getElementById('resultsStory');
     console.log("Entering refreshStoryCards()")
     console.log("stories.length: ",stories.length);
-    for(const story in stories){
+    for(i=0; i<stories.length; i++){
+        console.log("story: ",stories[i])
         var sCard = document.createElement('div');
-        sCard.className = 'story-card skeleton';
+        sCard.className = 'story-card';
+        sCard.id = "sID_"+stories[i]["s_id"];
+        console.log("sCard.id: ",sCard.id);
         var sCardTitle = document.createElement('div');
-        sCardTitle.className = 'story-title hide-text';
-        sCardTitle.innerHTML = story["title"];
-        console.log("title: ",story["title"]);
+        sCardTitle.className = 'story-title';
+        sCardTitle.innerHTML = stories[i]["title"];
+        console.log("title: ",stories[i]["title"]);
         sCard.appendChild(sCardTitle);
-        var sCardSummary = document.createElement('div');
-        sCardSummary.className = 'story-summary hide-text';
-        sCardSummary.innerHTML = story.summary;
-        sCard.appendChild(sCardSummary);
+        var sCardDetails = document.createElement('div');
+        sCardDetails.className='story-details';
+        sCard.appendChild(sCardDetails);
+        var sCardSection = document.createElement('div');
+        sCardSection.className = 'story-section';
+        sCardSection.innerHTML = stories[i].section+'<br>';
+        sCardDetails.appendChild(sCardSection);
         var sCardDate = document.createElement('div');
-        sCardDate.className = 'pub-date hide-text';
-        sCardDate.innerHTML = story.pub_date;
-        sCard.appendChild(sCardDate);
+        sCardDate.className = 'pub-date';
+        sCardDate.innerHTML = stories[i].pub_date+'<br>';
+        sCardDetails.appendChild(sCardDate);
         //Eventually the tags should be broken out so they can lead to a search of just these results
         var sCardTags = document.createElement('div');
-        sCardTags.className = 'story-tags hide-text';
-        sCardTags.innerHTML = story.tags;
-        sCard.appendChild(sCardTags);
-        document.getElementById('resultsStory').appendChild(sCard);
+        sCardTags.className = 'story-tags';
+        sCardTags.innerHTML = stories[i].tags;
+        sCardDetails.appendChild(sCardTags);
+        resultsStory.appendChild(sCard);
         console.log("sCard: ",sCard);
+        sCard.onclick = loadStoryDeets;
     }
+    resultsStory.style.display = "block";
     console.log("Leaving refreshStoryCards()")
-    loadingCards();
+    //loadingCards(); //Not yet doing loading animation. first lets make the load work!
+}
+
+//Generic Map Setup
+const viewSCard = new ol.View({
+    projection: 'EPSG:4326',
+    center: [-9.150404956762742,38.72493479806579],
+    zoom: 12
+});
+
+ 
+var mapSCard = new ol.Map({
+    //overlays: [overlay],
+    target: 'mapSCard',
+    view: viewSCard,
+});
+mapSCard.addLayer(backDrop);
+
+let storyInstAllSource = new ol.source.Vector();
+var storyInstAllLayer = new ol.layer.Vector({
+    style: function(feature) {
+        filterStyle.getText().setText(feature.get('p_name'));
+        return filterStyle;
+    },
+});
+
+function loadStoryDeets(card){
+    console.log("card: ",card);
+    for (i=0; i<card["path"].length; i++){
+        console.log(card["path"][i].className);
+        if(card["path"][i].className == "story-card"){
+            console.log("great success!")
+            console.log(card["path"][i].className);
+            sID = parseInt(card["path"][i].id.substring(4),10);
+        }
+    }
+    //sID = parseInt(card["path"][1].id.substring(4),10); //This coud be iffy if we click directly on the scard, instead of one of its children.
+    console.log("sID: ",sID);
+    storyD = {};
+    for (i=0;i<stories.length;i++){
+        console.log("cycling through story IDS: ",stories[i]["s_id"]);
+        if (stories[i]["s_id"]==sID){
+            storyD = stories[i];
+            console.log("storyD: ",storyD);
+        }
+    }
+    console.log("stories: ",stories);
+    var storyDeets = document.getElementById("storyDeetsOverlay");
+    if (storyDeets.style.display == "none"){
+        mapSCard.removeLayer(storyInstAllLayer);
+        document.getElementById('deetsTitle').innerHTML = storyD["title"];
+        document.getElementById('deetsAuthor').innerHTML =storyD["author"];
+        document.getElementById('deetsSection').innerHTML = storyD["section"];
+        document.getElementById('deetsPubdate').innerHTML = storyD["pub_date"];
+        document.getElementById('deetsTags').innerHTML = storyD["tags"];
+        document.getElementById('deetsSummary').innerHTML = storyD["summary"];
+        document.getElementById('buttonLink').href = storyD["web_link"];
+        const mapSCardArea = document.getElementById('mapSCard');
+        if (storyD["instances_all"].length>0){
+            document.getElementById('deetsICount').innerHTML = storyD["instances_all"].length;
+            iIDFilter = "i_id IN ("+storyD["instances_all"]+")";
+            console.log(iIDFilter);
+            cqlFilter = iIDFilter.replace(/%/gi,"%25").replace(/'/gi,"%27").replace(/ /gi,"%20");
+            urlIAll = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
+                'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
+                'cql_filter='+cqlFilter+'&'+
+                //'sortby=pub_date+D&'+
+                'sortby=area+D&'+
+                'outputFormat=application/json&srsname=EPSG:4326';
+            storyInstAllSource = loadSourceToExplore(wfs_url=urlFiltered, loadType="storyInstAll")
+            storyInstAllLayer.setSource(storyInstAllSource);
+            mapSCard.addLayer(storyInstAllLayer);
+            mapSCardArea.style.display="block";
+        } else {
+            mapSCardArea.style.display="none";
+        }
+        
+        storyDeets.style.display = "block";
+    } else {
+        storyDeets.style.display = "none";
+    }
+};
+
+function closeDeets(){
+    document.getElementById("storyDeetsOverlay").style.display="none";
 }

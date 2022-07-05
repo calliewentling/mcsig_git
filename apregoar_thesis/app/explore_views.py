@@ -107,10 +107,10 @@ def explore():
         instance_filtered = False
         is_filtered = False
         #The default stmt is an inner join between Stories and Instancs, followed by if statements that will allow the filtering to stories with instances (unless otherwise specified). In the event that no isntance filters are applied, the stmt will change to a stmtLeft which includes an outer join, such that stories without instances will be included as well.
-        #stmtBase = select(Stories,Instances).join(Stories.instancing).order_by(Stories.s_id, Instances.i_id)
         stmtBase = select(Stories, Instances).join(Stories.instancing).order_by(Stories.s_id,Instances.i_id)
         stmtI = stmtBase
         stmtLeft = select(Stories, Instances).join(Stories.instancing, isouter=True).order_by(Stories.s_id,Instances.i_id)
+
         print()
         print()
         print("New request made")
@@ -162,7 +162,7 @@ def explore():
             #subqArea = (union(select(subqUArea),select(subqEArea)).subquery())
             stmtI = stmtI.join(subqArea,Instances.i_id == subqArea.c.i_id)
             
-            
+            """
             #TESTING remove later
             print("Begin test")
             stmt = stmtI
@@ -177,6 +177,7 @@ def explore():
                     iIDs.append(result.Instances.i_id)
             print("stories: ",len(sIDs)," instances: ",len(iIDs))
             print("End test")
+            """
             
 
         if len(req["E_names"])>0:
@@ -340,40 +341,68 @@ def explore():
             results = session.execute(stmt)
             # results = session.scalars(stmt).all()
             count = 0
+            storiesJSON = []
+            instancesJSON = []
             for result in results:
                 count +=1
+                story = None
                 #print ("Story: ",result.Stories)
                 if result.Stories.s_id not in s_ids:
                     #print("SID: ",result.Stories.s_id)
                     s_ids.append(result.Stories.s_id)
-                    stories[result.Stories.s_id] = {
+                    story = {
+                        "s_id": result.Stories.s_id,
                         "title": result.Stories.title,
                         "pub_date": str(result.Stories.pub_date),
                         "tags": result.Stories.tags,
                         "section": result.Stories.section,
                         "publication": result.Stories.publication,
-                        "author": result.Stories.author
+                        "author": result.Stories.author,
+                        "summary": result.Stories.summary,
+                        "web_link": result.Stories.web_link,
+                        "instances_yes": [],
+                        "instances_no": [],
+                        "instances_all": [],
                     }
+                    storiesJSON.append(story)
                 else:
                     dupS += 1
                 if result.Instances is not None:
                     #print("Instance: ",result.Instances)
                     if result.Instances.i_id not in i_ids:
                         i_ids.append(result.Instances.i_id)
-                        stories[result.Stories.s_id][result.Instances.i_id] = {
+                        instance = {
+                            "s_id": result.Stories.s_id,
+                            "i_id": result.Instances.i_id,
                             "t_begin": str(result.Instances.t_begin),
                             "t_end": str(result.Instances.t_end),
                             "t_type": result.Instances.t_type,
                             "p_desc": result.Instances.p_desc,
                             "p_name": result.Instances.p_name
                         }
+                        instancesJSON.append(instance)
+                        for story in storiesJSON:
+                            if story['s_id'] == result.Stories.s_id:
+                                story["instances_yes"].append(result.Instances.i_id)
                 #else:
                     #print("no instance")
             print("Number of results: ",count,", # s_ids: ",len(s_ids),", # i_ids: ", len(i_ids), ", # stories: ", len(stories))
         
         response["sIDs"] = s_ids 
         response["iIDs"] = i_ids
-        response["stories"] = stories
+
+        stmt2 = select(Instances).where(Instances.s_id.in_(s_ids))
+        results2 = session.execute(stmt2).all()
+        for result in results2:
+            for story in storiesJSON:
+                if story["s_id"] == result.Instances.s_id:
+                    story["instances_all"].append(result.Instances.i_id)
+                    if result.Instances.i_id not in i_ids:
+                        story["instances_no"].append(result.Instances.i_id)
+
+
+        response["stories"] = storiesJSON
+        response["instances"] = instancesJSON
         #print("Stories pre dumps: ",response["stories"])
         response = json.dumps(response, ensure_ascii=False) #Should this be True (default), then decoded on the otherside in js? Safer...
         print("response: ",response)

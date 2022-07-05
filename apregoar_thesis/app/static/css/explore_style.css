@@ -1,6 +1,16 @@
+/* Variable Definition */
+:root {
+    --primary-color: rgba(155, 185, 193);
+    --shadow-color: rgba(0,0,0,0.3);
+}
+
 .map {
     height: 400px;
-    width: 100%;
+    width: 98%;
+    position: center;
+    margin: 10px;
+    box-shadow: -10px 5px 20px var(--shadow-color);
+    border-radius: 5px;
 }
 .map:-webkit-full-screen {
     height: 100%;
@@ -34,7 +44,7 @@ top: 3em;
 .MultiCheckBox {
     border:1px solid #e2e2e2;
     padding: 5px;
-    border-radius:4px;
+    border-radius:5px;
     cursor:pointer;
 }
 
@@ -149,23 +159,26 @@ top: 3em;
     https://www.foolishdeveloper.com/2021/09/skeleton-screen-loading-animation.html
     */
     .resultsStory {
-        display: flex;
+        /*display: flex;*/
         align-items: left;
         justify-content: left;
-        height: 120px;
+        /*height: 135px;*/
         background: #d9d9d9;
+        overflow-x: auto;
+        white-space: nowrap;
     }
 
     .story-card {
-        width: 200px;
+        width: 300px;
         height: 100px;
         margin: 10px;
-        box-shadow: -10px 5px 20px rgba(0,0,0,0.3);
-        border-radius: 15px;
+        box-shadow: -10px 5px 20px var(--shadow-color);
+        border-radius: 5px;
         overflow: hidden;
-        background: white;
-        display: flex;
-        flex-direction: column;
+        background: black;
+        color: white;
+        display: inline-block; /*previously: flex*/
+        flex-direction: column; /*column*/
         align-items: center;
         justify-content: space-between;
         transition: box-shadow 0.2s ease-in;
@@ -174,19 +187,23 @@ top: 3em;
 
     .story-card:hover {
         box-shadow: -10px 10px 20px rgba(0,0,0,0.4);
+        font-weight: bold;
     }
 
     .story-card .story-title {
         height: 30px;
         width: 100%;
-        text-align: center;
+        font-size: 16px;
+        padding: 5px;
+        text-align: left;
         position: relative;
-        background: rgb(155, 185, 193);
+        background: var(--primary-color);
     }
 
     .story-card .story-details{
         text-align: center;
         margin-top: 5px;
+        margin-left: 5px;
         margin-bottom: 5px;
         width: 90%
     }
@@ -197,9 +214,9 @@ top: 3em;
         font-weight: 600;
     }
 
-    .story-card .story-details .story-summary {
+    .story-card .story-details .story-section {
         font-size: 10px;
-        color: #0f4fc0;
+        color: var(--primary-color);
         font-weight: 500;
     }
 
@@ -209,14 +226,15 @@ top: 3em;
         color: #666;
     }
 
+    /*
     .story-card.skeleton .story-title{
         background: #e2e2e2;
     }
-    .story-card.skeleton .story-details .story-summary{
+    .story-card.skeleton .story-details .story-section{
         display: none;
     }
 
-    .story-card.skeleton .story-details .story-summary::after{
+    .story-card.skeleton .story-details .story-section::after{
         content: "";
     }
 
@@ -248,4 +266,92 @@ top: 3em;
         to {
             left: 100%;
         }
+    }
+    */
+
+    .story-deets {
+        border-radius: 5px;
+        position: fixed;
+        width: 80%;
+        max-height: 80%;
+        top: 10%;
+        left: 10%;
+        font-size: 14px;
+        background-color: rgba(0,0,0,.75);
+        box-shadow: -10px 5px 20px var(--shadow-color);
+        color: white;
+        margin: 10px;
+        overflow-y: auto;
+    }
+
+    .story-deets .close{
+        font-size: 20px;
+        height: 30px;
+        font-weight: bold;
+        padding-right: 10px;
+        text-align: right;
+        background-color: var(--primary-color);
+        color: black;
+        cursor:pointer;
+    }
+
+    .story-deets .close:hover{
+        font-size:30px;
+    }
+
+    .story-deets .deets-title {
+        text-align: center;
+        top: 2%;
+        font-size: 20px;
+        font-weight: bold;
+        color: white;
+        background-color:var(--primary-color);
+    }
+
+    .story-deets .deets-author {
+        text-align: center;
+    }
+
+    .story-deets .deets-section {
+        text-align: center;
+    }
+
+    .story-deets .deets-pubdate {
+        text-align: center;
+    }
+
+    .story-deets .deets-tags {
+        padding: 10px;
+        font-style: italic;
+        text-align: left;
+    }
+
+    .story-deets .deets-summary {
+        padding: 10px;
+        font-size: 16px;
+        text-align: justify;
+
+    }
+
+    .story-deets .deets-button {
+        text-align: center;
+        font-size: 16px;
+        padding: 10px;
+        height: 40px;
+        width: 100%;
+        bottom: 1%;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    .story-deets .deets-button:hover {
+        font-size: 20px;
+        padding: 5px;
+    }
+    
+    .story-deets .mapStory {
+        position: relative;
+        padding: 1%;
+        width: 98%;
+        height: 300px;
     }
