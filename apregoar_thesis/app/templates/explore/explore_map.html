@@ -9,15 +9,11 @@
 <h2>Explorar a mapa</h2>
 
 <div id="map" class="map"></div>
-<div id="filterResults">
-    <div id="recentResults"></div>
-    <div id="storyResults"></div>
-    <div id="instanceResults"></div>
-</div>
+
 
 <div class="resultsArea" id="resultsArea" style="display:none">
-    <div class="resultsStory" id="resultsStory">
-    </div>
+    <div class="resultsStory" id="resultsStory"></div>
+    <div class="resultsInstance" id="resultsInstance"></div>
 </div>
 
 <div id = "storyDeetsOverlay" class="story-deets" style="display:none">
@@ -29,7 +25,7 @@
     <div class="deets-tags" id="deetsTags"></div>
     <div class="deets-summary" id="deetsSummary"></div>
     <div class="deets-iCount" id="deetsICount"></div>
-    <div id="mapSCard" class="mapStory" style="display:none"></div>
+    <div id="mapStory" class="mapStory" ></div> <!--style="display:none"-->
     <a href="#" id="buttonLink" target="_blank">
         <button class="deets-button" id="deetsButton">Ver original</button>
     </a>
@@ -158,6 +154,12 @@
 <button id="limparDraw" onclick="clearDraw()">Limpar</button>
 
 <div id="filterMap" class = "map"></div>
+
+<div id="filterResults">
+    <div id="recentResults"></div>
+    <div id="storyResults"></div>
+    <div id="instanceResults"></div>
+</div>
 
 <script>
     //const pubDate1 = new Date('{{ pub_dates[0][0] }}');

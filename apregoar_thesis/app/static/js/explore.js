@@ -289,16 +289,19 @@ function updateViewExtent(inputSource){
     drawMap.getView().fit(ol.extent.buffer(filterMaxExtent, .01));
 }
 
-
 //Load source. Returns 
 //let firstPubDate, lastPubDate, firstInstDate, lastInstDate;
 function loadSourceToExplore(wfs_url, loadType) {
+    console.log("Entering loadSourceToExplore()");
+    console.log("wfs_url: ",wfs_url);
+    console.log("loadType: ",loadType);
     var tempSource = new ol.source.Vector({
         format: new ol.format.GeoJSON(),
         loader: function (extent, resolution, projection, success, failure) {
-            var proj = projection.getCode();
-            url = wfs_url
-            console.log("url: ",url)
+            console.log("In loader");
+            //var proj = projection.getCode();
+            url = wfs_url;
+            console.log("url: ",url);
             var xhr = new XMLHttpRequest();
             xhr.open('GET',url);
             var onError = function() {
@@ -314,7 +317,9 @@ function loadSourceToExplore(wfs_url, loadType) {
                 console.log(loadType," load end");
             }
             xhr.onload = function() {
+                console.log("XHR status: ",xhr.status);
                 if (xhr.status == 200){
+                    console.log("XHR STATUS 200");
                     var features = [];
                     features = tempSource.getFormat().readFeatures(xhr.responseText);
                     tempSource.addFeatures(features);
@@ -363,20 +368,27 @@ function loadSourceToExplore(wfs_url, loadType) {
                     //console.log("Number of features in story: ", numStoryFeatures);
                     console.log("Successful loading of vector source");
                     if (loadType == "recent"){
-                        console.log("recent features loaded")
+                        console.log("recent features loaded");
                     }
                     if (loadType == "all") {
-                        console.log("All resources loaded")
+                        console.log("All resources loaded");
+                    }
+                    if (loadType=="storyInstAll"){
+                        console.log("All story instances loaded");
                     }
                 } else {
                     onError();
+                    console.log("Bad request: not 200");
                 }
             }
             xhr.send();
-            //console.log("Passed send of xhr");
+            console.log("Passed send of xhr");
         }
     });  
-    return tempSource
+    
+    console.log("tempSource: ",tempSource);
+    console.log("end of loadSourceToExplore()");
+    return tempSource;
 };
 //Preload all entries in the background for filtering
 urlAll = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
@@ -405,6 +417,7 @@ const recentLayer = new ol.layer.Vector({
     },
 });
 map.addLayer(recentLayer);
+
 
 var fromSelect = document.getElementById("from");
 var toSelect = document.getElementById("to");
@@ -704,10 +717,11 @@ function filterAllVals(){
             iIDs = resp["iIDs"];
             console.log("stories preparse: ",resp["stories"]);
             stories = resp["stories"];
+            instances = resp["instances"];
             //Testing Cards
             console.log("stories: ",stories);
             if (sIDs.length > 0){
-                refreshStoryCards(stories=stories)
+                refreshStoryCards(stories=stories, instances=instances)
             } else {
                 document.getElementById("resultsStory").style.display = "none";
             }
@@ -764,14 +778,17 @@ function loadingCards(){
 }
 
 const resultsStory = document.getElementById("resultsStory"); 
+const resultsInstance = document.getElementById("resultsInstance");
 
-function refreshStoryCards(stories){
+function refreshStoryCards(stories,instances){
+    console.log("Entering refreshStoryCards()")
+    //Removing old cards
     var prevStoryCards = document.querySelectorAll(".story-card");
     prevStoryCards.forEach(card => {
         card.remove();
     });
-    const resultsStory = document.getElementById('resultsStory');
-    console.log("Entering refreshStoryCards()")
+    
+    //Preparing new story cards
     console.log("stories.length: ",stories.length);
     for(i=0; i<stories.length; i++){
         console.log("story: ",stories[i])
@@ -805,6 +822,40 @@ function refreshStoryCards(stories){
         sCard.onclick = loadStoryDeets;
     }
     resultsStory.style.display = "block";
+
+    //Preparing new instance cards
+    console.log("instances.length: ",instances.length);
+    for(i=0; i<instances.length; i++){
+        console.log("instance: ",instances[i])
+        var iCard = document.createElement('div');
+        iCard.className = 'story-card';
+        iCard.id = "iID_"+instances[i]["i_id"];
+        console.log("iCard.id: ",iCard.id);
+        var iCardTitle = document.createElement('div');
+        iCardTitle.className = 'instance-title';
+        iCardTitle.innerHTML = instances[i]["p_name"];
+        console.log("title: ",instances[i]["p_name"]);
+        iCard.appendChild(iCardTitle);
+        var iCardDetails = document.createElement('div');
+        iCardDetails.className='instance-details';
+        iCard.appendChild(iCardDetails);
+        var iCardTFrame = document.createElement('div');
+        iCardTFrame.className = 'instance-timeframe';
+        if (instances[i]["t_type"]=="allday_p"){
+            iCardTFrame.innerHTML = "<br><br>";
+        } else if (instances[i]["t_type"] =="allday_n"){
+            iCardTFrame.innerHTML = "edit this partial date";
+        } else {
+            iCardTFrame.innerHTML = "edit this all day date";
+        }
+        iCardDetails.appendChild(iCardTFrame);
+
+        resultsInstance.appendChild(iCard);
+        console.log("iCard: ",iCard);
+        //iCard.onclick = loadInstanceDeets;
+    }
+    resultsInstance.style.display = "block";
+
     console.log("Leaving refreshStoryCards()")
     //loadingCards(); //Not yet doing loading animation. first lets make the load work!
 }
@@ -817,20 +868,21 @@ const viewSCard = new ol.View({
 });
 
  
-var mapSCard = new ol.Map({
+var mapStory = new ol.Map({
     //overlays: [overlay],
-    target: 'mapSCard',
+    target: 'mapStory',
     view: viewSCard,
 });
-mapSCard.addLayer(backDrop);
+mapStory.addLayer(backDrop);
+mapStory.addLayer(recentLayer);
 
-let storyInstAllSource = new ol.source.Vector();
-var storyInstAllLayer = new ol.layer.Vector({
+//let storyInstAllSource = new ol.source.Vector();
+/*var storyInstAllLayer = new ol.layer.Vector({
     style: function(feature) {
         filterStyle.getText().setText(feature.get('p_name'));
         return filterStyle;
     },
-});
+});*/
 
 function loadStoryDeets(card){
     console.log("card: ",card);
@@ -855,7 +907,7 @@ function loadStoryDeets(card){
     console.log("stories: ",stories);
     var storyDeets = document.getElementById("storyDeetsOverlay");
     if (storyDeets.style.display == "none"){
-        mapSCard.removeLayer(storyInstAllLayer);
+        mapStory.removeLayer(storyInstAllLayer);
         document.getElementById('deetsTitle').innerHTML = storyD["title"];
         document.getElementById('deetsAuthor').innerHTML =storyD["author"];
         document.getElementById('deetsSection').innerHTML = storyD["section"];
@@ -863,24 +915,55 @@ function loadStoryDeets(card){
         document.getElementById('deetsTags').innerHTML = storyD["tags"];
         document.getElementById('deetsSummary').innerHTML = storyD["summary"];
         document.getElementById('buttonLink').href = storyD["web_link"];
-        const mapSCardArea = document.getElementById('mapSCard');
         if (storyD["instances_all"].length>0){
             document.getElementById('deetsICount').innerHTML = storyD["instances_all"].length;
             iIDFilter = "i_id IN ("+storyD["instances_all"]+")";
-            console.log(iIDFilter);
+            console.log("iIDFilter ",iIDFilter);
             cqlFilter = iIDFilter.replace(/%/gi,"%25").replace(/'/gi,"%27").replace(/ /gi,"%20");
             urlIAll = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
                 'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
                 'cql_filter='+cqlFilter+'&'+
-                //'sortby=pub_date+D&'+
                 'sortby=area+D&'+
                 'outputFormat=application/json&srsname=EPSG:4326';
-            storyInstAllSource = loadSourceToExplore(wfs_url=urlFiltered, loadType="storyInstAll")
-            storyInstAllLayer.setSource(storyInstAllSource);
-            mapSCard.addLayer(storyInstAllLayer);
-            mapSCardArea.style.display="block";
+            console.log(urlIAll);
+            //storyInstAllSource = loadSourceToExplore(wfs_url=urlIAll, loadType="storyInstAll")
+            var storyInstAllSource = new ol.source.Vector({
+                format: new ol.format.GeoJSON(),
+                loader: function(extent, resolution, projection, success,failure) {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('GET', urlIAll);
+                    var onError = function() {
+                        storyInstAllSource.removeLoadedExtent(extent);
+                        failure();
+                    }
+                    xhr.onerror = onError;
+                    xhr.onload = function() {
+                        if (xhr.status == 200) {
+                            var features = storySource.getFormat().readFeatures(xhr.responseText);
+                            storyInstAllSource.addFeatures(features);
+                            success(features);
+                        } else {
+                            onError()
+                        }
+                    }
+                    xhr.send();
+                },
+                strategy: ol.loadingstrategy.all
+                
+            });  
+            
+            console.log("storyInstAllSource: ",storyInstAllSource);
+            var storyInstAllLayer = new ol.layer.Vector({
+                source: storyInstAllSource,
+                style: function(feature) {
+                    filterStyle.getText().setText(feature.get('p_name'));
+                    return filterStyle;
+                },
+            });
+            mapStory.addLayer(storyInstAllLayer);
+            document.getElementById("mapStory").style.display="block";
         } else {
-            mapSCardArea.style.display="none";
+            document.getElementById("mapStory").style.display="none";
         }
         
         storyDeets.style.display = "block";

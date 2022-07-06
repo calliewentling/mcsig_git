@@ -226,6 +226,74 @@ top: 3em;
         color: #666;
     }
 
+    .resultsInstance {
+        /*display: flex;*/
+        align-items: left;
+        justify-content: left;
+        /*height: 135px;*/
+        background: #d9d9d9;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .instance-card {
+        width: 300px;
+        height: 100px;
+        margin: 10px;
+        box-shadow: -10px 5px 20px var(--shadow-color);
+        border-radius: 5px;
+        overflow: hidden;
+        background: var(--primary-color);
+        color: white;
+        display: inline-block; /*previously: flex*/
+        flex-direction: column; /*column*/
+        align-items: center;
+        justify-content: space-between;
+        transition: box-shadow 0.2s ease-in;
+        cursor: pointer;
+    }
+
+    .instance-card:hover {
+        box-shadow: -10px 10px 20px rgba(0,0,0,0.4);
+        font-weight: bold;
+    }
+
+    .instance-card .instance-title {
+        height: 30px;
+        width: 100%;
+        font-size: 16px;
+        padding: 5px;
+        text-align: left;
+        position: relative;
+        background: black;
+    }
+
+    .instance-card .instance-details{
+        text-align: center;
+        margin-top: 5px;
+        margin-left: 5px;
+        margin-bottom: 5px;
+        width: 90%;
+    }
+
+    .instance-card .instance-details .instance-timeframe {
+        margin-bottom: 5px;
+        font-size: 10px;
+        font-weight: 600;
+    }
+
+    .instance-card .instance-details .instance-time {
+        font-size: 10px;
+        color: var(--primary-color);
+        font-weight: 500;
+    }
+
+    .instance-card .instance-details .instance-extra {
+        margin-top: 5px;
+        font-size: 12px;
+        color: #666;
+    }
+
     /*
     .story-card.skeleton .story-title{
         background: #e2e2e2;
@@ -349,9 +417,24 @@ top: 3em;
         padding: 5px;
     }
     
-    .story-deets .mapStory {
+    .mapStory {
         position: relative;
         padding: 1%;
         width: 98%;
         height: 300px;
+        margin: 10px;
+    }
+
+    .mapStory:-webkit-full-screen {
+        height: 100%;
+        margin: 0;
+    }
+    .mapStory:-ms-fullscreen {
+    height: 100%;
+    }
+    .mapStory:fullscreen {
+    height: 100%;
+    }
+    .mapStory .ol-rotate {
+    top: 3em;
     }
