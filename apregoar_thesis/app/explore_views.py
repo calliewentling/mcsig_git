@@ -371,14 +371,40 @@ def explore():
                     #print("Instance: ",result.Instances)
                     if result.Instances.i_id not in i_ids:
                         i_ids.append(result.Instances.i_id)
+                        #Do processing of instance begin and end to return str of t_begin and t_end
+                        t_begin = result.Instances.t_begin
+                        t_end = result.Instances.t_end
+                        ttype = result.Instances.t_type
+                        print(ttype,": ",t_begin,"-",t_end)
+                        print("t_begin type: ",type(t_begin))
+                        i_T = ""
+                        if ttype=="allday_p":
+                            i_D = ""
+                        else:
+                            if t_begin.date() == t_end.date():
+                                i_D = str(t_begin.date())
+                            else:
+                                i_D = str(t_begin.date())+" - "+str(t_end.date())
+                            if ttype == "allday_no":
+                                i_T = str(t_begin.time())+" - "+str(t_end.time())
+                        
                         instance = {
                             "s_id": result.Stories.s_id,
+                            "title": result.Stories.title,
+                            "pub_date": str(result.Stories.pub_date),
+                            "tags": result.Stories.tags,
+                            "section": result.Stories.section,
+                            "publication": result.Stories.publication,
+                            "author": result.Stories.author,
+                            "web_link": result.Stories.web_link,
                             "i_id": result.Instances.i_id,
-                            "t_begin": str(result.Instances.t_begin),
+                            "t_begin": str(result.Instances.t_end),
                             "t_end": str(result.Instances.t_end),
                             "t_type": result.Instances.t_type,
                             "p_desc": result.Instances.p_desc,
-                            "p_name": result.Instances.p_name
+                            "p_name": result.Instances.p_name,
+                            "i_D": i_D,
+                            "i_T": i_T,
                         }
                         instancesJSON.append(instance)
                         for story in storiesJSON:
@@ -565,7 +591,52 @@ def explore():
                         "total_p": row["count"],
                         "p_id": row["p_id"],
                     }
+
+            dates = {}
+            #Get max and min pub date
+            try:
+                with engine.connect() as conn:
+                    SQL = text("SELECT MIN(pub_date) AS pubdate1, MAX(pub_date) as pubdate2 FROM apregoar.stories")
+                    result = conn.execute(SQL)
+            except:
+                conn.close()
+                print("Error in extracting timeframe info")
+            else:
+                print("Extracted max and min pubdates")
+                for row in result:
+                    dates["pubdate1"] = row["pubdate1"]
+                    dates["pubdate2"] = row["pubdate2"]
+            #Get max and min instance dates
+            try:
+                with engine.connect() as conn:
+                    SQL2 = text("SELECT MIN(t_begin) AS idate1, MAX(t_end) AS idate2 FROM apregoar.instances")
+                    result2 = conn.execute(SQL2)
+            except:
+                conn.close()
+                print("Error in extracting max and min instance dates")
+            else:
+                print("Extracted max and min instance dates")
+                for row in result2:
+                    dates["idate1"] = row["idate1"]
+                    dates["idate2"] = row["idate2"]
+
+            #Get range of last 100 pubdates
+            try:
+                with engine.connect() as conn:
+                    SQL3 = text("SELECT MIN(pub_date) AS R1, MAX(pub_date) AS R2 FROM (SELECT * FROM apregoar.stories ORDER BY pub_date DESC LIMIT 100) recentstories")
+                    result3 = conn.execute(SQL3)
+            except:
+                conn.close()
+                print("Error in extraxcting max and min recent values")
+            else:
+                print("Extracted max and min recent range dates")
+                for row in result3:
+                    print("in row")
+                    print(row)
+                    print("row1",row[1])
+                    dates["pubdateR1"] = row[0]
+                    dates["pubdateR2"] = row[1]
             conn.close()
-    return render_template("explore/explore_map.html", tags = tags, sections = sections, authors = authors, publications = publications, t_types=t_types, p_types = p_types, e_names = e_names, pub_dates = pub_dates, i_range = i_range, pubDateRange = pub_date_range)
+    return render_template("explore/explore_map.html", tags = tags, sections = sections, authors = authors, publications = publications, t_types=t_types, p_types = p_types, e_names = e_names, pub_dates = pub_dates, i_range = i_range, pubDateRange = pub_date_range, dates = dates)
     
 

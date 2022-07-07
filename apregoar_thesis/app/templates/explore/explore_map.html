@@ -17,14 +17,26 @@
 </div>
 
 <div id = "storyDeetsOverlay" class="story-deets" style="display:none">
-    <div class="close" onclick="closeDeets()">&times</div>
-    <div class="deets-title" id="deetsTitle"></div>
-    <div class="deets-author" id="deetsAuthor"></div>
-    <div class="deets-pubdate" id="deetsPubdate"></div>
-    <div class="deets-section" id="deetsSection"></div>
-    <div class="deets-tags" id="deetsTags"></div>
-    <div class="deets-summary" id="deetsSummary"></div>
+    <div class="deetsInstance" style="display:none">
+        <div class="deets-ititle" id="deetsITitle"></div>
+        <div class="deets-idateframe" id="deetsIDateframe"></div>
+        <div class="deets-itimeframe" id="deetsITimeframe"></div>
+        <div class = "deets-itdesc" id="deetsITdesc"></div>
+        <div class="deets-section" id="deetsIPdesc"></div>
+        <div class="deets-storyTitle" id="deetsTitle2"></div>
+    </div>
+    <div class="deetsStory">
+        <div class="close" onclick="closeDeets()">&times</div>
+        <div class="deets-title" id="deetsTitle"></div>
+        <div class="deets-author" id="deetsAuthor"></div>
+        <div class="deets-pubdate" id="deetsPubdate"></div>
+        <div class="deets-section" id="deetsSection"></div>
+        <div class="deets-tags" id="deetsTags"></div>
+        <div class="deets-summary" id="deetsSummary"></div>
+    </div>
+    
     <div class="deets-iCount" id="deetsICount"></div>
+
     <div id="mapStory" class="mapStory" ></div> <!--style="display:none"-->
     <a href="#" id="buttonLink" target="_blank">
         <button class="deets-button" id="deetsButton">Ver original</button>

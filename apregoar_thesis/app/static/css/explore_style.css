@@ -265,7 +265,8 @@ top: 3em;
         padding: 5px;
         text-align: left;
         position: relative;
-        background: black;
+        background: white;
+        color: black;
     }
 
     .instance-card .instance-details{
@@ -282,9 +283,9 @@ top: 3em;
         font-weight: 600;
     }
 
-    .instance-card .instance-details .instance-time {
+    .instance-card .instance-details .instance-datetime {
         font-size: 10px;
-        color: var(--primary-color);
+        color: white;
         font-weight: 500;
     }
 
@@ -437,4 +438,80 @@ top: 3em;
     }
     .mapStory .ol-rotate {
     top: 3em;
+    }
+
+
+    /* INSTANCE CARD DEETS*/
+    .instance-deets {
+        border-radius: 5px;
+        position: fixed;
+        width: 80%;
+        max-height: 80%;
+        top: 10%;
+        left: 10%;
+        font-size: 14px;
+        background-color: var(--primary-color);
+        box-shadow: -10px 5px 20px var(--shadow-color);
+        color: white;
+        margin: 10px;
+        overflow-y: auto;
+    }
+
+    .instance-deets .close{
+        font-size: 20px;
+        height: 30px;
+        font-weight: bold;
+        padding-right: 10px;
+        text-align: right;
+        background-color: white;
+        color: black;
+        cursor:pointer;
+    }
+
+    .instance-deets .close:hover{
+        font-size:30px;
+    }
+
+    .instance-deets .deets-title {
+        text-align: center;
+        top: 2%;
+        font-size: 20px;
+        font-weight: bold;
+        color: black;
+        background-color:white;
+    }
+    .instance-deets .deets-dateframe {
+        text-align: center;
+    }
+    .instance-deets .deets-timeframe {
+        text-align: center;
+    }
+
+    .instance-deets .deets-tdesc {
+        padding: 10px;
+        font-style: italic;
+        text-align: left;
+    }
+
+    .instance-deets .deets-pdesc {
+        padding: 10px;
+        font-size: 16px;
+        text-align: justify;
+
+    }
+
+    .instance-deets .deets-button {
+        text-align: center;
+        font-size: 16px;
+        padding: 10px;
+        height: 40px;
+        width: 100%;
+        bottom: 1%;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+
+    .story-deets .deets-button:hover {
+        font-size: 20px;
+        padding: 5px;
     }
