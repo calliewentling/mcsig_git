@@ -9,165 +9,174 @@
 <h2>Explorar a mapa</h2>
 
 <div id="map" class="map"></div>
-
+<br>
+<div>
+    <button class="button1" id="filtrarHistorias" onclick="showFilters()">Filtrar</button>
+</div>
+<br>
 
 <div class="resultsArea" id="resultsArea" style="display:none">
     <div class="resultsStory" id="resultsStory"></div>
     <div class="resultsInstance" id="resultsInstance"></div>
 </div>
 
-<div id = "storyDeetsOverlay" class="story-deets" style="display:none">
-    <div class="deetsInstance" style="display:none">
-        <div class="deets-ititle" id="deetsITitle"></div>
-        <div class="deets-idateframe" id="deetsIDateframe"></div>
-        <div class="deets-itimeframe" id="deetsITimeframe"></div>
-        <div class = "deets-itdesc" id="deetsITdesc"></div>
-        <div class="deets-section" id="deetsIPdesc"></div>
-        <div class="deets-storyTitle" id="deetsTitle2"></div>
-    </div>
-    <div class="deetsStory">
-        <div class="close" onclick="closeDeets()">&times</div>
-        <div class="deets-title" id="deetsTitle"></div>
-        <div class="deets-author" id="deetsAuthor"></div>
-        <div class="deets-pubdate" id="deetsPubdate"></div>
-        <div class="deets-section" id="deetsSection"></div>
-        <div class="deets-tags" id="deetsTags"></div>
-        <div class="deets-summary" id="deetsSummary"></div>
-    </div>
-    
-    <div class="deets-iCount" id="deetsICount"></div>
 
-    <div id="mapStory" class="mapStory" ></div> <!--style="display:none"-->
+<div id="deetsOverlay" style="display:none" class="dO"></div>
+<!-- 
+<div>
+     <div id="mapStory>" class="mapStory" ></div> 
     <a href="#" id="buttonLink" target="_blank">
         <button class="deets-button" id="deetsButton">Ver original</button>
     </a>
 </div>
+-->
+
+
 
 <div id = "resultsList"></div>
 
-<form method ="post">
-    <!-- STORY LEVEL FILTERS -->
-    <div class="filterLine" id="datesP">
-        <div class = "filterItem">
-            <h5>Filtros Histórias</h5>
-        </div>
-        <div class = "filterItem">
-            <label for="from">De</label>
-            <input type="text" id="from" name="from">
-            <label for="to">à</label>
-            <input type="text" id="to" name="to">
-        </div>
-        <div class = "filterItem">
-            <input type="checkbox" id="allPub"></input>
-            <label for="allPub">Todos</label>
-        </div>
-    </div>
-    <div class="filterLine" id="filtersP">
-        <div class = "filterItem">
-            <select id="checksTags">
-                {% for i in tags %}
-                    {% set name = i %}
-                    {% set count = tags[i]["total_t"] %}
-                    <option value="{{ name }}">{{ name }} </option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class = "filterItem">
-            <select id="checksSections">
-                {% for i in sections %}
-                    {% set name = i %}
-                    {% set count = sections[i]["total_s"] %}
-                    <option value="{{ name }}">{{ name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class = "filterItem">
-            <select id="checksPublications">
-                {% for i in publications %}
-                    {% set name = i %}
-                    {% set count = publications[i]["total_p"] %}
-                    <option value="{{ name }}">{{ name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class = "filterItem">
-            <select id="checksAuthors">
-                {% for i in authors %}
-                    {% set name = i %}
-                    {% set count = authors[i]["total_a"] %}
-                    <option value="{{ name }}">{{ name }} </option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
+<div id="filterOverlay" class="filterOverlay" style="display:none">
+    <h3>Filtrar</h3>
     <br>
     <!-- STORY LEVEL FILTERS -->
-    <div class="filterLine" id="datesI">
-        <div class = "filterItem">
-            <h5>Filtros de Instâncias</h5>
+    <div class="filterSection">
+        <div class="filterLine" id="datesP">
+            <div class = "filterItem">
+                <h5>Filtros Histórias</h5>
+            </div>
+            <div class = "filterItem">
+                <label for="from">De</label>
+                <input type="text" id="from" name="from">
+                <label for="to">à</label>
+                <input type="text" id="to" name="to">
+            </div>
+            <div class = "filterItem">
+                <input type="checkbox" id="allPub"></input>
+                <label for="allPub">Todos</label>
+            </div>
         </div>
-        <div class = "filterItem">
-            <label for="fromI">De</label>
-            <input type="text" id="fromI" name="fromI">
-            <label for="to">à</label>
-            <input type="text" id="toI" name="toI">
-            <input type="checkbox" id="allInst"></input>
-            <label for="allInst">Todas datas</label>
-        </div>
-    </div>
-    <div class="filterLine" id="filtersI">
-        <div class = "filterItem">
-            <select id="checksT_types">
-                {% for i in t_types %}
-                    {% set name = i[0] %}
-                    {% set count = i[1].total_s %}
-                    <option value="{{ name }}">{{ name }} </option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class = "filterItem">
-            <select id="checksP_types">
-                {% for i in p_types %}
-                    {% set name = i[0] %}
-                    {% set count = i[1].total_s %}
-                    <option value="{{ name }}">{{ name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class = "filterItem">
-            <select id="checksE_names">
-                {% for i in e_names %}
-                    {% set name = i[0] %}
-                    {% set count = i[1].total_i %}
-                    <option value="{{ name }}">{{ name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class = "filterItem">
-            <input type="text" id="pNameSearch" placeholder="Pesquisar lugares">
-        </div>
-    </div>
-    <div class="filterLine">
-        <div class="filterItem">
-            <p>Filtra os resultados para lhes que as áreas desenhadas:</p>
-            <input type="radio" id="containTotal" name="drawFType" value="containTotal">
-            <label for="containTotal">Contêm completamente</label>
-            <input type="radio" id="containPartial" name="drawFType" value="containPartial" checked="checked">
-            <label for="containPartial">Contêm completamente ou partialmente</label>
-            <input type="radio" id="intersects" name="drawFType" value="intersects">
-            <label for="intersects">Contêm ou por quais são contidos </label>
-            <input type="radio" id="disjoint" name="drawFType" value="disjoint">
-            <label for="disjoint">Não correspondem</label>
+        <br>
+        <div class="filterLine" id="filtersP">
+            <div class = "filterItem">
+                <select id="checksTags">
+                    {% for i in tags %}
+                        {% set name = i %}
+                        {% set count = tags[i]["total_t"] %}
+                        <option value="{{ name }}">{{ name }} </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class = "filterItem">
+                <select id="checksSections">
+                    {% for i in sections %}
+                        {% set name = i %}
+                        {% set count = sections[i]["total_s"] %}
+                        <option value="{{ name }}">{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class = "filterItem">
+                <select id="checksPublications">
+                    {% for i in publications %}
+                        {% set name = i %}
+                        {% set count = publications[i]["total_p"] %}
+                        <option value="{{ name }}">{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class = "filterItem">
+                <select id="checksAuthors">
+                    {% for i in authors %}
+                        {% set name = i %}
+                        {% set count = authors[i]["total_a"] %}
+                        <option value="{{ name }}">{{ name }} </option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
     </div>
-    <button type="submit">Guardar</button>
-</form>
-<button id="saveFilters" onclick="saveDraw()">Guardar Filtros</button>
-<button id="limparDraw" onclick="clearDraw()">Limpar</button>
+    
+    <br>
 
-<div id="filterMap" class = "map"></div>
+    <!-- Instance LEVEL FILTERS -->
+    <div class="filterSection">
+        <div class="filterLine" id="datesI">
+            <div class = "filterItem">
+                <h5>Filtros de Instâncias</h5>
+            </div>
+            <div class = "filterItem">
+                <label for="fromI">De</label>
+                <input type="text" id="fromI" name="fromI">
+                <label for="to">à</label>
+                <input type="text" id="toI" name="toI">
+                <input type="checkbox" id="allInst"></input>
+                <label for="allInst">Todas datas</label>
+            </div>
+        </div>
+        <div class="filterLine" id="filtersI">
+            <div class = "filterItem">
+                <select id="checksT_types">
+                    {% for i in t_types %}
+                        {% set name = i[0] %}
+                        {% set count = i[1].total_s %}
+                        <option value="{{ name }}">{{ name }} </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class = "filterItem">
+                <select id="checksP_types">
+                    {% for i in p_types %}
+                        {% set name = i[0] %}
+                        {% set count = i[1].total_s %}
+                        <option value="{{ name }}">{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class = "filterItem">
+                <select id="checksE_names">
+                    {% for i in e_names %}
+                        {% set name = i[0] %}
+                        {% set count = i[1].total_i %}
+                        <option value="{{ name }}">{{ name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class = "filterItem">
+                <input type="text" id="pNameSearch" placeholder="Pesquisar lugares">
+            </div>
+        </div>
+    </div>
 
-<div id="filterResults">
+    <br>
+    <!-- SPATIAL MAP FILTER -->
+    <div class="filterSection">
+        <div class="filterLine">
+            <h5>Desenhar uns áreas de pesquisa</h5>
+            <div class="filterItem">
+                <p>Filtra os resultados para lhes que as áreas desenhadas:</p>
+                <input type="radio" id="containTotal" name="drawFType" value="containTotal">
+                <label for="containTotal">Contêm completamente</label>
+                <input type="radio" id="containPartial" name="drawFType" value="containPartial" checked="checked">
+                <label for="containPartial">Contêm completamente ou partialmente</label>
+                <input type="radio" id="intersects" name="drawFType" value="intersects">
+                <label for="intersects">Contêm ou por quais são contidos </label>
+                <input type="radio" id="disjoint" name="drawFType" value="disjoint">
+                <label for="disjoint">Não correspondem</label>
+            </div>
+        </div>
+        <button class="button2" id="limparDraw" onclick="clearDraw()">Limpar mapa</button>
+        <div id="filterMap" class = "map"></div>
+    </div>
+    <br>
+    <!-- SAVE AND CLEAN BUTTONS -->
+    <button class="button1" id="saveFilters" onclick="saveDraw()">Guardar Filtros</button>
+    
+</div>
+
+
+
+
+<div id="filterResults" style="display:none">
     <div id="recentResults"></div>
     <div id="storyResults"></div>
     <div id="instanceResults"></div>
@@ -176,13 +185,13 @@
 <script>
     //const pubDate1 = new Date('{{ pub_dates[0][0] }}');
     const pubDate1 = new Date('{{ pubDateRange["min"] }}');
-
     const pubDate2 = new Date('{{ pubDateRange["max"] }}');
+    const recentDate1 = new Date('{{ allDates["pubdateR1"] }}');
+    const recentDate2 = new Date('{{ allDates["pubdateR2"] }}');
+   
     //const pubDate2 = new Date('{{ pub_dates[-1][0] }}');
     const iDate1 = new Date ('{{ i_range["i_start"]}} ');
     const iDate2 = new Date ('{{ i_range["i_end"]}} ');
-    console.log("pubDate range: ", pubDate1," - ",pubDate2)
-    console.log("type of pubDates: ",typeof pubDate1);
 </script>
 
 <script src="{{ url_for('static', filename='js/explore.js') }}"></script>

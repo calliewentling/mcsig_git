@@ -375,8 +375,8 @@ def explore():
                         t_begin = result.Instances.t_begin
                         t_end = result.Instances.t_end
                         ttype = result.Instances.t_type
-                        print(ttype,": ",t_begin,"-",t_end)
-                        print("t_begin type: ",type(t_begin))
+                        #print(ttype,": ",t_begin,"-",t_end)
+                        #print("t_begin type: ",type(t_begin))
                         i_T = ""
                         if ttype=="allday_p":
                             i_D = ""
@@ -402,6 +402,7 @@ def explore():
                             "t_end": str(result.Instances.t_end),
                             "t_type": result.Instances.t_type,
                             "p_desc": result.Instances.p_desc,
+                            "t_desc": result.Instances.t_desc,
                             "p_name": result.Instances.p_name,
                             "i_D": i_D,
                             "i_T": i_T,
@@ -623,7 +624,7 @@ def explore():
             #Get range of last 100 pubdates
             try:
                 with engine.connect() as conn:
-                    SQL3 = text("SELECT MIN(pub_date) AS R1, MAX(pub_date) AS R2 FROM (SELECT * FROM apregoar.stories ORDER BY pub_date DESC LIMIT 100) recentstories")
+                    SQL3 = text("SELECT MIN(pub_date) AS R1, MAX(pub_date) AS R2 FROM (SELECT * FROM apregoar.stories ORDER BY pub_date DESC LIMIT 25) recentstories")
                     result3 = conn.execute(SQL3)
             except:
                 conn.close()
@@ -631,12 +632,14 @@ def explore():
             else:
                 print("Extracted max and min recent range dates")
                 for row in result3:
-                    print("in row")
-                    print(row)
-                    print("row1",row[1])
+                    #print("in row")
+                    #print(row)
+                    #print("row1",row[1])
                     dates["pubdateR1"] = row[0]
                     dates["pubdateR2"] = row[1]
+            print("dates: ",dates, type(dates["pubdateR1"]))
+            print("pub_date_range: ",pub_date_range,type(pub_date_range["min"]))
             conn.close()
-    return render_template("explore/explore_map.html", tags = tags, sections = sections, authors = authors, publications = publications, t_types=t_types, p_types = p_types, e_names = e_names, pub_dates = pub_dates, i_range = i_range, pubDateRange = pub_date_range, dates = dates)
+    return render_template("explore/explore_map.html", tags = tags, sections = sections, authors = authors, publications = publications, t_types=t_types, p_types = p_types, e_names = e_names, pub_dates = pub_dates, i_range = i_range, pubDateRange = pub_date_range, allDates = dates)
     
 

@@ -19,13 +19,17 @@ $(document).ready(function () {
     });
 
     $(document).on("click", ".MultiCheckBoxDetailHeader input", function (e) {
+        console.log("Checkpoint");
+        //This should be accessed to remove everything from selection;
         e.stopPropagation();
         var hc = $(this).prop("checked");
+        console.log("hc: ",hc);
         $(this).closest(".MultiCheckBoxDetail").find(".MultiCheckBoxDetailBody input").prop("checked", hc);
         $(this).closest(".MultiCheckBoxDetail").next().UpdateSelect();
     });
 
     $(document).on("click", ".MultiCheckBoxDetailHeader", function (e) {
+        console.log("This enters a check all scenario");
         var inp = $(this).find("input");
         var chk = inp.prop("checked");
         inp.prop("checked", !chk);
@@ -70,7 +74,7 @@ var defaultMultiCheckBoxOption = { width: '220px', defaultText: "Selecionar", he
 //var recentDate1 = new Date();
 //var recentDate2 = new Date();
 let stories;
-var allFilters = {
+const baseFilters = {
     "Tags": [],
     "Sections": [],
     "Authors": [],
@@ -78,8 +82,8 @@ var allFilters = {
     "T_types": [],
     "P_types": [],
     "E_names": [],
-    "pubDateR1": "",
-    "pubDateR2": "",
+    "pubDateR1": recentDate1,
+    "pubDateR2": recentDate2,
     "iDateR1": "",
     "iDateR2": "",
     "pNameSearch": "",
@@ -89,6 +93,18 @@ var allFilters = {
     "boundaryPolys":[],
     "boundaryDefinition":"containPartial",
 };
+var allFilters = baseFilters;
+
+// USING PYTHON PASSED RECENT VALUES TO ESTABLISH DATE LIMITS
+console.log("recentDate1: ",recentDate1,". recentDate2: ",recentDate2);
+    $( "#from" ).datepicker("option", "minDate", pubDate1);
+    $( "#from" ).datepicker("option","maxDate", recentDate2);
+    $( "#from" ).datepicker("setDate", new Date(recentDate1.getFullYear(), recentDate1.getMonth(), recentDate1.getDate()));
+    $( "#to" ).datepicker("option", "minDate", recentDate1);
+    $( "#to" ).datepicker( "option", "maxDate", pubDate2 );
+    $( "#to" ).datepicker("setDate", new Date(recentDate2.getFullYear(), recentDate2.getMonth(), recentDate2.getDate()));
+
+
 jQuery.fn.extend({
     CreateMultiCheckBox: function (options) {
 
@@ -131,7 +147,7 @@ jQuery.fn.extend({
         this.val(arr);
         console.log("arr ",arr);
         allFilters[filterName] = arr;
-        filterAllVals();
+        //filterAllVals();
 
         // Gathering values of inputs & updating dropdown viz based on selections
         filterVals = [];
@@ -362,9 +378,9 @@ function loadSourceToExplore(wfs_url, loadType) {
                         }
                         
                     }
-                    var sourceFeatureInfo = recentSource.getFeatures();
+                    //var sourceFeatureInfo = recentSource.getFeatures();
                     //console.log("sourceFeatureInfo: ",sourceFeatureInfo);
-                    numStoryFeatures = sourceFeatureInfo.length;
+                    //numStoryFeatures = sourceFeatureInfo.length;
                     //console.log("Number of features in story: ", numStoryFeatures);
                     console.log("Successful loading of vector source");
                     if (loadType == "recent"){
@@ -390,6 +406,8 @@ function loadSourceToExplore(wfs_url, loadType) {
     console.log("end of loadSourceToExplore()");
     return tempSource;
 };
+
+/*
 //Preload all entries in the background for filtering
 urlAll = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
     'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
@@ -401,6 +419,9 @@ const allLayer = new ol.layer.Vector({
 })
 map.addLayer(allLayer);
 //map.removeLayer(filteredLayer);
+*/
+
+/*
 //Preload recent entries (100)
 const numRecent = 100;
 urlRecent = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
@@ -417,7 +438,7 @@ const recentLayer = new ol.layer.Vector({
     },
 });
 map.addLayer(recentLayer);
-
+*/
 
 var fromSelect = document.getElementById("from");
 var toSelect = document.getElementById("to");
@@ -444,7 +465,7 @@ $( function() {
         allFilters["pubDateR1"] = getDate(this);
         checkDates(thisDate = getDate( this ), tofrom = "from");
         allFilters["pubDateFilterMin"] = true;
-        filterAllVals();
+        //filterAllVals();
     }),
 
     to = $( "#to" ).datepicker({
@@ -461,7 +482,7 @@ $( function() {
         allFilters["pubDateR2"] = getDate(this);
         checkDates(thisDate = getDate( this ), tofrom = "to");
         allFilters["pubDateFilterMax"] = true;
-        filterAllVals();
+        //filterAllVals();
     }),
 
     fromI = $( "#fromI" ).datepicker({
@@ -474,7 +495,7 @@ $( function() {
         toI.datepicker( "option", "minDate", getDate( this ) );
         allFilters["iDateR1"] = getDate(this);
         allFilters["iDateFilter"] = true;
-        filterAllVals();
+        //filterAllVals();
     }),
 
     toI = $( "#toI" ).datepicker({
@@ -487,7 +508,7 @@ $( function() {
         fromI.datepicker( "option", "maxDate", getDate( this ) );
         allFilters["iDateR2"] = getDate(this);
         allFilters["iDateFilter"] = true;
-        filterAllVals();
+        //filterAllVals();
     })
 
     //Handling autochecking of alldates, also reinserting the current value
@@ -561,7 +582,7 @@ allPub.addEventListener('change', (event) => {
         allFilters["pubDateR2"] = pubDate2;
         allFilters["pubDateFilterMin"] = true;
         allFilters["pubDateFilterMax"] = true;
-        filterAllVals();
+        //filterAllVals();
     }
 });
 const allInst = document.getElementById('allInst');
@@ -577,7 +598,7 @@ allInst.addEventListener('change', (event) => {
         allFilters["iDateR1"] = iDate1;
         allFilters["iDateR2"] = iDate2;
         allFilters["iDateFilter"] = false;
-        filterAllVals();
+        //filterAllVals();
     }
 });
 
@@ -586,7 +607,7 @@ allInst.addEventListener('change', (event) => {
 
 $("#pNameSearch").on("change", function() {
     allFilters["pNameSearch"] = $(this).val();
-    filterAllVals();
+    //filterAllVals();
 });
 
 
@@ -619,6 +640,7 @@ var filteredLayer = new ol.layer.Vector({
         return filterStyle;
     },
 });
+filterAllVals();
 
 //Drawing and saving custom polygons
 let polyJson;
@@ -655,7 +677,17 @@ function drawResults() {
     return polyJson;
 }
 
+function clearFilters(){
+    console.log("clearFilters");
+    console.log("allFilters before clear: ",allFilters);
+    
+    //Need to actually remove checks from filters
+    //Why is everything false?
+}
+
 function clearDraw(){
+    console.log("clearDraw");
+    console.log("allFilters in clear draw: ",allFilters);
     console.log("Clearing drawn polygon filter")
     allFilters["boundaryPolys"] = [];
     drawSource.clear();
@@ -663,9 +695,21 @@ function clearDraw(){
     if (drawVector in currentLayers) {
         map.removeLayer(drawVector);
     }
-    
     console.log("drawSource: ",drawSource);
     console.log("boundaryPolys: ",allFilters["boundaryPolys"]);
+    document.getElementById("filterOverlay").style.display="none";
+    /*
+    multiChecks = ["#checksTags", "#checksSections", "#checksAuthors", "#checksPublications", "#checksT_types", "#checksP_types", "#checksE_names"]; //Future: rework this to automatically include all checkboxes by class for scalability
+    for (i=0;i<multiChecks.length;i++) {
+        $(i).closest(".MultiCheckBoxDetail").find(".MultiCheckBoxDetailBody input").prop("checked", false);
+        //$(i).closest(".MultiCheckBoxDetail").next().UpdateSelect();
+    }
+    allFilters = baseFilters;
+    console.log("allFilters: ",allFilters);
+    console.log("leaving clearDraw");
+    filterAllVals();
+    */
+
 }
 
 function saveDraw(){
@@ -674,6 +718,7 @@ function saveDraw(){
     allFilters["boundaryDefinition"] = drawFType;
     allFilters["boundaryPolys"] = [];
     allFilters["boundaryPolys"] = drawResults();
+    document.getElementById("filterOverlay").style.display="none";
     filterAllVals();
 }
 
@@ -681,10 +726,12 @@ function saveDraw(){
 var sIDs = [];
 var iIDs = [];
 function filterAllVals(){
+    console.log("filterAllVals");
+    console.log("allFitlers in filterAllVals: ",allFilters);
     currentLayers = map.getLayers();
     console.log("currentLayers: ",currentLayers);
-    map.removeLayer(allLayer);
-    map.removeLayer(recentLayer);
+    //map.removeLayer(allLayer);
+    //map.removeLayer(recentLayer);
     map.removeLayer(filteredLayer);
     map.removeLayer(drawVector);
     if (allFilters["boundaryPolys"].length>0){
@@ -720,11 +767,16 @@ function filterAllVals(){
             instances = resp["instances"];
             //Testing Cards
             console.log("stories: ",stories);
+            refreshStoryCards(stories=stories);
+            refreshInstanceCards(instances=instances);
+            
+            /*
             if (sIDs.length > 0){
                 refreshStoryCards(stories=stories, instances=instances)
             } else {
                 document.getElementById("resultsStory").style.display = "none";
             }
+            */
             resultsArea.style.display="block";
             if (iIDs.length > 0){
                 iIDFilter = "i_id IN ("+iIDs+")";
@@ -739,16 +791,16 @@ function filterAllVals(){
                 filteredSource = loadSourceToExplore(wfs_url=urlFiltered, loadType="filtered")
                 filteredLayer.setSource(filteredSource);// how do I define this?
                 map.addLayer(filteredLayer);
-                recentResults.style.display = "none";
+                //recentResults.style.display = "none";
                 instanceResults.innerHTML=`<p>Instâncias: ${iIDs.length}: ${iIDs}</p>`;
                 storyResults.innerHTML=`<p>Histórias: ${sIDs.length}: ${sIDs}</p>`;
                 map.render();
             } else {
                 console.log("no features meeting criteria")
                 map.removeLayer(filteredLayer);
-                map.addLayer(recentLayer);
+                //map.addLayer(recentLayer);
                 resultsArea.style.display="none";
-                recentResults.style.display = "block";
+                //recentResults.style.display = "block";
                 instanceResults.innerHTML=`<p>Sem lugares</p>`;
                 storyResults.innerHTML=`<p>Sem histórias</p>`;
             }
@@ -780,15 +832,11 @@ function loadingCards(){
 const resultsStory = document.getElementById("resultsStory"); 
 const resultsInstance = document.getElementById("resultsInstance");
 
-function refreshStoryCards(stories,instances){
+function refreshStoryCards(stories){
     console.log("Entering refreshStoryCards()")
     //Removing old cards
     var prevStoryCards = document.querySelectorAll(".story-card");
     prevStoryCards.forEach(card => {
-        card.remove();
-    });
-    var prevInstanceCards = document.querySelectorAll(".instance-card");
-    prevInstanceCards.forEach(card => {
         card.remove();
     });
     
@@ -827,6 +875,17 @@ function refreshStoryCards(stories,instances){
     }
     resultsStory.style.display = "block";
 
+    console.log("Leaving refreshStoryCards()")
+    //loadingCards(); //Not yet doing loading animation. first lets make the load work!
+}
+
+
+function refreshInstanceCards(instances){
+    console.log("refreshInstanceCards()");
+    var prevInstanceCards = document.querySelectorAll(".instance-card");
+    prevInstanceCards.forEach(card => {
+        card.remove();
+    });
     //Preparing new instance cards
     console.log("instances.length: ",instances.length);
     for(i=0; i<instances.length; i++){
@@ -854,12 +913,9 @@ function refreshStoryCards(stories,instances){
 
         resultsInstance.appendChild(iCard);
         console.log("iCard: ",iCard);
-        iCard.onclick = loadStoryDeets;
+        iCard.onclick = loadInstanceDeets;
     }
     resultsInstance.style.display = "block";
-
-    console.log("Leaving refreshStoryCards()")
-    //loadingCards(); //Not yet doing loading animation. first lets make the load work!
 }
 
 //Generic Map Setup
@@ -876,7 +932,7 @@ var mapStory = new ol.Map({
     view: viewSCard,
 });
 mapStory.addLayer(backDrop);
-mapStory.addLayer(recentLayer);
+//mapStory.addLayer(recentLayer);
 
 //let storyInstAllSource = new ol.source.Vector();
 /*var storyInstAllLayer = new ol.layer.Vector({
@@ -889,9 +945,9 @@ mapStory.addLayer(recentLayer);
 function loadStoryDeets(card){
     console.log("card: ",card);
     stopVar = "unkown";
+    cardD = {};
     for (i=0; i<card["path"].length; i++){
         console.log(card["path"][i].className);
-        cardD = {};
         if(card["path"][i].className == "story-card"){
             console.log("great success!")
             console.log(card["path"][i].className);
@@ -899,34 +955,159 @@ function loadStoryDeets(card){
             console.log("sID: ",sID);
             for (j=0;j<stories.length;j++){
                 console.log("cycling through story IDS: ",stories[j]["s_id"]);
-                if (stories[i]["s_id"]==sID){
+                if (stories[j]["s_id"]==sID){
                     cardD = stories[j];
                     console.log("cardD Story: ",cardD);
                     stopVar = "story";
                 }
             }
         }
-        else if(card["path"][i].className = "instance-card"){
-            console.log(card["path"][i].className);
-            //iID = parseInt(card["Path"][i].id.substring(4),10);
-            iID = card["Path"][i].id;
+    }
+    renderDeets(cardD = cardD);
+}
+
+function loadInstanceDeets(card){
+    console.log("card: ",card);
+    stopVar = "unkown";
+    cardD = {};
+    
+    for (k=0; k<card["path"].length; k++){
+        console.log(card["path"][k].className);
+        if(card["path"][k].className == "instance-card"){
+            console.log(card["path"][k]);
+            //preiID = card["path"][k].id.substring(4);
+            //console.log("preiID: ",preiID);
+            iID = parseInt(card["path"][k].id.substring(4),10);
+            //iID = card["Path"][k].id;
             console.log("iID: ",iID);
             for (j=0; j<instances.length;j++){
-                console.log("cycling through instance ID:",instances[j]["i_id"]);
+                //console.log("cycling through instance ID:",instances[j]["i_id"]);
                 if (instances[j]["i_id"]==iID){
                     cardD = instances[j];
-                    console.log("cardD INstnace: ",cardD);
+                    console.log("cardD Instnace: ",cardD);
                     stopVar = "instance";
                 }
             }
         }
 
     }
-    //sID = parseInt(card["path"][1].id.substring(4),10); //This coud be iffy if we click directly on the scard, instead of one of its children.
+    renderDeets(cardD = cardD);
+}
+
+function renderDeets(cardD){
+    
     console.log("cardD: ",cardD);
-    var storyDeets = document.getElementById("storyDeetsOverlay");
+    //var storyDeets = document.getElementById("deetsOverlay");
     //mapStory.removeLayer(storyInstAllLayer);
 
+    var dOverlay = document.getElementById('deetsOverlay');
+    openOverlay = true;
+
+    var dClose = document.createElement('div');
+    dClose.innerHTML = 'X'
+    dClose.className = 'close';
+    dClose.onclick = closeDeets();
+    dOverlay.appendChild(dClose);
+
+    var dTitle = document.createElement('div');
+    dTitle.className = 'dO-title';
+    dOverlay.appendChild(dTitle);
+
+    var dOStory = document.createElement('div');
+    dOStory.className = 'dO-story';
+    
+
+    if(stopVar == "instance"){
+
+        var dOInstance = document.createElement('div');
+        dOInstance.className = 'dO-instance';
+        dOverlay.appendChild(dOInstance);
+
+        dTitle.innerHTML = cardD["p_name"];
+
+        var dDateframe = document.createElement('div');
+        dDateframe.className = 'dO-dateframe';
+        dDateframe.innerHTML = cardD["i_D"];
+        dOInstance.appendChild(dDateframe);
+        
+        var dTimeframe = document.createElement('div');
+        dTimeframe.className = 'dO-timeframe';
+        dTimeframe.innerHTML = cardD["i_T"];
+        dOInstance.appendChild(dTimeframe);
+
+        var dTDesc = document.createElement('div');
+        dTDesc.classname = 'dO-tdesc';
+        dTDesc.innerHTML = cardD["t_desc"];
+        dOInstance.appendChild(dTDesc);
+
+        var dPDesc = document.createElement('div');
+        dPDesc.className = 'dO-pdesc';
+        dPDesc.innerHTML = cardD["p_desc"];
+        dOInstance.appendChild(dPDesc);
+
+        var dsTitle = document.createElement('div');
+        dsTitle.className = "dO-stitle";
+        dsTitle.innerHTML = cardD["title"];
+        dOStory.appendChild(dsTitle);
+
+    } else {
+        dTitle.innerHTML = cardD["title"];
+    }
+
+    
+    dOverlay.appendChild(dOStory);
+
+    var dAuthor = document.createElement('div');
+    dAuthor.innerHTML = cardD["author"];
+    dAuthor.className = 'dO-author';
+    dOStory.appendChild(dAuthor);
+
+    var dPubdate = document.createElement('div');
+    dPubdate.className = 'dO-pubdate';
+    dPubdate.innerHTML = cardD["pub_date"];
+    dOStory.appendChild(dPubdate);
+
+    var dSection = document.createElement('div');
+    dSection.className = 'dO-section';
+    dSection.innerHTML = cardD["section"];
+    dOStory.appendChild(dSection);
+
+    var dTags = document.createElement('div');
+    dTags.className = 'dO-tags';
+    dTags.innerHTML = cardD["tags"];
+    dOStory.appendChild(dTags);
+
+    var dSummary = document.createElement('div');
+    dSummary.className = 'dO-summary';
+    dSummary.innerHTML = cardD["summary"];
+    dOStory.appendChild(dSummary);
+
+    var dSource = document.createElement('a');
+    dSource.href = cardD["web_link"];
+    dSource.target = "_blank";
+    var dButton = document.createElement('button');
+    dButton.className = "dO-button";
+    dButton.id = "dButton";
+    dButton.innerHTML = "Ver fonte";
+    dSource.appendChild(dButton);
+    dOverlay.appendChild(dSource);
+
+    dOverlay.style.display = "block";
+};
+
+    /*document.addEventListener("click", (event)=>{
+        const isClickInside = dOverlay.contains(event.target);
+        if (openOverlay == true){
+            if (!isClickInside){
+                dOverlay.style.display="none";
+                openOverlay = false;
+            }
+        }
+        
+    })*/
+
+
+    /*
     if (stopVar == "instance"){
         document.getElementById('deetsITitle').innerHTML = cardD["p_name"];
         document.getElementById('deetsIDateframe').innerHTML = cardD["i_D"];
@@ -936,14 +1117,7 @@ function loadStoryDeets(card){
         document.getElementById('deetsTitle2').innerHTML = cardD["title"];
         console.log("Here is where we should define a layer with only the instance highlighted")
     }
-    else {
-        document.getElementById('deetsITitle').innerHTML ="";
-        document.getElementById('deetsIDateframe').innerHTML = "";
-        document.getElementById('deetsITimeframe').innerHTML = "";
-        document.getElementById('deetsITdesc').innerHTML = "";
-        document.getElementById('deetsIPdesc').innerHTML = "";
-        document.getElementById('deetsTitle2').innerHTML = ""
-    }
+    
     //Appropriate for all cards
     document.getElementById('deetsTitle').innerHTML = cardD["title"];
     document.getElementById('deetsAuthor').innerHTML =cardD["author"];
@@ -952,7 +1126,7 @@ function loadStoryDeets(card){
     document.getElementById('deetsTags').innerHTML = cardD["tags"];
     document.getElementById('deetsSummary').innerHTML = cardD["summary"];
     document.getElementById('buttonLink').href = cardD["web_link"];
-
+    */
     /*
     if (cardD["instances_all"].length>0){
         document.getElementById('deetsICount').innerHTML = cardD["instances_all"].length;
@@ -1005,9 +1179,20 @@ function loadStoryDeets(card){
         document.getElementById("mapStory").style.display="none";
     }
     */
-    storyDeets.style.display = "block";
-};
+    //storyDeets.style.display = "block";
+
 
 function closeDeets(){
-    document.getElementById("storyDeetsOverlay").style.display="none";
+    console.log("close deets");
+    var deetsOverlay = document.getElementById('deetsOverlay');
+    var first = deetsOverlay.firstElementChild;
+    while (first) {
+        first.remove();
+        first = deetsOverlay.firstElementChild;
+    }
+    deetsOverlay.style.display="none";
+}
+
+function showFilters() {
+    document.getElementById("filterOverlay").style.display="block";
 }
