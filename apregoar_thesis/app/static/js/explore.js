@@ -190,13 +190,71 @@ const backDrop = new ol.layer.Tile({
         layer: 'toner-lite',
     }),
 });
+
+/*******************
+ * Add overlay to map
+ * 
+ */
+ const popupContainer = document.getElementById('popupContainer');
+ const popupContent = document.getElementById('popupContent');
+ const popupCloser = document.getElementById('popup-closer');
+ 
+ const popupOverlay = new ol.Overlay({
+     element: popupContainer,
+     autoPan: true,
+     autoPanAnimation: {
+         duration: 250,
+     },
+ });
+ 
+ popupCloser.onclick = function (){
+     popupOverlay.setPosition(undefined);
+     popupCloser.blur();
+     return false;
+ };
  
 var map = new ol.Map({
-    //overlays: [overlay],
+    overlays: [popupOverlay],
     target: 'map',
     view: view,
 });
 map.addLayer(backDrop);
+
+let popupFeatures;
+map.on('singleclick',function(evt){
+    const coordinate = evt.coordinate;
+    //Fetch info from WFS
+    popupFeatures = filteredSource.getFeaturesAtCoordinate(coordinate);
+    console.log("popupFeatures: ",popupFeatures);
+    if (popupFeatures.length>0){
+        popupInstances = [];
+        for (i=0;i<popupFeatures.length;i++){
+            pInfo = popupFeatures[i]["A"];
+            popupInstances.push(pInfo["i_id"]);
+            //console.log("s_id: ",popupFeatures[i]["A"]["s_id"],", i_id: ",popupFeatures[i]["A"]["i_id"]);
+        }
+        iID = pInfo["i_id"];
+        sID = pInfo["s_id"];
+        for (j=0;j<stories.length;j++){
+            if (instances[j]["i_id"] == iID){
+                cardD = instances[j];
+                stopVar = "instance";
+            }
+        }
+        renderDeets(cardD = cardD);
+        //popupContent.innerHTML = 's_id '+pInfo["s_id"]+'<br> i_id '+pInfo["i_id"]+"<br> Total instances: "+popupFeatures.length;
+        popupContent.innerHTML = 'i_ids: '+popupInstances+'<br> ('+popupFeatures.length+')';
+        popupContainer.style.display="block";
+    } else {
+        closeDeets();
+
+    }
+    
+    popupOverlay.setPosition(coordinate);
+})
+
+
+
 
 /* Preparing highlight maps of selected instances */
 fill1 = 'rgba(156,34,15,0.2)';
@@ -858,7 +916,12 @@ function refreshStoryCards(stories){
         sCard.appendChild(sCardDetails);
         var sCardSection = document.createElement('div');
         sCardSection.className = 'story-section';
-        sCardSection.innerHTML = stories[i].section+'<br>';
+        if (stories[i].section.length > 0){
+            sCardSection.innerHTML = stories[i].publication+": "+stories[i].section+'<br>';
+
+        } else {
+            sCardSection.innerHTML = stories[i].publication+'<br>';
+        }
         sCardDetails.appendChild(sCardSection);
         var sCardDate = document.createElement('div');
         sCardDate.className = 'pub-date';
@@ -894,22 +957,31 @@ function refreshInstanceCards(instances){
         iCard.className = 'instance-card';
         iCard.id = "iID_"+instances[i]["i_id"];
         console.log("iCard.id: ",iCard.id);
+
         var iCardTitle = document.createElement('div');
         iCardTitle.className = 'instance-title';
         iCardTitle.innerHTML = instances[i]["p_name"];
         console.log("title: ",instances[i]["p_name"]);
         iCard.appendChild(iCardTitle);
+
         var iCardDetails = document.createElement('div');
         iCardDetails.className='instance-details';
         iCard.appendChild(iCardDetails);
+
         var iCardDFrame = document.createElement('div');
         iCardDFrame.className = 'instance-dateframe';
         iCardDFrame.innerHTML = instances[i]["i_D"];
-        iCard.appendChild(iCardDFrame);
+        iCardDetails.appendChild(iCardDFrame);
+
         var iCardTFrame = document.createElement('div');
         iCardTFrame.className = 'instance-timeframe';
-        iCardTFrame.innerHTML = instances[i]["i_T"];
+        iCardTFrame.innerHTML = instances[i]["i_T"]+'<br>';
         iCardDetails.appendChild(iCardTFrame);
+
+        var iCardSTitle = document.createElement('div');
+        iCardSTitle.className = 'instance-stitle';
+        iCardSTitle.innerHTML = instances[i]["title"];
+        iCardDetails.appendChild(iCardSTitle);
 
         resultsInstance.appendChild(iCard);
         console.log("iCard: ",iCard);
@@ -942,13 +1014,16 @@ mapStory.addLayer(backDrop);
     },
 });*/
 
+
 function loadStoryDeets(card){
+    removeHighlights();
     console.log("card: ",card);
     stopVar = "unkown";
     cardD = {};
     for (i=0; i<card["path"].length; i++){
         console.log(card["path"][i].className);
         if(card["path"][i].className == "story-card"){
+            card["path"][i].classList.add('highlight');
             console.log("great success!")
             console.log(card["path"][i].className);
             sID = parseInt(card["path"][i].id.substring(4),10);
@@ -967,6 +1042,7 @@ function loadStoryDeets(card){
 }
 
 function loadInstanceDeets(card){
+    removeHighlights();
     console.log("card: ",card);
     stopVar = "unkown";
     cardD = {};
@@ -974,6 +1050,7 @@ function loadInstanceDeets(card){
     for (k=0; k<card["path"].length; k++){
         console.log(card["path"][k].className);
         if(card["path"][k].className == "instance-card"){
+            card["path"][k].classList.add('highlight');
             console.log(card["path"][k]);
             //preiID = card["path"][k].id.substring(4);
             //console.log("preiID: ",preiID);
@@ -994,7 +1071,15 @@ function loadInstanceDeets(card){
     renderDeets(cardD = cardD);
 }
 
+function removeHighlights(){
+    highlitCards = document.getElementsByClassName("highlight");
+    for (i=0; i<highlitCards.length;i++){
+        highlitCards[i].classList.remove('highlight');
+    }
+};
+
 function renderDeets(cardD){
+    closeDeets();
     
     console.log("cardD: ",cardD);
     //var storyDeets = document.getElementById("deetsOverlay");
@@ -1006,54 +1091,16 @@ function renderDeets(cardD){
     var dClose = document.createElement('div');
     dClose.innerHTML = 'X'
     dClose.className = 'close';
-    dClose.onclick = closeDeets();
+    dClose.onclick = closeDeets;
     dOverlay.appendChild(dClose);
 
     var dTitle = document.createElement('div');
     dTitle.className = 'dO-title';
+    dTitle.innerHTML = cardD["title"];
     dOverlay.appendChild(dTitle);
 
     var dOStory = document.createElement('div');
     dOStory.className = 'dO-story';
-    
-
-    if(stopVar == "instance"){
-
-        var dOInstance = document.createElement('div');
-        dOInstance.className = 'dO-instance';
-        dOverlay.appendChild(dOInstance);
-
-        dTitle.innerHTML = cardD["p_name"];
-
-        var dDateframe = document.createElement('div');
-        dDateframe.className = 'dO-dateframe';
-        dDateframe.innerHTML = cardD["i_D"];
-        dOInstance.appendChild(dDateframe);
-        
-        var dTimeframe = document.createElement('div');
-        dTimeframe.className = 'dO-timeframe';
-        dTimeframe.innerHTML = cardD["i_T"];
-        dOInstance.appendChild(dTimeframe);
-
-        var dTDesc = document.createElement('div');
-        dTDesc.classname = 'dO-tdesc';
-        dTDesc.innerHTML = cardD["t_desc"];
-        dOInstance.appendChild(dTDesc);
-
-        var dPDesc = document.createElement('div');
-        dPDesc.className = 'dO-pdesc';
-        dPDesc.innerHTML = cardD["p_desc"];
-        dOInstance.appendChild(dPDesc);
-
-        var dsTitle = document.createElement('div');
-        dsTitle.className = "dO-stitle";
-        dsTitle.innerHTML = cardD["title"];
-        dOStory.appendChild(dsTitle);
-
-    } else {
-        dTitle.innerHTML = cardD["title"];
-    }
-
     
     dOverlay.appendChild(dOStory);
 
@@ -1069,8 +1116,13 @@ function renderDeets(cardD){
 
     var dSection = document.createElement('div');
     dSection.className = 'dO-section';
-    dSection.innerHTML = cardD["section"];
+    if (cardD["section"].length > 0){
+        dSection.innerHTML = cardD["publication"],': ',cardD["section"];
+    } else {
+        dSection.innerHTML = cardD["publication"];
+    }
     dOStory.appendChild(dSection);
+
 
     var dTags = document.createElement('div');
     dTags.className = 'dO-tags';
@@ -1081,6 +1133,38 @@ function renderDeets(cardD){
     dSummary.className = 'dO-summary';
     dSummary.innerHTML = cardD["summary"];
     dOStory.appendChild(dSummary);
+
+    if(stopVar == "instance"){
+            
+        var dOInstance = document.createElement('div');
+        dOInstance.className = 'dO-instance';
+        dOverlay.appendChild(dOInstance);
+
+        var dITitle = document.createElement('div');
+        dITitle.className = "dO-ititle";
+        dITitle.innerHTML = cardD["p_name"];
+        dOInstance.appendChild(dITitle);
+
+        var dDateframe = document.createElement('div');
+        dDateframe.className = 'dO-dateframe';
+        dDateframe.innerHTML = cardD["i_D"];
+        dOInstance.appendChild(dDateframe);
+        
+        var dTimeframe = document.createElement('div');
+        dTimeframe.className = 'dO-timeframe';
+        dTimeframe.innerHTML = cardD["i_T"];
+        dOInstance.appendChild(dTimeframe);
+
+        var dTDesc = document.createElement('div');
+        dTDesc.className = 'dO-tdesc';
+        dTDesc.innerHTML = cardD["t_desc"];
+        dOInstance.appendChild(dTDesc);
+
+        var dPDesc = document.createElement('div');
+        dPDesc.className = 'dO-pdesc';
+        dPDesc.innerHTML = cardD["p_desc"];
+        dOInstance.appendChild(dPDesc);
+    }
 
     var dSource = document.createElement('a');
     dSource.href = cardD["web_link"];
@@ -1184,6 +1268,7 @@ function renderDeets(cardD){
 
 function closeDeets(){
     console.log("close deets");
+    popupContainer.style.display="none";
     var deetsOverlay = document.getElementById('deetsOverlay');
     var first = deetsOverlay.firstElementChild;
     while (first) {
@@ -1196,3 +1281,6 @@ function closeDeets(){
 function showFilters() {
     document.getElementById("filterOverlay").style.display="block";
 }
+
+
+

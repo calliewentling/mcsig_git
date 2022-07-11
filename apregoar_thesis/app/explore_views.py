@@ -379,7 +379,7 @@ def explore():
                         #print("t_begin type: ",type(t_begin))
                         i_T = ""
                         if ttype=="allday_p":
-                            i_D = ""
+                            i_D = "Temporada continual"
                         else:
                             if t_begin.date() == t_end.date():
                                 i_D = str(t_begin.date())
@@ -394,6 +394,7 @@ def explore():
                             "pub_date": str(result.Stories.pub_date),
                             "tags": result.Stories.tags,
                             "section": result.Stories.section,
+                            "summary": result.Stories.summary,
                             "publication": result.Stories.publication,
                             "author": result.Stories.author,
                             "web_link": result.Stories.web_link,

@@ -474,7 +474,7 @@ map.on('click', function (evt) {
     } else {
         popupFeatures = vSource.getFeaturesAtCoordinate(coordinate);
         console.log("popupFeatures: ",popupFeatures);
-        displayFeatureInfo(evt.piexl, popupFeatures, type="article");
+        displayFeatureInfo(evt.pixel, popupFeatures, type="article");
     }
     
     

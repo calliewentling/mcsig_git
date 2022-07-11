@@ -6,13 +6,20 @@
 
 
 <h1>Apregoar</h1>
-<h2>Explorar a mapa</h2>
-
-<div id="map" class="map"></div>
-<br>
+<h2>O que é que se passa</h2>
 <div>
     <button class="button1" id="filtrarHistorias" onclick="showFilters()">Filtrar</button>
 </div>
+<div id="map" class="map"></div>
+<div id="popupContainer" class="ol-popup">
+    <a href="#" id="popup-closer" class="popup-ol-closer"></a>
+    <div id="popupContent"></div>
+</div>
+<br>
+<div id="focusResult">
+    <div id="deetsOverlay" style="display:none" class="dO"></div>
+</div>
+
 <br>
 
 <div class="resultsArea" id="resultsArea" style="display:none">
@@ -21,7 +28,7 @@
 </div>
 
 
-<div id="deetsOverlay" style="display:none" class="dO"></div>
+
 <!-- 
 <div>
      <div id="mapStory>" class="mapStory" ></div> 

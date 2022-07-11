@@ -3,6 +3,8 @@
     --primary-color: rgba(155, 185, 193);
     --shadow-color: rgba(0,0,0,0.3);
     --secondary-color: #666;
+    --highlight-color: rgb(255, 255, 0);
+    --highlight-waiting: rgba(255, 255, 0, 0.5);
     padding: 10px;
 }
 
@@ -74,6 +76,49 @@ top: 3em;
     width: 0;
     transition: width 250ms;
 }
+
+.ol-popup {
+    position: absolute;
+    background-color: white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #cccccc;
+    bottom: 12px;
+    left: -50px;
+    min-width: 280px;
+}
+
+.ol-popup:after, .ol-popup:before {
+    top: 100%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+  }
+  .ol-popup:after {
+    border-top-color: white;
+    border-width: 10px;
+    left: 48px;
+    margin-left: -10px;
+  }
+  .ol-popup:before {
+    border-top-color: #cccccc;
+    border-width: 11px;
+    left: 48px;
+    margin-left: -11px;
+  }
+  .ol-popup-closer {
+    text-decoration: none;
+    position: absolute;
+    top: 2px;
+    right: 8px;
+  }
+  .ol-popup-closer:after {
+    content: "✖";
+  }
 
 /* MULTICHECK BOX */
 
@@ -217,6 +262,7 @@ top: 3em;
         margin: 10px;
         box-shadow: -10px 5px 20px var(--shadow-color);
         border-radius: 5px;
+        border: 3px solid white;
         overflow: hidden;
         background: black;
         color: white;
@@ -285,6 +331,7 @@ top: 3em;
         margin: 10px;
         box-shadow: -10px 5px 20px var(--shadow-color);
         border-radius: 5px;
+        border: 3px solid white;
         overflow: hidden;
         background: var(--primary-color);
         color: white;
@@ -321,22 +368,22 @@ top: 3em;
     }
 
     .instance-card .instance-details .instance-timeframe {
-        margin-bottom: 5px;
         font-size: 10px;
-        font-weight: 600;
     }
 
-    .instance-card .instance-details .instance-datetime {
-        font-size: 10px;
-        color: white;
-        font-weight: 500;
-    }
-
-    .instance-card .instance-details .instance-extra {
-        margin-top: 5px;
+    .instance-card .instance-details .instance-dateframe {
         font-size: 12px;
+        color: white;
+        font-weight: bold;
+    }
+
+    .instance-card .instance-details .instance-stitle {
+        margin-top: 5px;
+        font-size: 10px;
         color: #666;
     }
+
+    
 
     /*
     .story-card.skeleton .story-title{
@@ -383,11 +430,13 @@ top: 3em;
 
     .dO {
         border-radius: 5px;
-        position: fixed;
-        width: 80%;
-        max-height: 80%;
+        border: 10px solid var(--highlight-color);
+        position: relative;
+        /*width: 80%;
         top: 10%;
         left: 10%;
+        max-height: 80%;
+        */
         font-size: 14px;
         background-color: rgba(0,0,0,.75);
         box-shadow: -10px 5px 20px var(--shadow-color);
@@ -420,42 +469,25 @@ top: 3em;
         background-color:var(--primary-color);
     }
 
-    .dO .dO-instance {
-        background-color:var (--secondary-color);
-        color: black;
-    }
-
-    .dO .dO-instance .dO-dateframe {
-        color: red;
-    }
-
-    .dO .dO-instance .dO-timeframe{
-        color: yellow;
-    }
-
-    .dO .dO-instance .dO-tdesc{
-        color: black;
-    }
-
-    .dO .dO-instance .dO-pdesc{
-        color:blue;
-    }
-
     .dO .dO-story{
         color: var(--primary-color);
-        font-weight: bold;
     }
 
     .dO .dO-story .dO-author {
+        padding-top: 10px;
         text-align: center;
+        font-weight: bold;
+        color: white;
     }
 
     .dO .dO-story .dO-section {
         text-align: center;
+        color: white;
     }
 
     .dO .dO-story .dO-pubdate {
         text-align: center;
+        color: white;
     }
 
     .dO .dO-story .dO-tags {
@@ -471,6 +503,56 @@ top: 3em;
 
     }
 
+    .dO-instance {
+        background-color: var(--primary-color);
+        color: white;
+        margin: 15px;
+        border-radius: 4px;
+        box-shadow: -10px 5px 20px var(--primary-color);
+    }
+
+    .dO-instance .dO-ititle {
+        color: black;
+        height: 30px;
+        border-radius: 4px;
+        background-color:white;
+        padding-top: 5px;
+        padding-bottom: 5px;
+        padding-left: 10px;
+        padding-right: 10px;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .dO-instance .dO-dateframe {
+        padding-top:10px;
+        padding-right: 10px;
+        text-align: right;
+        font-weight: bold;
+        color: var(--secondary-color);
+    }
+
+    .dO-instance .dO-timeframe{
+        text-align: right;
+        padding-right: 10px;
+        color: var(--secondary-color);
+    }
+
+    .dO-instance .dO-tdesc{
+        padding-right: 10px;
+        color: var(--secondary-color);
+        font-size: 14px;
+        text-align: right;
+        font-style: italic;
+    }
+
+    .dO-instance .dO-pdesc{
+        padding: 10px;
+        color: white;
+        font-size: 14px;
+
+    }
+
     .dO .dO-button {
         text-align: center;
         font-size: 16px;
@@ -479,12 +561,18 @@ top: 3em;
         width: 100%;
         bottom: 1%;
         font-weight: bold;
+        outline: none;
+        border: none;
         color: var(--primary-color);
     }
 
     .dO .dO-button:hover {
         font-size: 20px;
         padding: 5px;
+    }
+
+    .highlight {
+        border: 3px solid var(--highlight-color);
     }
     
     .mapStory {
