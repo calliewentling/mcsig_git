@@ -428,8 +428,25 @@ def explore():
                     if result.Instances.i_id not in i_ids:
                         story["instances_no"].append(result.Instances.i_id)
 
+        subq = (select(Instances.s_id, func.array_agg(Instances.i_id).label("iids")).where(Instances.i_id.in_(i_ids)).group_by(Instances.s_id).subquery())
+        stmt3 = select(Instances, func.array_remove(subq.c.iids,Instances.i_id).label("iids")).join(subq, Instances.s_id == subq.c.s_id)
+        results3 = session.execute(stmt3).all()
+        for result in results3:
+            for instance in instancesJSON:
+                instance["instances_yes"]=[]
+                instance["instances_no"]=[]
+                if instance["i_id"] == result.Instances.i_id:
+                    instance["instances_all"] = result.iids
+                    print("instances_all: ",instance["instances_all"])
+                    for i in instance["instances_all"]:
+                        if instance["instances_all"][i] in i_ids:
+                            instance["instances_yes"].append(instance["instances_all"][i])
+                        else:
+                            instance["instances_no"].append(instance["instances_all"][i])
+        
         response["stories"] = storiesJSON
         response["instances"] = instancesJSON
+        print("response['instances']: ",response["instances"])
         #print("Stories pre dumps: ",response["stories"])
         response = json.dumps(response, ensure_ascii=False) #Should this be True (default), then decoded on the otherside in js? Safer...
         print("response: ",response)
