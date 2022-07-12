@@ -1014,9 +1014,10 @@ mapStory.addLayer(backDrop);
     },
 });*/
 
-
+let relations = {};
 function loadStoryDeets(card){
-    removeHighlights();
+    closeDeets();
+    removeHighlights(itsTime = true);
     console.log("card: ",card);
     stopVar = "unkown";
     cardD = {};
@@ -1029,11 +1030,16 @@ function loadStoryDeets(card){
             sID = parseInt(card["path"][i].id.substring(4),10);
             console.log("sID: ",sID);
             for (j=0;j<stories.length;j++){
-                console.log("cycling through story IDS: ",stories[j]["s_id"]);
+                //console.log("cycling through story IDS: ",stories[j]["s_id"]);
                 if (stories[j]["s_id"]==sID){
                     cardD = stories[j];
                     console.log("cardD Story: ",cardD);
                     stopVar = "story";
+                    relations={}
+                    relations["instances_all"] = stories[j]["instances_all"];
+                    relations["instances_no"] = stories[j]["instances_no"];
+                    relations["instances_yes"] = stories[j]["instances_yes"];
+                    updateHighlights(sourceID = sID, type = "sCard", relations = relations);
                 }
             }
         }
@@ -1042,7 +1048,8 @@ function loadStoryDeets(card){
 }
 
 function loadInstanceDeets(card){
-    removeHighlights();
+    closeDeets();
+    removeHighlights(itsTime = true);
     console.log("card: ",card);
     stopVar = "unkown";
     cardD = {};
@@ -1071,15 +1078,20 @@ function loadInstanceDeets(card){
     renderDeets(cardD = cardD);
 }
 
-function removeHighlights(){
-    highlitCards = document.getElementsByClassName("highlight");
-    for (i=0; i<highlitCards.length;i++){
-        highlitCards[i].classList.remove('highlight');
+function removeHighlights(itsTime){
+    if (itsTime == true){
+        highlitCards = document.getElementsByClassName("highlight");
+        for (i=0; i<highlitCards.length;i++){
+            highlitCards[i].classList.remove('highlight');
+        }
     }
+    updateHighlights(sourceID = 0, type="none", relations=[]);
+    
+    //return true;
 };
 
 function renderDeets(cardD){
-    closeDeets();
+    //closeDeets();
     
     console.log("cardD: ",cardD);
     //var storyDeets = document.getElementById("deetsOverlay");
@@ -1179,7 +1191,170 @@ function renderDeets(cardD){
     dOverlay.style.display = "block";
 };
 
-    /*document.addEventListener("click", (event)=>{
+
+let itsTime = false;
+function closeDeets(){
+    console.log("close deets");
+    popupContainer.style.display="none";
+    var deetsOverlay = document.getElementById('deetsOverlay');
+    var first = deetsOverlay.firstElementChild;
+    while (first) {
+        first.remove();
+        first = deetsOverlay.firstElementChild;
+    }
+    deetsOverlay.style.display="none";
+    //itsTime = true;
+    removeHighlights(itsTime = true);
+    itsTime = false;
+}
+
+function showFilters() {
+    document.getElementById("filterOverlay").style.display="block";
+}
+
+
+
+let brightlights;
+const brightlightLayer = new ol.layer.Vector({
+    source: new ol.source.Vector(),
+    map: map,
+    style: new ol.style.Style({
+        stroke: new ol.style.Stroke({
+            color: 'rgba(255,255,0,1)',
+            width: 5,
+        }),
+        fill: new ol.style.Fill({
+            color: 'rgba(155, 185, 193)',
+        })
+    }),
+    zindex: 4,
+});
+
+let highlights;
+const highlightLayer = new ol.layer.Vector({
+    source: new ol.source.Vector(),
+    map: map,
+    style: new ol.style.Style({
+        stroke: new ol.style.Stroke({
+            color: 'rgba(255,255,0,1)',
+            width: 5,
+        }),
+        fill: new ol.style.Fill({
+            color: 'rgba(155,185,193,1)',
+        })
+    }),
+    zindex: 3,
+});
+
+
+let lowlights;
+const lowlightLayer = new ol.layer.Vector({
+    source: new ol.source.Vector(),
+    map: map,
+    style: new ol.style.Style({
+        stroke: new ol.style.Stroke({
+            color: 'rgba(255,255,0,.5)',
+            width: 3,
+        }),
+        fill: new ol.style.Fill({
+            color: 'rgba(255,255,0,.2)',
+        })
+    }),
+    zindex: 2,
+});
+
+let nolights;
+const nolightLayer = new ol.layer.Vector({
+    source: new ol.source.Vector(),
+    map: map,
+    style: new ol.style.Style({
+        stroke: new ol.style.Stroke({
+            color: 'rgba(250,250,250,.5)',
+            width: 3,
+        }),
+        fill: new ol.style.Fill({
+            color: 'rgba(150,150,150,.2)',
+        })
+    }),
+    zindex: 1,
+});
+
+function updateHighlights(sourceID, type, relations){
+    console.log("stories: ",stories);
+    console.log("instances: ",instances);
+    brightlights = {};
+    highlights = {};
+    lowlights = {};
+    nolights = {};
+    filteredFeatures = filteredSource.getFeatures();
+    console.log("Features: ",filteredFeatures);
+
+    nolightLayer.getSource().clear();
+    lowlightLayer.getSource().clear();
+    highlightLayer.getSource().clear();
+    brightlightLayer.getSource().clear();
+    map.removeLayer(filteredLayer);
+
+    if(type=="none"){
+        map.addLayer(filteredLayer);
+    } else {
+        if (type=="sCard"){
+            for (i=0; i<filteredFeatures.length; i++){
+                if (relations["instances_yes"].includes(filteredFeatures[i]["A"]["i_id"])){
+                    highlightLayer.getSource().addFeature(filteredFeatures[i]);
+                } else {
+                    nolightLayer.getSource().addFeature(filteredFeatures[i]);
+                }
+            };
+            brightlights["sIDs"] = sourceID;
+            if (relations["instances_no"].length>0){
+                iIDFilter = "i_id IN ("+relations["instances_no"]+")";
+                cqlFilter = iIDFilter.replace(/%/gi,"%25").replace(/'/gi,"%27").replace(/ /gi,"%20");
+                urlFiltered = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
+                    'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
+                    'cql_filter='+cqlFilter+'&'+
+                    //'sortby=pub_date+D&'+
+                    'sortby=area+D&'+
+                    'outputFormat=application/json&srsname=EPSG:4326';
+                const lowlightSource = loadSourceToExplore(wfs_url = urlFiltered, loadType = "lowlight");
+                lowlightLayer.setSource(lowlightSource);
+            };
+            //lowlights["iIDs"] = relations["instances_no"];
+            //highlights["iIDs"] = relations["instances_yes"];
+            //nolights["iIDs"] = [];
+            //console.log('relations["instances_yes"]: ',relations["instances_yes"]);
+            /*for (i=0; i<instances.length;i++){
+                //if (instances[i]["i_id"] in relations["instances_yes"]){
+                if (!relations["instances_yes"].includes(instances[i]["i_id"])){
+                    //console.log("ID should be nolighted: ", instances[i]["i_id"]);
+                    nolights["iIDs"].push(instances[i]["i_id"]);
+                }
+            }*/
+        } else if (type=="iCard"){
+            iID = sourceID;
+        } else {
+            //If it comes from the map
+            //see line 439 in jornal.js
+            iID = sourceID;
+        }
+
+        nolightLayer.setZIndex(1);
+        lowlightLayer.setZIndex(2);
+        highlightLayer.setZIndex(3);
+        brightlightLayer.setZIndex(4);
+
+        bhExtent = ol.extent.extend(brightlightLayer.getSource().getExtent(),highlightLayer.getSource().getExtent(),lowlightLayer.getSource().getExtent());
+        //map.getView().fit(ol.extent.buffer(bhExtent, 0.1));
+        map.getView().fit(bhExtent);
+    
+        console.log("brightlights: ",brightlightLayer.getSource().getFeatures());
+        console.log("highlights: ",highlightLayer.getSource().getFeatures());
+        console.log("lowlights: ",lowlightLayer.getSource().getFeatures());
+        console.log("nolights: ",nolightLayer.getSource().getFeatures());
+    }
+};
+
+/*document.addEventListener("click", (event)=>{
         const isClickInside = dOverlay.contains(event.target);
         if (openOverlay == true){
             if (!isClickInside){
@@ -1264,23 +1439,3 @@ function renderDeets(cardD){
     }
     */
     //storyDeets.style.display = "block";
-
-
-function closeDeets(){
-    console.log("close deets");
-    popupContainer.style.display="none";
-    var deetsOverlay = document.getElementById('deetsOverlay');
-    var first = deetsOverlay.firstElementChild;
-    while (first) {
-        first.remove();
-        first = deetsOverlay.firstElementChild;
-    }
-    deetsOverlay.style.display="none";
-}
-
-function showFilters() {
-    document.getElementById("filterOverlay").style.display="block";
-}
-
-
-

@@ -428,7 +428,6 @@ def explore():
                     if result.Instances.i_id not in i_ids:
                         story["instances_no"].append(result.Instances.i_id)
 
-
         response["stories"] = storiesJSON
         response["instances"] = instancesJSON
         #print("Stories pre dumps: ",response["stories"])
