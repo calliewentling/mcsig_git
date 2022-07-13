@@ -503,7 +503,8 @@ def explore():
         #print("response['instances']: ",response["instances"])
         #print("Stories pre dumps: ",response["stories"])
         response = json.dumps(response, ensure_ascii=False) #Should this be True (default), then decoded on the otherside in js? Safer...
-        print("response: ",response)
+        #print("response: ",response)
+        print("complete")
         return make_response(response,200)
 
 #####################################

@@ -524,6 +524,12 @@ top: 3em;
         padding-right: 10px;
         font-size: 18px;
         font-weight: bold;
+        cursor:pointer;
+    }
+
+    .dO-ititle:hover{
+        box-shadow: -10px 10px 20px rgba(0,0,0,0.4);
+        font-weight: bold;
     }
 
     .dO-instance .dO-dateframe {

@@ -114,7 +114,7 @@ jQuery.fn.extend({
         localOption.height = (options != null && options.height != null && options.height != undefined) ? options.height : defaultMultiCheckBoxOption.height;
         this.hide();
         this.attr("multiple", "multiple");
-        console.log("this: ",this[0].id);
+        //console.log("this: ",this[0].id);
         var divSel = $("<div class='MultiCheckBox' id='"+this[0].id+"Vals'>" + localOption.defaultText + "<span class='k-icon k-i-arrow-60-down'><svg aria-hidden='true' focusable='false' data-prefix='fas' data-icon='sort-down' role='img' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512' class='svg-inline--fa fa-sort-down fa-w-10 fa-2x'><path fill='currentColor' d='M41 288h238c21.4 0 32.1 25.9 17 41L177 448c-9.4 9.4-24.6 9.4-33.9 0L24 329c-15.1-15.1-4.4-41 17-41z' class=''></path></svg></span></div>").insertBefore(this);
         divSel.css({ "width": localOption.width });
 
@@ -820,7 +820,7 @@ function filterAllVals(){
             console.log(resp);
             sIDs = resp["sIDs"];
             iIDs = resp["iIDs"];
-            console.log("stories preparse: ",resp["stories"]);
+            //console.log("stories preparse: ",resp["stories"]);
             stories = resp["stories"];
             instances = resp["instances"];
             //Testing Cards
@@ -899,17 +899,18 @@ function refreshStoryCards(stories){
     });
     
     //Preparing new story cards
+    console.log("Preparing new story cards.")
     console.log("stories.length: ",stories.length);
     for(i=0; i<stories.length; i++){
-        console.log("story: ",stories[i])
+        //console.log("story: ",stories[i])
         var sCard = document.createElement('div');
         sCard.className = 'story-card';
         sCard.id = "sID_"+stories[i]["s_id"];
-        console.log("sCard.id: ",sCard.id);
+        //console.log("sCard.id: ",sCard.id);
         var sCardTitle = document.createElement('div');
         sCardTitle.className = 'story-title';
         sCardTitle.innerHTML = stories[i]["title"];
-        console.log("title: ",stories[i]["title"]);
+        //console.log("title: ",stories[i]["title"]);
         sCard.appendChild(sCardTitle);
         var sCardDetails = document.createElement('div');
         sCardDetails.className='story-details';
@@ -933,7 +934,7 @@ function refreshStoryCards(stories){
         sCardTags.innerHTML = stories[i].tags;
         sCardDetails.appendChild(sCardTags);
         resultsStory.appendChild(sCard);
-        console.log("sCard: ",sCard);
+        //console.log("sCard: ",sCard);
         sCard.onclick = loadStoryDeets;
     }
     resultsStory.style.display = "block";
@@ -950,18 +951,19 @@ function refreshInstanceCards(instances){
         card.remove();
     });
     //Preparing new instance cards
+    console.log("preparing new instance cards");
     console.log("instances.length: ",instances.length);
     for(i=0; i<instances.length; i++){
-        console.log("instance: ",instances[i])
+        //console.log("instance: ",instances[i])
         var iCard = document.createElement('div');
         iCard.className = 'instance-card';
         iCard.id = "iID_"+instances[i]["i_id"];
-        console.log("iCard.id: ",iCard.id);
+        //console.log("iCard.id: ",iCard.id);
 
         var iCardTitle = document.createElement('div');
         iCardTitle.className = 'instance-title';
         iCardTitle.innerHTML = instances[i]["p_name"];
-        console.log("title: ",instances[i]["p_name"]);
+        //console.log("title: ",instances[i]["p_name"]);
         iCard.appendChild(iCardTitle);
 
         var iCardDetails = document.createElement('div');
@@ -984,7 +986,7 @@ function refreshInstanceCards(instances){
         iCardDetails.appendChild(iCardSTitle);
 
         resultsInstance.appendChild(iCard);
-        console.log("iCard: ",iCard);
+        //console.log("iCard: ",iCard);
         iCard.onclick = loadInstanceDeets;
     }
     resultsInstance.style.display = "block";
@@ -1053,7 +1055,7 @@ function loadInstanceDeets(card){
     console.log("card: ",card);
     stopVar = "unkown";
     cardD = {};
-    
+
     for (k=0; k<card["path"].length; k++){
         console.log(card["path"][k].className);
         if(card["path"][k].className == "instance-card"){
@@ -1081,6 +1083,7 @@ function loadInstanceDeets(card){
 
     }
     renderDeets(cardD = cardD);
+    refresh=false;
 }
 
 function removeHighlights(itsTime){
@@ -1106,8 +1109,15 @@ function renderDeets(cardD){
     //var storyDeets = document.getElementById("deetsOverlay");
     //mapStory.removeLayer(storyInstAllLayer);
     
-    var dOverlay = document.getElementById('deetsOverlay');
+    var deetsOverlay = document.getElementById('deetsOverlay');
+    //console.log("deetsOverlay: ",deetsOverlay);
     openOverlay = true;
+
+    var dOverlay = document.createElement('div');
+    dOverlay.id = "dStory_"+cardD["s_id"];
+    dOverlay.className = 'dStory';
+    deetsOverlay.appendChild(dOverlay);
+
 
     var dClose = document.createElement('div');
     dClose.innerHTML = 'X'
@@ -1158,25 +1168,24 @@ function renderDeets(cardD){
     console.log("cardD instances all: ",cardD["instances_all"]);
 
     mainIID = 0;
-    if(stopVar == "instance"){
+    /*if(stopVar == "instance"){
         console.log("mains instance: ",cardD);
         mainIID = cardD["i_id"]*1;
         subInstance(dOverlay = dOverlay, instance = cardD, lightLevel = "brightlight");
-    };
+    };*/
 
     yesInt = cardD["instances_yes"];
 
     for (subInst in cardD["instances_all"]){
-        //console.log("instance: ",cardD["instances_all"][subInst]);
-        //console.log("subInst: ",subInst,", ",typeof(subInst));
-        //console.log("instances_yes: ",yesInt,typeof(yesInt));
         if (yesInt.includes(subInst*1)){ //multiplying by 1 (*1) converts string subInst to number
-            if (subInst*1 != mainIID) {
-                console.log("Instance filtered in");
+            if (subInst*1 == mainIID) {
+                subInstance(dOverlay = dOverlay, instance=cardD, lightLevel = "brightlight");
+            } else {
+                //console.log("Instance filtered in");
                 subInstance(dOverlay = dOverlay, instance = cardD["instances_all"][subInst], lightLevel = "highlight");
             }
         } else {
-            console.log("Instance filtered out");
+            //console.log("Instance filtered out");
             subInstance(dOverlay = dOverlay, instance = cardD["instances_all"][subInst], lightLevel = "lowlight");
         };
     };
@@ -1193,12 +1202,12 @@ function renderDeets(cardD){
     dSource.appendChild(dButton);
     dOverlay.appendChild(dSource);
 
-    dOverlay.style.display = "block";
+    deetsOverlay.style.display = "block";
 };
 
 function subInstance(dOverlay, instance, lightLevel){
     //CHANGE cardD to access the instace results
-    console.log(instance["i_id"],": ",lightLevel);
+    //console.log(instance["i_id"],": ",lightLevel);
     var dOInstance = document.createElement('div');
     dOInstance.className = 'dO-instance';
     dOInstance.classList.add(lightLevel);
@@ -1208,6 +1217,8 @@ function subInstance(dOverlay, instance, lightLevel){
     var dITitle = document.createElement('div');
     dITitle.className = "dO-ititle";
     dITitle.innerHTML = instance["p_name"];
+    dITitle.id = "dITitle_"+instance["i_id"];
+    dITitle.onclick = changeFocus;
     dOInstance.appendChild(dITitle);
 
     var dDateframe = document.createElement('div');
@@ -1231,6 +1242,43 @@ function subInstance(dOverlay, instance, lightLevel){
     dOInstance.appendChild(dPDesc);
 }
 
+function changeFocus(evt){
+    console.log("changeFocus");
+    console.log("evt: ",evt);
+    var iID = parseInt(evt["path"][0].id.substring(8),10);
+    console.log("iID: ",iID);
+    
+    var sID = parseInt(evt["path"][2].id.substring(7),10);
+
+    var iNoFocus = document.querySelectorAll('.dO-instance');
+    //console.log("iNoFocus: ",iNoFocus);
+    iNoFocus.forEach(i => {
+        //console.log("i before: ",i);
+        i.classList.remove("brightlight");
+        i.classList.add("highlight");
+        //console.log("i after: ",i);
+    });
+    
+
+    for(instance in instances){
+        //console.log("instance: ",instance*1);
+        //console.log("instances[instance]",instances[instance]);
+        if (instances[instance]["i_id"] == iID){
+            console.log("instance: ",instances[instance]);
+            cardD = instances[instance];
+            relations["instances_all"]=cardD["instances_all"]; //all of this already lives in cardD.. why am I passing it again?
+            relations["instances_no"]=cardD["instances_no"];
+            relations["instances_yes"]=cardD["instances_yes"];
+            updateHighlights(sourceID = iID, type = "iCard", relations = relations);
+            //closeDeets();
+            //renderDeets(cardD = cardD);
+            var iFocus = document.getElementById(evt["path"][1].id);
+            iFocus.classList.add("brightlight");
+            
+        };
+    };
+    
+};
 
 let itsTime = false;
 function closeDeets(){
@@ -1320,14 +1368,15 @@ const nolightLayer = new ol.layer.Vector({
 });
 
 function updateHighlights(sourceID, type, relations){
-    console.log("stories: ",stories);
-    console.log("instances: ",instances);
+    console.log("Entering updateHighlights");
+    //console.log("stories: ",stories);
+    //console.log("instances: ",instances);
     brightlights = {};
     highlights = {};
     lowlights = {};
     nolights = {};
     filteredFeatures = filteredSource.getFeatures();
-    console.log("filteredFeatures: ",filteredFeatures);
+    //console.log("filteredFeatures: ",filteredFeatures);
 
     nolightLayer.getSource().clear();
     lowlightLayer.getSource().clear();
@@ -1367,7 +1416,7 @@ function updateHighlights(sourceID, type, relations){
             brightlights["iIDs"] = sourceID;
             console.log("iID: ",sourceID);
             for (i=0; i<filteredFeatures.length; i++){
-                console.log("filteredFeature ID = ",filteredFeatures[i]["A"]["i_id"]);
+                //console.log("filteredFeature ID = ",filteredFeatures[i]["A"]["i_id"]);
                 if (sourceID == filteredFeatures[i]["A"]["i_id"]){
                     brightlightLayer.getSource().addFeature(filteredFeatures[i]);
                 } else if (relations["instances_yes"].includes(filteredFeatures[i]["A"]["i_id"])){
@@ -1400,16 +1449,16 @@ function updateHighlights(sourceID, type, relations){
         brightlightLayer.setZIndex(4);
 
         bhExtent = ol.extent.extend(brightlightLayer.getSource().getExtent(),highlightLayer.getSource().getExtent(),lowlightLayer.getSource().getExtent());
-        console.log("bright extent: ",brightlightLayer.getSource().getExtent());
-        console.log("high extent: ",highlightLayer.getSource().getExtent());
-        console.log("low extent: ",lowlightLayer.getSource().getExtent());
-        console.log("bhExtent: ",bhExtent);
+        //console.log("bright extent: ",brightlightLayer.getSource().getExtent());
+        //console.log("high extent: ",highlightLayer.getSource().getExtent());
+        //console.log("low extent: ",lowlightLayer.getSource().getExtent());
+        //console.log("bhExtent: ",bhExtent);
         map.getView().fit(bhExtent);
     
-        console.log("brightlights: ",brightlightLayer.getSource().getFeatures());
-        console.log("highlights: ",highlightLayer.getSource().getFeatures());
-        console.log("lowlights: ",lowlightLayer.getSource().getFeatures());
-        console.log("nolights: ",nolightLayer.getSource().getFeatures());
+        //console.log("brightlights: ",brightlightLayer.getSource().getFeatures());
+        //console.log("highlights: ",highlightLayer.getSource().getFeatures());
+        //console.log("lowlights: ",lowlightLayer.getSource().getFeatures());
+        //console.log("nolights: ",nolightLayer.getSource().getFeatures());
     }
 };
 
