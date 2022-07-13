@@ -88,6 +88,31 @@ def cleanLists(list_in, s_id, i_id,list_out):
     #print()
     return list_out
 
+def processInstance(instanceResult):
+    i_T = ""
+    if instanceResult.t_type=="allday_p":
+        i_D = "Temporada continual"
+    else:
+        if instanceResult.t_begin.date() == instanceResult.t_end.date():
+            i_D = str(instanceResult.t_begin.date())
+        else:
+            i_D = str(instanceResult.t_begin.date())+" - "+str(instanceResult.t_end.date())
+        if instanceResult.t_type == "allday_no":
+            i_T = str(instanceResult.t_begin.time())+" - "+str(instanceResult.t_end.time())
+    
+    instance_def = {
+        "i_id": instanceResult.i_id,
+        "t_begin": str(instanceResult.t_end),
+        "t_end": str(instanceResult.t_end),
+        "t_type": instanceResult.t_type,
+        "p_desc": instanceResult.p_desc,
+        "t_desc": instanceResult.t_desc,
+        "p_name": instanceResult.p_name,
+        "i_D": i_D,
+        "i_T": i_T,
+    }
+
+    return instance_def
 
 @app.route("/explore/map", methods=["GET","POST"])
 def explore():
@@ -343,6 +368,7 @@ def explore():
             count = 0
             storiesJSON = []
             instancesJSON = []
+            instanceStories = []
             for result in results:
                 count +=1
                 story = None
@@ -362,7 +388,8 @@ def explore():
                         "web_link": result.Stories.web_link,
                         "instances_yes": [],
                         "instances_no": [],
-                        "instances_all": [],
+                        #"instances_all": [],
+                        "instances_all": {},
                     }
                     storiesJSON.append(story)
                 else:
@@ -421,13 +448,24 @@ def explore():
 
         stmt2 = select(Instances).where(Instances.s_id.in_(s_ids))
         results2 = session.execute(stmt2).all()
+
+        #print()
+        #print("storyJSON: ")
+        #print(storiesJSON)
+        #print("instanceJSON")
+        #print(instancesJSON)
+
         for result in results2:
+            instanceP = processInstance(result.Instances)
             for story in storiesJSON:
                 if story["s_id"] == result.Instances.s_id:
-                    story["instances_all"].append(result.Instances.i_id)
+                    #story["instances_all"].append(result.Instances.i_id)
+                    story["instances_all"][result.Instances.i_id] = instanceP
                     if result.Instances.i_id not in i_ids:
                         story["instances_no"].append(result.Instances.i_id)
-
+        
+        
+        """
         subq = (select(Instances.s_id, func.array_agg(Instances.i_id).label("iids")).where(Instances.i_id.in_(i_ids)).group_by(Instances.s_id).subquery())
         stmt3 = select(Instances, func.array_remove(subq.c.iids,Instances.i_id).label("iids")).join(subq, Instances.s_id == subq.c.s_id)
         results3 = session.execute(stmt3).all()
@@ -435,6 +473,7 @@ def explore():
         print("i_ids: ",i_ids)
         for result in results3:
             #print()
+            print(result.iids)
             for instance in instancesJSON:
                 #print(result.Instances.i_id," ",instance["i_id"]," ",result.iids)
                 if instance["i_id"] == result.Instances.i_id:
@@ -450,9 +489,18 @@ def explore():
                         else:
                             instance["instances_no"].append(i)
                     break
+        """
+        for instance in instancesJSON:
+            for story in storiesJSON:
+                if instance["s_id"] == story["s_id"]:
+                    instance["instances_all"] = story["instances_all"]
+                    instance["instances_yes"] = story["instances_yes"]
+                    instance["instances_no"] = story["instances_no"]
+                    break
+        
         response["stories"] = storiesJSON
         response["instances"] = instancesJSON
-        print("response['instances']: ",response["instances"])
+        #print("response['instances']: ",response["instances"])
         #print("Stories pre dumps: ",response["stories"])
         response = json.dumps(response, ensure_ascii=False) #Should this be True (default), then decoded on the otherside in js? Safer...
         print("response: ",response)

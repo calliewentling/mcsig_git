@@ -3,8 +3,9 @@
     --primary-color: rgba(155, 185, 193);
     --shadow-color: rgba(0,0,0,0.3);
     --secondary-color: #666;
-    --highlight-color: rgb(255, 255, 0);
-    --highlight-waiting: rgba(255, 255, 0, 0.5);
+    --brightlight-color: rgb(255, 255, 0,1);
+    --highlight-color: rgba(255, 255, 150, 1);
+    --lowlight-color: rgb(69, 108, 131);
     padding: 10px;
 }
 
@@ -430,7 +431,7 @@ top: 3em;
 
     .dO {
         border-radius: 5px;
-        border: 10px solid var(--highlight-color);
+        border: 10px solid white;
         position: relative;
         /*width: 80%;
         top: 10%;
@@ -444,6 +445,7 @@ top: 3em;
         margin: 10px;
         overflow-y: auto;
     }
+
 
     .dO .close{
         font-size: 20px;
@@ -571,8 +573,17 @@ top: 3em;
         padding: 5px;
     }
 
+    .brightlight {
+        border: 3px solid var(--brightlight-color);
+        box-shadow: -10px 5px 20px var(--brightlight-color);
+    }
+
     .highlight {
         border: 3px solid var(--highlight-color);
+    }
+
+    .lowlight {
+        border: 3px solid var(--lowlight-color);
     }
     
     .mapStory {
