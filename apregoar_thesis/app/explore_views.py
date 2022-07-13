@@ -431,19 +431,25 @@ def explore():
         subq = (select(Instances.s_id, func.array_agg(Instances.i_id).label("iids")).where(Instances.i_id.in_(i_ids)).group_by(Instances.s_id).subquery())
         stmt3 = select(Instances, func.array_remove(subq.c.iids,Instances.i_id).label("iids")).join(subq, Instances.s_id == subq.c.s_id)
         results3 = session.execute(stmt3).all()
+
+        print("i_ids: ",i_ids)
         for result in results3:
+            #print()
             for instance in instancesJSON:
-                instance["instances_yes"]=[]
-                instance["instances_no"]=[]
+                #print(result.Instances.i_id," ",instance["i_id"]," ",result.iids)
                 if instance["i_id"] == result.Instances.i_id:
+                    #print("instance in instanceJSON: ",instance)
+                    instance["instances_yes"]=[]
+                    instance["instances_no"]=[]
                     instance["instances_all"] = result.iids
-                    print("instances_all: ",instance["instances_all"])
+                    #print("instances_all: ",instance["instances_all"])
                     for i in instance["instances_all"]:
-                        if instance["instances_all"][i] in i_ids:
-                            instance["instances_yes"].append(instance["instances_all"][i])
+                        #print("i: ",i)
+                        if i in i_ids:
+                            instance["instances_yes"].append(i)
                         else:
-                            instance["instances_no"].append(instance["instances_all"][i])
-        
+                            instance["instances_no"].append(i)
+                    break
         response["stories"] = storiesJSON
         response["instances"] = instancesJSON
         print("response['instances']: ",response["instances"])
