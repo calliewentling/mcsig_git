@@ -1038,10 +1038,16 @@ function loadStoryDeets(card){
                     console.log("cardD Story: ",cardD);
                     stopVar = "story";
                     relations={}
-                    relations["instances_all"] = stories[j]["instances_all"];
-                    relations["instances_no"] = stories[j]["instances_no"];
-                    relations["instances_yes"] = stories[j]["instances_yes"];
+                    relations["instances_all"] = cardD["instances_all"];
+                    relations["instances_no"] = cardD["instances_no"];
+                    relations["instances_yes"] = cardD["instances_yes"];
                     updateHighlights(sourceID = sID, type = "sCard", relations = relations);
+                
+                    //console.log("instances_yes", cardD["instances_yes"]);
+                    for (iH in cardD["instances_yes"]){ //highlight associated instances
+                        iHigh = cardD["instances_yes"][iH];
+                        document.getElementById("iID_"+iHigh).classList.add("highlight");
+                    };
                 }
             }
         }
@@ -1073,10 +1079,18 @@ function loadInstanceDeets(card){
                     console.log("cardD Instnace: ",cardD);
                     stopVar = "instance";
                     relations={}
-                    relations["instances_all"] = instances[j]["instances_all"];
-                    relations["instances_no"] = instances[j]["instances_no"];
-                    relations["instances_yes"] = instances[j]["instances_yes"];
+                    relations["instances_all"] = cardD["instances_all"];
+                    relations["instances_no"] = cardD["instances_no"];
+                    relations["instances_yes"] = cardD["instances_yes"];
                     updateHighlights(sourceID = iID, type = "iCard", relations = relations);
+                    //Updated related story and instances to highlight
+                    sID = cardD["s_id"];
+                    document.getElementById("sID_"+sID).classList.add("highlight"); //highlight associated story
+                    //console.log("instances_yes", cardD["instances_yes"]);
+                    for (iH in cardD["instances_yes"]){ //highlight associated instances
+                        iHigh = cardD["instances_yes"][iH];
+                        document.getElementById("iID_"+iHigh).classList.add("highlight");
+                    };
                 }
             }
         }
@@ -1178,7 +1192,7 @@ function renderDeets(cardD){
 
     for (subInst in cardD["instances_all"]){
         if (yesInt.includes(subInst*1)){ //multiplying by 1 (*1) converts string subInst to number
-            if (subInst*1 == mainIID) {
+            if (subInst*1 == cardD["i_id"]*1) {
                 subInstance(dOverlay = dOverlay, instance=cardD, lightLevel = "brightlight");
             } else {
                 //console.log("Instance filtered in");
@@ -1258,7 +1272,18 @@ function changeFocus(evt){
         i.classList.add("highlight");
         //console.log("i after: ",i);
     });
-    
+
+
+    var highlightedItems = document.querySelectorAll('.brightlight, .highlight');
+    highlightedItems.forEach(i => {
+        if (i.classList.contains("story-card")){
+            i.classList.remove("brightlight");
+            i.classList.remove("highlight");
+        } else if (i.classList.contains("instance-card")){
+            i.classList.remove("brightlight");
+            i.classList.remove("highlight");
+        }
+    })
 
     for(instance in instances){
         //console.log("instance: ",instance*1);
@@ -1266,15 +1291,21 @@ function changeFocus(evt){
         if (instances[instance]["i_id"] == iID){
             console.log("instance: ",instances[instance]);
             cardD = instances[instance];
-            relations["instances_all"]=cardD["instances_all"]; //all of this already lives in cardD.. why am I passing it again?
+            relations["instances_all"]=cardD["instances_all"]; 
             relations["instances_no"]=cardD["instances_no"];
             relations["instances_yes"]=cardD["instances_yes"];
             updateHighlights(sourceID = iID, type = "iCard", relations = relations);
             //closeDeets();
             //renderDeets(cardD = cardD);
-            var iFocus = document.getElementById(evt["path"][1].id);
-            iFocus.classList.add("brightlight");
-            
+            document.getElementById(evt["path"][1].id).classList.add("brightlight"); //Focus on chosen instance within dO
+            document.getElementById("sID_"+sID).classList.add("highlight"); //highlight associated story
+            document.getElementById("iID_"+iID).classList.add("brightlight"); //brightlight chosen istance
+            //console.log("instances_yes", cardD["instances_yes"]);
+            for (iH in cardD["instances_yes"]){ //highlight associated instances
+                iHigh = cardD["instances_yes"][iH];
+                document.getElementById("iID_"+iHigh).classList.add("highlight");
+            };
+
         };
     };
     
