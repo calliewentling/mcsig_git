@@ -80,14 +80,27 @@ top: 3em;
 
 .ol-popup {
     position: absolute;
-    background-color: white;
+    background-color: var(--primary-color);
     box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-    padding: 15px;
     border-radius: 10px;
-    border: 1px solid #cccccc;
+    border: 2px solid var(--brightlight-color);
     bottom: 12px;
     left: -50px;
     min-width: 280px;
+}
+
+.popup-ititle {
+    background-color: white;
+    padding: 10px;
+    color: black;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.popup-stitle{
+    padding: 10px;
+    color: white;
+    font-size: 12px;
 }
 
 .ol-popup:after, .ol-popup:before {
@@ -100,16 +113,16 @@ top: 3em;
     pointer-events: none;
   }
   .ol-popup:after {
-    border-top-color: white;
+    border-top-color: var(--primary-color);
     border-width: 10px;
     left: 48px;
     margin-left: -10px;
   }
   .ol-popup:before {
-    border-top-color: #cccccc;
-    border-width: 11px;
+    border-top-color: var(--brightlight-color);
+    border-width: 12px;
     left: 48px;
-    margin-left: -11px;
+    margin-left: -12px;
   }
   .ol-popup-closer {
     text-decoration: none;
