@@ -197,6 +197,7 @@ const backDrop = new ol.layer.Tile({
  */
  const popupContainer = document.getElementById('popupContainer');
  const popupContent = document.getElementById('popupContent');
+ const popupTitle = document.getElementById('popupTitle');
  const popupCloser = document.getElementById('popup-closer');
  
  const popupOverlay = new ol.Overlay({
@@ -223,35 +224,80 @@ map.addLayer(backDrop);
 let popupFeatures;
 map.on('singleclick',function(evt){
     const coordinate = evt.coordinate;
+    console.log("map click");
+    console.log("evt: ",evt);
     //Fetch info from WFS
-    popupFeatures = filteredSource.getFeaturesAtCoordinate(coordinate);
-    console.log("popupFeatures: ",popupFeatures);
-    if (popupFeatures.length>0){
-        popupInstances = [];
-        for (i=0;i<popupFeatures.length;i++){
-            pInfo = popupFeatures[i]["A"];
-            popupInstances.push(pInfo["i_id"]);
-            //console.log("s_id: ",popupFeatures[i]["A"]["s_id"],", i_id: ",popupFeatures[i]["A"]["i_id"]);
+    const currentLayers = map.getLayers();
+    console.log("currentLayers: ",currentLayers);
+    
+    var popupFiltered = filteredSource.getFeaturesAtCoordinate(coordinate);
+    var popupBrightlight = brightlightLayer.getSource().getFeaturesAtCoordinate(coordinate);
+    var popupHighlight = highlightLayer.getSource().getFeaturesAtCoordinate(coordinate);
+    var popupLowlight = lowlightLayer.getSource().getFeaturesAtCoordinate(coordinate);
+    var popupNolight = nolightLayer.getSource().getFeaturesAtCoordinate(coordinate);
+
+
+    var popupLights = [];
+
+    if (popupBrightlight.length>0){
+        for (i=0;i<popupBrightlight.length;i++){
+            popupLights.push(popupBrightlight[i]["A"]["i_id"]);
         }
-        iID = pInfo["i_id"];
-        sID = pInfo["s_id"];
-        for (j=0;j<stories.length;j++){
-            if (instances[j]["i_id"] == iID){
-                cardD = instances[j];
-                stopVar = "instance";
+    };    
+    if (popupHighlight.length>0){
+        for (i=0;i<popupHighlight.length;i++){
+            popupLights.push(popupHighlight[i]["A"]["i_id"]);
+        }
+    };
+    if (popupLowlight.length>0){
+        for (i=0;i<popupLowlight.length;i++){
+            popupLights.push(popupLowlight[i]["A"]["i_id"]);
+        }
+    };
+    if (popupNolight.length>0){
+        for (i=0;i<popupNolight.length;i++){
+            popupLights.push(popupNolight[i]["A"]["i_id"]);
+        }
+    };
+    
+    if(popupLights.length>0){
+        popupInstances = popupLights;
+        console.log("popupInstances (from Highlights): ",popupInstances);
+    } else if (popupFiltered.length>0){
+        popupInstances = [];
+        for (i=0;i<popupFiltered.length;i++){
+            popupInstances.push(popupFiltered[i]["A"]["i_id"]);
+        }
+        console.log("popupInstances (from Filtered): ",popupInstances);
+    }
+
+    if(popupInstances.length>0){
+        numInstances = popupInstances.length;
+        firstIID = popupInstances[0];
+        for (i=0;i<instances.length;i++){
+            if(instances[i]["i_id"]==firstIID){
+                cardD = instances[i];
+                relations["intances_all"]=cardD["instances_all"];
+                relations["instances_yes"] = cardD["instances_yes"];
+                relations["instances_no"]=cardD["instances_no"];
+                closeDeets();
+                renderDeets(cardD = cardD);
+                //Start here
+                //updateHighlights(sourceID=firstIID, type="iCard", relations=relations)
+                popupTitle.innerHTML = cardD["p_name"];
+                popupContent.innerHTML = cardD["title"];
+                popupContainer.style.display="block";
+                break
             }
         }
-        renderDeets(cardD = cardD);
-        //popupContent.innerHTML = 's_id '+pInfo["s_id"]+'<br> i_id '+pInfo["i_id"]+"<br> Total instances: "+popupFeatures.length;
-        popupContent.innerHTML = 'i_ids: '+popupInstances+'<br> ('+popupFeatures.length+')';
-        popupContainer.style.display="block";
-    } else {
-        closeDeets();
+        
 
+    } else {
+        console.log("no features to popup")
+        closeDeets();
     }
-    
     popupOverlay.setPosition(coordinate);
-})
+});
 
 
 
@@ -697,6 +743,9 @@ var filteredLayer = new ol.layer.Vector({
         filterStyle.getText().setText(feature.get('p_name'));
         return filterStyle;
     },
+    properties: {
+        layerName: "filteredLayer",
+    },
 });
 filterAllVals();
 
@@ -1053,7 +1102,7 @@ function loadStoryDeets(card){
         }
     }
     renderDeets(cardD = cardD);
-}
+};
 
 function loadInstanceDeets(card){
     closeDeets();
@@ -1098,7 +1147,7 @@ function loadInstanceDeets(card){
     }
     renderDeets(cardD = cardD);
     refresh=false;
-}
+};
 
 function removeHighlights(itsTime){
     if (itsTime == true){
@@ -1347,6 +1396,9 @@ const brightlightLayer = new ol.layer.Vector({
         })
     }),
     zindex: 4,
+    properties: {
+        layerName: "filteredLayer",
+    },
 });
 
 let highlights;
@@ -1363,6 +1415,9 @@ const highlightLayer = new ol.layer.Vector({
         })
     }),
     zindex: 3,
+    properties: {
+        layerName: "filteredLayer",
+    },
 });
 
 
@@ -1380,6 +1435,9 @@ const lowlightLayer = new ol.layer.Vector({
         })
     }),
     zindex: 2,
+    properties: {
+        layerName: "filteredLayer",
+    },
 });
 
 let nolights;
@@ -1396,6 +1454,9 @@ const nolightLayer = new ol.layer.Vector({
         })
     }),
     zindex: 1,
+    properties: {
+        layerName: "filteredLayer",
+    },
 });
 
 function updateHighlights(sourceID, type, relations){
