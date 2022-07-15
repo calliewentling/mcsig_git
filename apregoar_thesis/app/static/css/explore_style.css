@@ -78,6 +78,8 @@ top: 3em;
     transition: width 250ms;
 }
 
+
+/*POPUP DEFINITIONS */
 .ol-popup {
     position: absolute;
     background-color: var(--primary-color);
@@ -103,6 +105,30 @@ top: 3em;
     font-size: 12px;
 }
 
+.popup-scroll{
+    height: 30px;
+    display:absolute;
+    position: center;
+    justify-content: center;
+    color: white;
+    font-size: 11px;
+    font-weight: bold;
+    background-color:var(--secondary-color);
+    padding: 10px;
+}
+
+.popup-direction, .popup-count{
+    display:inline;
+}
+
+.popup-direction {
+    cursor:pointer;
+}
+
+.popup-direction:hover {
+    font-size: 12px;
+}
+
 .ol-popup:after, .ol-popup:before {
     top: 100%;
     border: solid transparent;
@@ -113,7 +139,7 @@ top: 3em;
     pointer-events: none;
   }
   .ol-popup:after {
-    border-top-color: var(--primary-color);
+    border-top-color: var(--secondary-color);
     border-width: 10px;
     left: 48px;
     margin-left: -10px;
@@ -127,12 +153,15 @@ top: 3em;
   .ol-popup-closer {
     text-decoration: none;
     position: absolute;
+    color: black;
     top: 2px;
     right: 8px;
   }
   .ol-popup-closer:after {
     content: "✖";
   }
+  
+  
 
 /* MULTICHECK BOX */
 
