@@ -1,12 +1,31 @@
 /* Variable Definition */
 :root {
     --primary-color: rgba(155, 185, 193);
-    --shadow-color: rgba(0,0,0,0.3);
     --secondary-color: #666;
+    --dark-color: black;
+    --light-color: white;
+    --shadow-color: rgba(0,0,0,0.3);
+    
     --brightlight-color: rgb(255, 255, 0,1);
     --highlight-color: rgba(255, 255, 150, 1);
     --lowlight-color: rgb(69, 108, 131);
     padding: 10px;
+
+    --card-height: 100px;
+    --card-width: 300px;
+    --card-margin: 10px;
+    --card-box-shadow: -10px 5px 20px;
+    --card-box-shadow-hover: -10px 10px 20px rgba(0,0,0,0.4);
+    --card-border-radius: 5px;
+    --card-border: 3px solid;
+
+    --card-title-height: 30px;
+    --card-title-width: (100%);
+    --card-title-font-size: 16px;
+    --card-title-padding: 5px;
+
+    --card-details-margin: 5px 5px 5px 0px;
+    --card-details-width: 90%;
 }
 
 .button1 {
@@ -300,15 +319,15 @@ top: 3em;
     }
 
     .story-card {
-        width: 300px;
-        height: 100px;
-        margin: 10px;
-        box-shadow: -10px 5px 20px var(--shadow-color);
-        border-radius: 5px;
-        border: 3px solid white;
+        width: var(--card-width);
+        height: var(--card-height);
+        margin: var(--card-margin);
+        box-shadow: var(--card-box-shadow) var(--shadow-color);
+        border-radius: var(--card-border-radius);
+        border: var(--card-border) var(--light-color);
         overflow: hidden;
-        background: black;
-        color: white;
+        background: var(--dark-color);
+        color: var(--light-color);
         display: inline-block; /*previously: flex*/
         flex-direction: column; /*column*/
         align-items: center;
@@ -318,15 +337,15 @@ top: 3em;
     }
 
     .story-card:hover {
-        box-shadow: -10px 10px 20px rgba(0,0,0,0.4);
+        box-shadow: var(--card-box-shadow-hover);
         font-weight: bold;
     }
 
     .story-card .story-title {
-        height: 30px;
-        width: 100%;
-        font-size: 16px;
-        padding: 5px;
+        height: var(--card-title-height);
+        width: var(--card-title-width);
+        font-size: var(--card-title-font-size);
+        padding: var(--card-title-padding);
         text-align: left;
         position: relative;
         background: var(--primary-color);
@@ -334,10 +353,8 @@ top: 3em;
 
     .story-card .story-details{
         text-align: center;
-        margin-top: 5px;
-        margin-left: 5px;
-        margin-bottom: 5px;
-        width: 90%
+        margin: var(--card-details-margin);
+        width: var(--card-details-width);
     }
 
     .story-card .story-details .pub-date {
@@ -368,16 +385,17 @@ top: 3em;
         white-space: nowrap;
     }
 
+   
     .instance-card {
-        width: 300px;
-        height: 100px;
-        margin: 10px;
-        box-shadow: -10px 5px 20px var(--shadow-color);
-        border-radius: 5px;
-        border: 3px solid white;
+        width: var(--card-width);
+        height: var(--card-height);
+        margin: var(--card-margin);
+        box-shadow: var(--card-box-shadow) var(--shadow-color);
+        border-radius: var(--card-border-radius);
+        border: var(--card-border) var(--light-color);
         overflow: hidden;
         background: var(--primary-color);
-        color: white;
+        color: var(--light-color);
         display: inline-block; /*previously: flex*/
         flex-direction: column; /*column*/
         align-items: center;
@@ -387,27 +405,25 @@ top: 3em;
     }
 
     .instance-card:hover {
-        box-shadow: -10px 10px 20px rgba(0,0,0,0.4);
+        box-shadow: var(--box-shadow-hover);
         font-weight: bold;
     }
 
     .instance-card .instance-title {
-        height: 30px;
-        width: 100%;
-        font-size: 16px;
-        padding: 5px;
+        height: var(--card-title-height);
+        width: var(--card-title-width);
+        font-size: var(--card-title-font-size);
+        padding: var(--card-title-padding);
         text-align: left;
         position: relative;
-        background: white;
-        color: black;
+        background: var(--light-color);
+        color: var(--dark-color);
     }
 
     .instance-card .instance-details{
         text-align: center;
-        margin-top: 5px;
-        margin-left: 5px;
-        margin-bottom: 5px;
-        width: 90%;
+        margin: var(--card-details-margin);
+        width: var(--card-details-width);
     }
 
     .instance-card .instance-details .instance-timeframe {
@@ -416,32 +432,23 @@ top: 3em;
 
     .instance-card .instance-details .instance-dateframe {
         font-size: 12px;
-        color: white;
+        color: var(--light-color);
         font-weight: bold;
     }
 
     .instance-card .instance-details .instance-stitle {
         margin-top: 5px;
         font-size: 10px;
-        color: #666;
+        color: var(--secondary-color);
     }
 
-    
 
-    /*
-    .story-card.skeleton .story-title{
-        background: #e2e2e2;
-    }
-    .story-card.skeleton .story-details .story-section{
-        display: none;
-    }
-
-    .story-card.skeleton .story-details .story-section::after{
-        content: "";
+    /*SKELETON LOAD OF CARDS*/
+    .story-card.skeleton {
+        cursor: wait;
     }
 
     .story-card.skeleton .hide-text {
-        background: #e2e2e2;
         color: transparent;
         position: relative;
         overflow: hidden;
@@ -449,31 +456,53 @@ top: 3em;
 
     .story-card.skeleton .hide-text::before {
         content: "";
-        position: absolute;
-        left: 0%;
-        top: 0;
-        height: 100%;
-        width: 50px;
-        background: linear-gradiente(to right, #e2e2e2 25%, #d5d5d5 50%, #e2e2e2 100%);
-        animation-name: gradient-animation;
+        background: linear-gradient(to right, #e2e2e2 25%, #d5d5d5 50%, #e2e2e2 100%);
+        animation-name: gradiente-animation;
         animation-duration: 2s;
-        animation-iteration-count: infinite;
+        animation-iteration-count: infinate;
         filter: blur(5px);
     }
 
-    @keyframes gradiente-animation {
+    .instance-card.skeleton {
+        cursor: wait;
+    }
+
+    .instance-card.skeleton .hide-text{
+        color: transparent;
+        position: relative;
+        overflow: hidden;
+    }
+
+    
+
+    .map.skeleton {
+        filter: blur(5px);
+        cursor: wait;
+    }
+    
+    /*
+    .resultsArea.skeleton {
+        background: linear-gradient(to right, #e2e2e2 25%, #d5d5d5 50%, #e2e2e2 100%);
+        animation-name: gradiente-animation;
+        animation-duration: 1s;
+        animation-iteration-count: infinate;
+    }
+    @keyframes gradient-animation {
         from {
-            left: 0%;
+          left: 0%;
         }
         to {
-            left: 100%;
+          left: 100%;
         }
     }
     */
+    
 
+
+    /*LOADING DETAIL OVERLAY*/
     .dO {
         border-radius: 5px;
-        border: 10px solid white;
+        border: 10px solid var(--light-color);
         position: relative;
         /*width: 80%;
         top: 10%;
@@ -482,8 +511,8 @@ top: 3em;
         */
         font-size: 14px;
         background-color: rgba(0,0,0,.75);
-        box-shadow: -10px 5px 20px var(--shadow-color);
-        color: white;
+        box-shadow: var(--card-box-shadow) var(--shadow-color);
+        color: var(--light-color);
         margin: 10px;
         overflow-y: auto;
     }
@@ -496,7 +525,7 @@ top: 3em;
         padding-right: 10px;
         text-align: right;
         background-color: var(--primary-color);
-        color: black;
+        color: var(--dark-color);
         cursor:pointer;
     }
 
@@ -509,7 +538,7 @@ top: 3em;
         top: 2%;
         font-size: 20px;
         font-weight: bold;
-        color: white;
+        color: var(--light-color);
         background-color:var(--primary-color);
     }
 

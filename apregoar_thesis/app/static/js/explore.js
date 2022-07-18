@@ -19,17 +19,15 @@ $(document).ready(function () {
     });
 
     $(document).on("click", ".MultiCheckBoxDetailHeader input", function (e) {
-        console.log("Checkpoint");
         //This should be accessed to remove everything from selection;
         e.stopPropagation();
         var hc = $(this).prop("checked");
-        console.log("hc: ",hc);
         $(this).closest(".MultiCheckBoxDetail").find(".MultiCheckBoxDetailBody input").prop("checked", hc);
         $(this).closest(".MultiCheckBoxDetail").next().UpdateSelect();
     });
 
     $(document).on("click", ".MultiCheckBoxDetailHeader", function (e) {
-        console.log("This enters a check all scenario");
+        //console.log("This enters a check all scenario");
         var inp = $(this).find("input");
         var chk = inp.prop("checked");
         inp.prop("checked", !chk);
@@ -232,12 +230,8 @@ map.addLayer(backDrop);
 let popupFeatures;
 map.on('singleclick',function(evt){
     const coordinate = evt.coordinate;
-    console.log("coordinate: ",coordinate);
-    console.log("map click");
-    console.log("evt: ",evt);
     //Fetch info from WFS
     const currentLayers = map.getLayers();
-    console.log("currentLayers: ",currentLayers);
     
     var popupFiltered = filteredSource.getFeaturesAtCoordinate(coordinate);
     var popupBrightlight = brightlightLayer.getSource().getFeaturesAtCoordinate(coordinate);
@@ -274,13 +268,11 @@ map.on('singleclick',function(evt){
     
     if(popupLights.length>0){
         popupInstances = popupLights;
-        console.log("popupInstances (from Highlights): ",popupInstances);
     } else if (popupFiltered.length>0){
         popupInstances = [];
         for (i=0;i<popupFiltered.length;i++){
             popupInstances.push(popupFiltered[i]["A"]["i_id"]);
         }
-        console.log("popupInstances (from Filtered): ",popupInstances);
     }
     if(popupInstances.length>0){
         //numInstances = popupInstances.length;
@@ -294,24 +286,21 @@ map.on('singleclick',function(evt){
         }
         popupOverlay.setPosition(coordinate);
     } else {
-        console.log("no features to popup")
         closeDeets();
     }    
 });
 
 function updatePopup(instanceID){
+    console.log("Entering updatePopup");
     for (i=0;i<instances.length;i++){
         if(instances[i]["i_id"]==instanceID){
-            console.log("instance found, rendering")
             cardD = instances[i];
-            console.log("cardD in mapclick: ",cardD);
             closeDeets();
             renderDeets(cardD = cardD);
             //Start here
             relations["intances_all"]=cardD["instances_all"];
             relations["instances_yes"] = cardD["instances_yes"];
             relations["instances_no"]=cardD["instances_no"];
-            console.log("relations in mapclick: ",relations);
             //updateHighlights(sourceID=firstIID, type="iCard", relations=relations);
             changeFocus(input=cardD);
             /*popupTitle.innerHTML = cardD["p_name"];
@@ -320,6 +309,7 @@ function updatePopup(instanceID){
             break
         }
     }
+    console.log("Leaving updatePopup");
 };
 
 popupScrollL.onclick = function(){
@@ -423,9 +413,11 @@ var recentResults = document.getElementById("recentResults");
 
 
 function refineFeatures(feature){
+    //console.log("Entering refineFeatures");
     feature["pub_date"] = new Date(feature["pub_date"]);
     feature["t_begin"] = new Date(feature["t_begin"]);
     feature["t_end"] = new Date(feature["t_end"]);
+    //console.log("Leaving refineFeatures");
     return feature
 }
 
@@ -434,7 +426,7 @@ var maxLisbonExtent = [-9.500526607165842, 38.40907442337447,-8.490972125626802,
 //General update of layerExtent to be called on filters
 function updateViewExtent(inputSource){
     layerExtent = inputSource.getExtent();
-    console.log("layerExtent: ",layerExtent);
+    console.log("Entering updateViewExtent with layerExtent: ",layerExtent);
     filterMaxExtent = layerExtent;
     if (layerExtent[0] < maxLisbonExtent[0]){
         filterMaxExtent[0] = maxLisbonExtent[0];
@@ -448,24 +440,19 @@ function updateViewExtent(inputSource){
     if (layerExtent[3] > maxLisbonExtent[3]){
         filterMaxExtent[3] = maxLisbonExtent[3];
     };
-    console.log("new layer extent: ",filterMaxExtent);
     map.getView().fit(ol.extent.buffer(filterMaxExtent, .01));
     drawMap.getView().fit(ol.extent.buffer(filterMaxExtent, .01));
+    console.log("Leaving updateViewExtent");
 }
 
 //Load source. Returns 
 //let firstPubDate, lastPubDate, firstInstDate, lastInstDate;
 function loadSourceToExplore(wfs_url, loadType) {
     console.log("Entering loadSourceToExplore()");
-    console.log("wfs_url: ",wfs_url);
-    console.log("loadType: ",loadType);
     var tempSource = new ol.source.Vector({
         format: new ol.format.GeoJSON(),
         loader: function (extent, resolution, projection, success, failure) {
-            console.log("In loader");
-            //var proj = projection.getCode();
             url = wfs_url;
-            console.log("url: ",url);
             var xhr = new XMLHttpRequest();
             xhr.open('GET',url);
             var onError = function() {
@@ -474,37 +461,42 @@ function loadSourceToExplore(wfs_url, loadType) {
                 failure();
             }
             xhr.onerror = onError;
-            xhr.onloadstart = function() {
-                console.log(loadType," load begun");
-            };
             xhr.onloadend = function() {
-                console.log(loadType," load end");
+                console.log("Removing skeleton");
+                var getSkeleton = document.getElementsByClassName("skeleton");
+                while(getSkeleton.length>0){
+                    for (s=0;s<getSkeleton.length;s++){
+                        getSkeleton[s].classList.remove("skeleton");
+                    }
+                };
+                var hiddenTextItems = document.querySelectorAll(".hide-text");
+                hiddenTextItems.forEach(item => {
+                    item.classList.remove("hide-text");
+                });
             }
             xhr.onload = function() {
                 console.log("XHR status: ",xhr.status);
                 if (xhr.status == 200){
-                    console.log("XHR STATUS 200");
                     var features = [];
                     features = tempSource.getFormat().readFeatures(xhr.responseText);
                     tempSource.addFeatures(features);
                     var noFeatures = false;
                     if (features.length == 1) {
                         if (features[0]["A"]["geometry"] == null){
-                            console.log("no instances here");
                             noFeatures = true;
                         }
                     }
                     success(features);
                     if (noFeatures == false) {
-                        console.log("Features in ",loadType," exist!");
                         updateViewExtent(inputSource = tempSource);
                         //Getting info of preloaded features
                         preloadF = [];
-                        console.log("features: ",features);
+                        console.log("Will enter refineFeatures")
                         for (i = 0; i<features.length; i++){
                             refinedFeature = refineFeatures(features[i]["A"]);
                             preloadF.push(refinedFeature);
                         }
+                        console.log("left refineFeatures")
                         if (loadType == "recent") {
                             const recentDate1 = new Date(preloadF[preloadF.length-1]["pub_date"]);
                             allFilters["pubDateR1"] = recentDate1;
@@ -526,74 +518,20 @@ function loadSourceToExplore(wfs_url, loadType) {
                         }
                         
                     }
-                    //var sourceFeatureInfo = recentSource.getFeatures();
-                    //console.log("sourceFeatureInfo: ",sourceFeatureInfo);
-                    //numStoryFeatures = sourceFeatureInfo.length;
-                    //console.log("Number of features in story: ", numStoryFeatures);
-                    console.log("Successful loading of vector source");
-                    if (loadType == "recent"){
-                        console.log("recent features loaded");
-                    }
-                    if (loadType == "all") {
-                        console.log("All resources loaded");
-                    }
-                    if (loadType=="storyInstAll"){
-                        console.log("All story instances loaded");
-                    }
                 } else {
                     onError();
                     console.log("Bad request: not 200");
                 }
             }
             xhr.send();
-            console.log("Passed send of xhr");
         }
     });  
-    
-    console.log("tempSource: ",tempSource);
-    console.log("end of loadSourceToExplore()");
+    console.log("leaving loadSourceToExplore()");
     return tempSource;
 };
 
-/*
-//Preload all entries in the background for filtering
-urlAll = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
-    'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
-    'outputFormat=application/json&srsname=EPSG:4326';
-var allSource = loadSourceToExplore(wfs_url = urlAll, loadType = "all");
-const allLayer = new ol.layer.Vector({
-    source: allSource,
-    style: nullStyle,
-})
-map.addLayer(allLayer);
-//map.removeLayer(filteredLayer);
-*/
-
-/*
-//Preload recent entries (100)
-const numRecent = 100;
-urlRecent = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
-    'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
-    'count='+numRecent+'&'+
-    'sortby=pub_date+D&'+
-    'outputFormat=application/json&srsname=EPSG:4326';
-var recentSource = loadSourceToExplore(wfs_url = urlRecent, loadType = "recent");
-const recentLayer = new ol.layer.Vector({
-    source: recentSource,
-    style: function(feature) {
-        style.getText().setText(feature.get('p_name'));
-        return style;
-    },
-});
-map.addLayer(recentLayer);
-*/
-
 var fromSelect = document.getElementById("from");
 var toSelect = document.getElementById("to");
-
-
-
-
 // DATE RANGE PICKER + Other filters//
 $( function() {
     //console.log("recentDates in datepicker load: ",recentDate1,"-",recentDate2);
@@ -613,7 +551,6 @@ $( function() {
         allFilters["pubDateR1"] = getDate(this);
         checkDates(thisDate = getDate( this ), tofrom = "from");
         allFilters["pubDateFilterMin"] = true;
-        //filterAllVals();
     }),
 
     to = $( "#to" ).datepicker({
@@ -630,7 +567,6 @@ $( function() {
         allFilters["pubDateR2"] = getDate(this);
         checkDates(thisDate = getDate( this ), tofrom = "to");
         allFilters["pubDateFilterMax"] = true;
-        //filterAllVals();
     }),
 
     fromI = $( "#fromI" ).datepicker({
@@ -643,7 +579,6 @@ $( function() {
         toI.datepicker( "option", "minDate", getDate( this ) );
         allFilters["iDateR1"] = getDate(this);
         allFilters["iDateFilter"] = true;
-        //filterAllVals();
     }),
 
     toI = $( "#toI" ).datepicker({
@@ -656,13 +591,11 @@ $( function() {
         fromI.datepicker( "option", "maxDate", getDate( this ) );
         allFilters["iDateR2"] = getDate(this);
         allFilters["iDateFilter"] = true;
-        //filterAllVals();
     })
 
     //Handling autochecking of alldates, also reinserting the current value
     function checkDates(thisDate, tofrom) {
-        console.log();
-        console.log("entering check date");
+        console.log("entering checkDates");
         console.log("thisDate: ",thisDate,". Tofrom: ",tofrom);
         console.log("to.value: ",to.value,". from.value: ",from.value);
         console.log("pubDateR2: ",allFilters["pubDateR2"],". pubDateR1: ",allFilters["pubDateR1"]);
@@ -697,7 +630,7 @@ $( function() {
             console.log("Full range achieved")
             allPub.checked = true;
         }
-        console.log("leaving check date");
+        console.log("leaving checkDates");
         console.log();
     }
 
@@ -709,6 +642,7 @@ $( function() {
         } catch( error ) {
             date = null;
         }
+        console.log("Leaving getDate");
         return date;
     }
 
@@ -719,7 +653,6 @@ $( function() {
 const allPub = document.getElementById('allPub');
 allPub.addEventListener('change', (event) => {
     if (event.currentTarget.checked) {
-        console.log("allPub checked");
         $( "#from" ).datepicker("option", "minDate", pubDate1);
         $( "#from" ).datepicker("option","maxDate", pubDate2);
         $( "#from" ).datepicker("setDate", new Date(pubDate1.getFullYear(), pubDate1.getMonth(), pubDate1.getDate()));
@@ -730,13 +663,11 @@ allPub.addEventListener('change', (event) => {
         allFilters["pubDateR2"] = pubDate2;
         allFilters["pubDateFilterMin"] = true;
         allFilters["pubDateFilterMax"] = true;
-        //filterAllVals();
     }
 });
 const allInst = document.getElementById('allInst');
 allInst.addEventListener('change', (event) => {
     if (event.currentTarget.checked) {
-        console.log("allInst checked");
         $( "#fromI" ).datepicker("option", "minDate", iDate1);
         $( "#fromI" ).datepicker("option","maxDate", iDate2);
         $( "#toI" ).datepicker("option", "minDate", iDate1);
@@ -746,7 +677,6 @@ allInst.addEventListener('change', (event) => {
         allFilters["iDateR1"] = iDate1;
         allFilters["iDateR2"] = iDate2;
         allFilters["iDateFilter"] = false;
-        //filterAllVals();
     }
 });
 
@@ -755,12 +685,12 @@ allInst.addEventListener('change', (event) => {
 
 $("#pNameSearch").on("change", function() {
     allFilters["pNameSearch"] = $(this).val();
-    //filterAllVals();
 });
 
 
 /*REFILTER VALUES*/
 function extractTerms(list){
+    console.log("Entering extractTerms")
     terms = "";
     for (i=0; i<list.length; i++){
         item = list[i];
@@ -779,6 +709,7 @@ function extractTerms(list){
         };
     };
     terms.toLowerCase();
+    console.log("Leaving extractTerms");
     return terms;
 }
 let filteredSource = new ol.source.Vector();
@@ -797,19 +728,15 @@ filterAllVals();
 let polyJson;
 let drawFeatures;
 function drawResults() {
-    console.log("Begin drawResults");
-    console.log("DrawSource: ",drawSource);
+    console.log("Entering drawResults");
     drawFeatures = [];
     polyJson = {};
     drawFeatures = drawSource.getFeatures();
-    console.log("drawFeatures: ",drawFeatures);
     if (drawFeatures.length > 0){
         var allCoords = [];
         for (let i = 0; i < drawFeatures.length; i++) {
             geom = drawFeatures[i].getGeometry();
-            //console.log("geom ",geom);
             coords = geom.getCoordinates()[0];
-            //console.log("coords: ",coords);
             poly = coords
             allCoords.push(poly);
         }
@@ -817,72 +744,60 @@ function drawResults() {
             "type": "MultiPolygon",
             "coordinates": allCoords
         };
-        console.log("number of polygons: ",drawFeatures.length);
-        //console.log("multiPoly: ",multiPoly);
-        polyJson = JSON.stringify(multiPoly);
-        console.log("polyJson: ",polyJson);
-        console.log("Adding draw vector to main map");        
-    } else {
-        console.log("No polygons drawn");
+        polyJson = JSON.stringify(multiPoly);      
     };
+    console.log("Leaving drawResults");
     return polyJson;
 }
 
-function clearFilters(){
-    console.log("clearFilters");
-    console.log("allFilters before clear: ",allFilters);
-    
-    //Need to actually remove checks from filters
-    //Why is everything false?
-}
-
 function clearDraw(){
-    console.log("clearDraw");
-    console.log("allFilters in clear draw: ",allFilters);
-    console.log("Clearing drawn polygon filter")
+    console.log("Entering clearDraw");
     allFilters["boundaryPolys"] = [];
     drawSource.clear();
     currentLayers = map.getLayers();
     if (drawVector in currentLayers) {
         map.removeLayer(drawVector);
     }
-    console.log("drawSource: ",drawSource);
-    console.log("boundaryPolys: ",allFilters["boundaryPolys"]);
-    document.getElementById("filterOverlay").style.display="none";
-    /*
-    multiChecks = ["#checksTags", "#checksSections", "#checksAuthors", "#checksPublications", "#checksT_types", "#checksP_types", "#checksE_names"]; //Future: rework this to automatically include all checkboxes by class for scalability
-    for (i=0;i<multiChecks.length;i++) {
-        $(i).closest(".MultiCheckBoxDetail").find(".MultiCheckBoxDetailBody input").prop("checked", false);
-        //$(i).closest(".MultiCheckBoxDetail").next().UpdateSelect();
-    }
-    allFilters = baseFilters;
-    console.log("allFilters: ",allFilters);
-    console.log("leaving clearDraw");
-    filterAllVals();
-    */
-
+    console.log("Leaving clearDraw");
 }
 
 function saveDraw(){
+    console.log("entering saveDraw");
     var drawFType = document.querySelector('input[name="drawFType"]:checked').value;
-    console.log("drawFType: ",drawFType);
     allFilters["boundaryDefinition"] = drawFType;
     allFilters["boundaryPolys"] = [];
     allFilters["boundaryPolys"] = drawResults();
     document.getElementById("filterOverlay").style.display="none";
     filterAllVals();
+    console.log("Leaving saveDraw");
+}
+
+function addSkeletons(){
+    console.log("Entering addSkeletons");
+    //CREATING SKELETON ELEMENTS HERE
+    var existingCards = document.querySelectorAll("div.instance-card, div.story-card");
+    existingCards.forEach(card => {
+        if (!card.classList.contains("skeleton")){
+            card.classList.add("skeleton"); //Avoid multiple skeleton associations 
+        }
+        card.childNodes[0].classList.add("hide-text"); //Add hide-text to title
+        console.log("card.childNodes[1].childNodes: ",card.childNodes[1].childNodes);
+        for(c=0;c<card.childNodes[1].childNodes.length;c++){
+            card.childNodes[1].childNodes[c].classList.add("hide-text");
+        }
+    });
+
 }
 
 //Communication with Python backend for filtering
 var sIDs = [];
 var iIDs = [];
 function filterAllVals(){
-    console.log("filterAllVals");
-    console.log("allFitlers in filterAllVals: ",allFilters);
+    console.log("Entering filterAllVals");
+    document.getElementById("resultsArea").classList.add("skeleton");
+    document.getElementById("map").classList.add("skeleton");
+    addSkeletons();  
     currentLayers = map.getLayers();
-    console.log("currentLayers: ",currentLayers);
-    //map.removeLayer(allLayer);
-    //map.removeLayer(recentLayer);
     map.removeLayer(filteredLayer);
     map.removeLayer(drawVector);
     if (allFilters["boundaryPolys"].length>0){
@@ -917,68 +832,36 @@ function filterAllVals(){
             stories = resp["stories"];
             instances = resp["instances"];
             //Testing Cards
-            console.log("stories: ",stories);
             refreshStoryCards(stories=stories);
             refreshInstanceCards(instances=instances);
             
-            /*
-            if (sIDs.length > 0){
-                refreshStoryCards(stories=stories, instances=instances)
-            } else {
-                document.getElementById("resultsStory").style.display = "none";
-            }
-            */
             resultsArea.style.display="block";
             if (iIDs.length > 0){
                 iIDFilter = "i_id IN ("+iIDs+")";
-                console.log(iIDFilter);
                 cqlFilter = iIDFilter.replace(/%/gi,"%25").replace(/'/gi,"%27").replace(/ /gi,"%20");
                 urlFiltered = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
                     'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
                     'cql_filter='+cqlFilter+'&'+
-                    //'sortby=pub_date+D&'+
                     'sortby=area+D&'+
                     'outputFormat=application/json&srsname=EPSG:4326';
                 filteredSource = loadSourceToExplore(wfs_url=urlFiltered, loadType="filtered")
                 filteredLayer.setSource(filteredSource);// how do I define this?
                 map.addLayer(filteredLayer);
-                //recentResults.style.display = "none";
                 instanceResults.innerHTML=`<p>Instâncias: ${iIDs.length}: ${iIDs}</p>`;
                 storyResults.innerHTML=`<p>Histórias: ${sIDs.length}: ${sIDs}</p>`;
                 map.render();
             } else {
-                console.log("no features meeting criteria")
                 map.removeLayer(filteredLayer);
-                //map.addLayer(recentLayer);
                 resultsArea.style.display="none";
-                //recentResults.style.display = "block";
+                //I USED TO NOTIFY OF NO RESULTS HERE. SHOULD THESE BE PREVIOUSLY DEFINED SO NO WFS CALL IS RETURNED IF NO STORIES OR INSTANCES RETURNED?
                 instanceResults.innerHTML=`<p>Sem lugares</p>`;
                 storyResults.innerHTML=`<p>Sem histórias</p>`;
             }
         })
     })
+    console.log("Leaving filterAllVals");
     //Connect to python for dynamic filtering. Return SIDs, search these in OL (OR WFS) and load.
 };
-
-function loadingCards(){
-    //Prepare results area
-    const $el = document.querySelector(".story-card");
-    // Loading finished
-    /*
-    setTimeout(() => {
-        $el.classList.remove("skeleton");
-        $el
-            .querySelectorAll(".hide-text")
-            .forEach((el) => el.classList.remove("hide-text"));
-    }, 3000);
-    */
-
-
-   $el.classList.remove("skeleton");
-   $el
-    .querySelectorAll(".hide-text")
-    .forEach((el) => el.classList.remove("hide-text"));
-}
 
 const resultsStory = document.getElementById("resultsStory"); 
 const resultsInstance = document.getElementById("resultsInstance");
@@ -992,24 +875,22 @@ function refreshStoryCards(stories){
     });
     
     //Preparing new story cards
-    console.log("Preparing new story cards.")
-    console.log("stories.length: ",stories.length);
     for(i=0; i<stories.length; i++){
-        //console.log("story: ",stories[i])
         var sCard = document.createElement('div');
-        sCard.className = 'story-card';
+        sCard.className = 'story-card skeleton';
         sCard.id = "sID_"+stories[i]["s_id"];
-        //console.log("sCard.id: ",sCard.id);
+
         var sCardTitle = document.createElement('div');
-        sCardTitle.className = 'story-title';
+        sCardTitle.className = 'story-title hide-text';
         sCardTitle.innerHTML = stories[i]["title"];
-        //console.log("title: ",stories[i]["title"]);
         sCard.appendChild(sCardTitle);
+
         var sCardDetails = document.createElement('div');
         sCardDetails.className='story-details';
         sCard.appendChild(sCardDetails);
+
         var sCardSection = document.createElement('div');
-        sCardSection.className = 'story-section';
+        sCardSection.className = 'story-section hide-text';
         if (stories[i].section.length > 0){
             sCardSection.innerHTML = stories[i].publication+": "+stories[i].section+'<br>';
 
@@ -1017,46 +898,40 @@ function refreshStoryCards(stories){
             sCardSection.innerHTML = stories[i].publication+'<br>';
         }
         sCardDetails.appendChild(sCardSection);
+
         var sCardDate = document.createElement('div');
-        sCardDate.className = 'pub-date';
+        sCardDate.className = 'pub-date hide-text';
         sCardDate.innerHTML = stories[i].pub_date+'<br>';
         sCardDetails.appendChild(sCardDate);
         //Eventually the tags should be broken out so they can lead to a search of just these results
         var sCardTags = document.createElement('div');
-        sCardTags.className = 'story-tags';
+        sCardTags.className = 'story-tags hide-text';
         sCardTags.innerHTML = stories[i].tags;
         sCardDetails.appendChild(sCardTags);
+
         resultsStory.appendChild(sCard);
-        //console.log("sCard: ",sCard);
         sCard.onclick = loadStoryDeets;
     }
     resultsStory.style.display = "block";
 
     console.log("Leaving refreshStoryCards()")
-    //loadingCards(); //Not yet doing loading animation. first lets make the load work!
 }
 
-
 function refreshInstanceCards(instances){
-    console.log("refreshInstanceCards()");
+    console.log("Entering refreshInstanceCards()");
     var prevInstanceCards = document.querySelectorAll(".instance-card");
     prevInstanceCards.forEach(card => {
         card.remove();
     });
     //Preparing new instance cards
-    console.log("preparing new instance cards");
-    console.log("instances.length: ",instances.length);
     for(i=0; i<instances.length; i++){
-        //console.log("instance: ",instances[i])
         var iCard = document.createElement('div');
-        iCard.className = 'instance-card';
+        iCard.className = 'instance-card skeleton';
         iCard.id = "iID_"+instances[i]["i_id"];
-        //console.log("iCard.id: ",iCard.id);
 
         var iCardTitle = document.createElement('div');
-        iCardTitle.className = 'instance-title';
+        iCardTitle.className = 'instance-title hide-text';
         iCardTitle.innerHTML = instances[i]["p_name"];
-        //console.log("title: ",instances[i]["p_name"]);
         iCard.appendChild(iCardTitle);
 
         var iCardDetails = document.createElement('div');
@@ -1064,25 +939,25 @@ function refreshInstanceCards(instances){
         iCard.appendChild(iCardDetails);
 
         var iCardDFrame = document.createElement('div');
-        iCardDFrame.className = 'instance-dateframe';
+        iCardDFrame.className = 'instance-dateframe hide-text';
         iCardDFrame.innerHTML = instances[i]["i_D"];
         iCardDetails.appendChild(iCardDFrame);
 
         var iCardTFrame = document.createElement('div');
-        iCardTFrame.className = 'instance-timeframe';
+        iCardTFrame.className = 'instance-timeframe hide-text';
         iCardTFrame.innerHTML = instances[i]["i_T"]+'<br>';
         iCardDetails.appendChild(iCardTFrame);
 
         var iCardSTitle = document.createElement('div');
-        iCardSTitle.className = 'instance-stitle';
+        iCardSTitle.className = 'instance-stitle hide-text';
         iCardSTitle.innerHTML = instances[i]["title"];
         iCardDetails.appendChild(iCardSTitle);
 
         resultsInstance.appendChild(iCard);
-        //console.log("iCard: ",iCard);
         iCard.onclick = loadInstanceDeets;
     }
     resultsInstance.style.display = "block";
+    console.log("Leaving refreshInstanceCards");
 }
 
 //Generic Map Setup
@@ -1094,23 +969,14 @@ const viewSCard = new ol.View({
 
  
 var mapStory = new ol.Map({
-    //overlays: [overlay],
     target: 'mapStory',
     view: viewSCard,
 });
 mapStory.addLayer(backDrop);
-//mapStory.addLayer(recentLayer);
-
-//let storyInstAllSource = new ol.source.Vector();
-/*var storyInstAllLayer = new ol.layer.Vector({
-    style: function(feature) {
-        filterStyle.getText().setText(feature.get('p_name'));
-        return filterStyle;
-    },
-});*/
 
 let relations = {};
 function loadStoryDeets(card){
+    console.log("Entering loadStoryDeets");
     closeDeets();
     removeHighlights(itsTime = true);
     console.log("card: ",card);
@@ -1125,7 +991,6 @@ function loadStoryDeets(card){
             sID = parseInt(card["path"][i].id.substring(4),10);
             console.log("sID: ",sID);
             for (j=0;j<stories.length;j++){
-                //console.log("cycling through story IDS: ",stories[j]["s_id"]);
                 if (stories[j]["s_id"]==sID){
                     cardD = stories[j];
                     console.log("cardD Story: ",cardD);
@@ -1134,9 +999,7 @@ function loadStoryDeets(card){
                     relations["instances_all"] = cardD["instances_all"];
                     relations["instances_no"] = cardD["instances_no"];
                     relations["instances_yes"] = cardD["instances_yes"];
-                    updateHighlights(sourceID = sID, type = "sCard", relations = relations);
-                
-                    //console.log("instances_yes", cardD["instances_yes"]);
+                    updateMapHighlights(sourceID = sID, type = "sCard", relations = relations);
                     for (iH in cardD["instances_yes"]){ //highlight associated instances
                         iHigh = cardD["instances_yes"][iH];
                         document.getElementById("iID_"+iHigh).classList.add("highlight");
@@ -1146,28 +1009,22 @@ function loadStoryDeets(card){
         }
     }
     renderDeets(cardD = cardD);
+    console.log("Leaving loadStoryDeets");
 };
 
 function loadInstanceDeets(card){
     console.log("Entering loadInstanceDeets");
     closeDeets();
     removeHighlights(itsTime = true);
-    console.log("card: ",card);
     stopVar = "unkown";
     cardD = {};
 
     for (k=0; k<card["path"].length; k++){
-        console.log(card["path"][k].className);
         if(card["path"][k].className == "instance-card"){
             card["path"][k].classList.add('brightlight');
-            console.log(card["path"][k]);
-            //preiID = card["path"][k].id.substring(4);
-            //console.log("preiID: ",preiID);
             iID = parseInt(card["path"][k].id.substring(4),10);
-            //iID = card["Path"][k].id;
             console.log("iID: ",iID);
             for (j=0; j<instances.length;j++){
-                //console.log("cycling through instance ID:",instances[j]["i_id"]);
                 if (instances[j]["i_id"]==iID){
                     cardD = instances[j];
                     console.log("cardD Instnace: ",cardD);
@@ -1176,11 +1033,10 @@ function loadInstanceDeets(card){
                     relations["instances_all"] = cardD["instances_all"];
                     relations["instances_no"] = cardD["instances_no"];
                     relations["instances_yes"] = cardD["instances_yes"];
-                    updateHighlights(sourceID = iID, type = "iCard", relations = relations);
+                    updateMapHighlights(sourceID = iID, type = "iCard", relations = relations);
                     //Updated related story and instances to highlight
                     sID = cardD["s_id"];
                     document.getElementById("sID_"+sID).classList.add("highlight"); //highlight associated story
-                    //console.log("instances_yes", cardD["instances_yes"]);
                     for (iH in cardD["instances_yes"]){ //highlight associated instances
                         iHigh = cardD["instances_yes"][iH];
                         document.getElementById("iID_"+iHigh).classList.add("highlight");
@@ -1192,33 +1048,32 @@ function loadInstanceDeets(card){
     }
     renderDeets(cardD = cardD);
     refresh=false;
+    console.log("Leaving loadInstanceDeets");
 };
 
 function removeHighlights(itsTime){
+    console.log("entering removeHighlights");
     if (itsTime == true){
         brightlitCards = document.getElementsByClassName("brightlight");
         for (i=0; i<brightlitCards.length;i++){
             brightlitCards[i].classList.remove('brightlight');
-        }
+        };
         highlitCards = document.getElementsByClassName("highlight");
-        for (i=0; i<highlitCards.length;i++){
-            highlitCards[i].classList.remove('highlight');
+        while (highlitCards.length>0){
+            for (j=0; j<highlitCards.length;j++){
+                highlitCards[j].classList.remove('highlight');
+            };
         }
     }
-    updateHighlights(sourceID = 0, type="none", relations=[]);
-    
+    updateMapHighlights(sourceID = 0, type="none", relations=[]);
+    console.log("Leaving removeHighlights");
     //return true;
 };
 
 function renderDeets(cardD){
-    //closeDeets();
-    
-    console.log("renderDeets cardD: ",cardD);
-    //var storyDeets = document.getElementById("deetsOverlay");
-    //mapStory.removeLayer(storyInstAllLayer);
+    console.log("Entering renderDeets w cardD: ",cardD);
     
     var deetsOverlay = document.getElementById('deetsOverlay');
-    //console.log("deetsOverlay: ",deetsOverlay);
     openOverlay = true;
 
     var dOverlay = document.createElement('div');
@@ -1276,11 +1131,6 @@ function renderDeets(cardD){
     console.log("cardD instances all: ",cardD["instances_all"]);
 
     mainIID = 0;
-    /*if(stopVar == "instance"){
-        console.log("mains instance: ",cardD);
-        mainIID = cardD["i_id"]*1;
-        subInstance(dOverlay = dOverlay, instance = cardD, lightLevel = "brightlight");
-    };*/
 
     yesInt = cardD["instances_yes"];
 
@@ -1289,17 +1139,14 @@ function renderDeets(cardD){
             if (subInst*1 == cardD["i_id"]*1) {
                 subInstance(dOverlay = dOverlay, instance=cardD, lightLevel = "brightlight");
             } else {
-                //console.log("Instance filtered in");
+                //Instance filtered out
                 subInstance(dOverlay = dOverlay, instance = cardD["instances_all"][subInst], lightLevel = "highlight");
             }
         } else {
-            //console.log("Instance filtered out");
+            //Instance filtered In
             subInstance(dOverlay = dOverlay, instance = cardD["instances_all"][subInst], lightLevel = "lowlight");
         };
     };
-
-    
-
     var dSource = document.createElement('a');
     dSource.href = cardD["web_link"];
     dSource.target = "_blank";
@@ -1311,9 +1158,12 @@ function renderDeets(cardD){
     dOverlay.appendChild(dSource);
 
     deetsOverlay.style.display = "block";
+
+    console.log("Leaving renderDeets");
 };
 
 function subInstance(dOverlay, instance, lightLevel){
+    console.log("Entering subInstance");
     //CHANGE cardD to access the instace results
     //console.log(instance["i_id"],": ",lightLevel);
     var dOInstance = document.createElement('div');
@@ -1348,44 +1198,33 @@ function subInstance(dOverlay, instance, lightLevel){
     dPDesc.className = 'dO-pdesc';
     dPDesc.innerHTML = instance["p_desc"];
     dOInstance.appendChild(dPDesc);
+    console.log("leaving subInstance");
 }
 
 function changeFocus(input){
-    
-    //console.log("changeFocus");
-    //console.log("typeof evt: ",typeof(input));
-    //console.log("evt: ",input);
+    console.log("entering changeFocus");
     if (input instanceof PointerEvent){
         popupContainer.style.display="none";
-        //console.log("pointer event");
         var iID = parseInt(input["path"][0].id.substring(8),10);
-        //console.log("iID: ",iID);
         var sID = parseInt(input["path"][2].id.substring(7),10);
         var brightID = input["path"][1].id;
-        //console.log("brightID",brightID);
         var brightLightID = document.getElementById(brightID);
-        //console.log("brightLightID: ",brightLightID);
         type="iCard";
 
     } else {
-        //console.log("not pointer");
+        //If not a pointer instance that initiated the changeFocus
         sID = input["s_id"];
         iID = input["i_id"];
         brightID = "i_"+iID;
-        //console.log("i_id: ",brightID);
         var brightLightID = document.getElementById(brightID);
-        //console.log("brightLightID: ",brightLightID);
         type="map";
     }
    
 
     var iNoFocus = document.querySelectorAll('.dO-instance');
-    //console.log("iNoFocus: ",iNoFocus);
     iNoFocus.forEach(i => {
-        //console.log("i before: ",i);
         i.classList.remove("brightlight");
         i.classList.add("highlight");
-        //console.log("i after: ",i);
     });
 
 
@@ -1401,17 +1240,13 @@ function changeFocus(input){
     })
 
     for(instance in instances){
-        //console.log("instance: ",instance*1);
-        //console.log("instances[instance]",instances[instance]);
         if (instances[instance]["i_id"] == iID){
             console.log("instance: ",instances[instance]);
             cardD = instances[instance];
             relations["instances_all"]=cardD["instances_all"]; 
             relations["instances_no"]=cardD["instances_no"];
             relations["instances_yes"]=cardD["instances_yes"];
-            updateHighlights(sourceID = iID, type = type, relations = relations);
-            //closeDeets();
-            //renderDeets(cardD = cardD);
+            updateMapHighlights(sourceID = iID, type = type, relations = relations);
             brightLightID.classList.add("brightlight"); //Focus on chosen instance within dO
             document.getElementById("sID_"+sID).classList.add("highlight"); //highlight associated story
             document.getElementById("iID_"+iID).classList.add("brightlight"); //brightlight chosen istance
@@ -1422,12 +1257,12 @@ function changeFocus(input){
             };
         };
     };
-    
+    console.log("Leaving changeFocus");
 };
 
 let itsTime = false;
 function closeDeets(){
-    console.log("close deets");
+    console.log("Entering closeDeets");
     popupContainer.style.display="none";
     var deetsOverlay = document.getElementById('deetsOverlay');
     var first = deetsOverlay.firstElementChild;
@@ -1436,14 +1271,17 @@ function closeDeets(){
         first = deetsOverlay.firstElementChild;
     }
     deetsOverlay.style.display="none";
-    //itsTime = true;
     removeHighlights(itsTime = true);
     itsTime = false;
+    console.log("Leaving closeDeets");
 }
 
 function showFilters() {
+    console.log("Entering showFilters");
     closeDeets();
     document.getElementById("filterOverlay").style.display="block";
+    drawMap.updateSize();
+    console.log("Leaving showFilters");
 }
 
 let brightlights;
@@ -1484,7 +1322,6 @@ const highlightLayer = new ol.layer.Vector({
     },
 });
 
-
 let lowlights;
 const lowlightLayer = new ol.layer.Vector({
     source: new ol.source.Vector(),
@@ -1523,10 +1360,8 @@ const nolightLayer = new ol.layer.Vector({
     },
 });
 
-function updateHighlights(sourceID, type, relations){
-    console.log("Entering updateHighlights");
-    //console.log("stories: ",stories);
-    //console.log("instances: ",instances);
+function updateMapHighlights(sourceID, type, relations){
+    console.log("Entering updateMapHighlights");
     brightlights = {};
     highlights = {};
     lowlights = {};
@@ -1625,103 +1460,5 @@ function updateHighlights(sourceID, type, relations){
             map.getView().fit(brightlightLayer.getSource().getExtent());
         }
     }
+    console.log("Leaving updateMapHighlights");
 };
-
-        
-        //console.log("bright extent: ",brightlightLayer.getSource().getExtent());
-        //console.log("high extent: ",highlightLayer.getSource().getExtent());
-        //console.log("low extent: ",lowlightLayer.getSource().getExtent());
-        //console.log("bhExtent: ",bhExtent);
-        
-    
-        //console.log("brightlights: ",brightlightLayer.getSource().getFeatures());
-        //console.log("highlights: ",highlightLayer.getSource().getFeatures());
-        //console.log("lowlights: ",lowlightLayer.getSource().getFeatures());
-        //console.log("nolights: ",nolightLayer.getSource().getFeatures());
-
-
-    /*document.addEventListener("click", (event)=>{
-        const isClickInside = dOverlay.contains(event.target);
-        if (openOverlay == true){
-            if (!isClickInside){
-                dOverlay.style.display="none";
-                openOverlay = false;
-            }
-        }
-        
-    })*/
-
-
-    /*
-    if (stopVar == "instance"){
-        document.getElementById('deetsITitle').innerHTML = cardD["p_name"];
-        document.getElementById('deetsIDateframe').innerHTML = cardD["i_D"];
-        document.getElementById('deetsITimeframe').innerHTML = cardD["i_T"];
-        document.getElementById('deetsITdesc').innerHTML = cardD["t_desc"];
-        document.getElementById('deetsIPdesc').innerHTML = cardD["p_desc"];
-        document.getElementById('deetsTitle2').innerHTML = cardD["title"];
-        console.log("Here is where we should define a layer with only the instance highlighted")
-    }
-    
-    //Appropriate for all cards
-    document.getElementById('deetsTitle').innerHTML = cardD["title"];
-    document.getElementById('deetsAuthor').innerHTML =cardD["author"];
-    document.getElementById('deetsSection').innerHTML = cardD["section"];
-    document.getElementById('deetsPubdate').innerHTML = cardD["pub_date"];
-    document.getElementById('deetsTags').innerHTML = cardD["tags"];
-    document.getElementById('deetsSummary').innerHTML = cardD["summary"];
-    document.getElementById('buttonLink').href = cardD["web_link"];
-    */
-    /*
-    if (cardD["instances_all"].length>0){
-        document.getElementById('deetsICount').innerHTML = cardD["instances_all"].length;
-        iIDFilter = "i_id IN ("+storyD["instances_all"]+")";
-        console.log("iIDFilter ",iIDFilter);
-        cqlFilter = iIDFilter.replace(/%/gi,"%25").replace(/'/gi,"%27").replace(/ /gi,"%20");
-        urlIAll = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
-            'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
-            'cql_filter='+cqlFilter+'&'+
-            'sortby=area+D&'+
-            'outputFormat=application/json&srsname=EPSG:4326';
-        console.log(urlIAll);
-        //storyInstAllSource = loadSourceToExplore(wfs_url=urlIAll, loadType="storyInstAll")
-        var storyInstAllSource = new ol.source.Vector({
-            format: new ol.format.GeoJSON(),
-            loader: function(extent, resolution, projection, success,failure) {
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', urlIAll);
-                var onError = function() {
-                    storyInstAllSource.removeLoadedExtent(extent);
-                    failure();
-                }
-                xhr.onerror = onError;
-                xhr.onload = function() {
-                    if (xhr.status == 200) {
-                        var features = storySource.getFormat().readFeatures(xhr.responseText);
-                        storyInstAllSource.addFeatures(features);
-                        success(features);
-                    } else {
-                        onError()
-                    }
-                }
-                xhr.send();
-            },
-            strategy: ol.loadingstrategy.all
-            
-        });  
-        
-        console.log("storyInstAllSource: ",storyInstAllSource);
-        var storyInstAllLayer = new ol.layer.Vector({
-            source: storyInstAllSource,
-            style: function(feature) {
-                filterStyle.getText().setText(feature.get('p_name'));
-                return filterStyle;
-            },
-        });
-        mapStory.addLayer(storyInstAllLayer);
-        document.getElementById("mapStory").style.display="block";
-    } else {
-        document.getElementById("mapStory").style.display="none";
-    }
-    */
-    //storyDeets.style.display = "block";
