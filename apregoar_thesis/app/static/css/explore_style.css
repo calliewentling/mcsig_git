@@ -308,14 +308,49 @@ top: 3em;
     Skeleton Loading 
     https://www.foolishdeveloper.com/2021/09/skeleton-screen-loading-animation.html
     */
+    .resultsArea {
+        height: 300px;
+        width: 97%;
+        position: center;
+        margin: 10px;
+        box-shadow: -10px 5px 20px var(--shadow-color);
+        border-radius: 5px;
+        padding: 10px;
+    }
+
+    .cardArea {
+        display: block;
+        position: relative;
+        margin-left: 50px;
+        border-radius: 5px;
+    }
+
+    .cardArea .cardCount{
+        font: bold 12px Sans-Serif;
+        line-height: .7;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        background: var(--primary-color);
+        color: #fff;
+        padding: 10px 10px;
+        transform-origin:  0 0px;
+        transform: rotate(90deg);
+        position: absolute;
+        width: 125px;
+        height: 50px;
+        border: 1px solid #d9d9d9;
+        border-radius: 5px;
+        /*top: 0;
+        left: 15px;*/
+    }
+
     .resultsStory {
-        /*display: flex;*/
         align-items: left;
         justify-content: left;
-        /*height: 135px;*/
         background: #d9d9d9;
         overflow-x: auto;
         white-space: nowrap;
+        height: 140px;
     }
 
     .story-card {
@@ -383,6 +418,7 @@ top: 3em;
         background: #d9d9d9;
         overflow-x: auto;
         white-space: nowrap;
+        height: 140px;
     }
 
    
@@ -504,7 +540,8 @@ top: 3em;
         border-radius: 5px;
         border: 10px solid var(--light-color);
         position: relative;
-        /*width: 80%;
+        width: 97%;
+        /*
         top: 10%;
         left: 10%;
         max-height: 80%;
@@ -632,22 +669,17 @@ top: 3em;
 
     }
 
-    .dO .dO-button {
-        text-align: center;
-        font-size: 16px;
-        padding: 10px;
-        height: 40px;
-        width: 100%;
-        bottom: 1%;
-        font-weight: bold;
-        outline: none;
-        border: none;
-        color: var(--primary-color);
+    .dO .dO-buttonA {
+        display: flex;
+        padding: 5px;
+        justify-content: center;
+        align-items: center;
+
     }
 
-    .dO .dO-button:hover {
-        font-size: 20px;
-        padding: 5px;
+    .dO-buttonA2:hover {
+        box-shadow: -10px 5px 20px var(--light-color);
+        bottom: 5px;
     }
 
     .brightlight {

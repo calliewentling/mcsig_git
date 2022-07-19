@@ -69,8 +69,6 @@ $(document).ready(function () {
 
 var defaultMultiCheckBoxOption = { width: '220px', defaultText: "Selecionar", height: '200px' };
 
-//var recentDate1 = new Date();
-//var recentDate2 = new Date();
 let stories;
 const baseFilters = {
     "Tags": [],
@@ -95,12 +93,12 @@ var allFilters = baseFilters;
 
 // USING PYTHON PASSED RECENT VALUES TO ESTABLISH DATE LIMITS
 console.log("recentDate1: ",recentDate1,". recentDate2: ",recentDate2);
-    $( "#from" ).datepicker("option", "minDate", pubDate1);
-    $( "#from" ).datepicker("option","maxDate", recentDate2);
-    $( "#from" ).datepicker("setDate", new Date(recentDate1.getFullYear(), recentDate1.getMonth(), recentDate1.getDate()));
-    $( "#to" ).datepicker("option", "minDate", recentDate1);
-    $( "#to" ).datepicker( "option", "maxDate", pubDate2 );
-    $( "#to" ).datepicker("setDate", new Date(recentDate2.getFullYear(), recentDate2.getMonth(), recentDate2.getDate()));
+$( "#from" ).datepicker("option", "minDate", pubDate1);
+$( "#from" ).datepicker("option","maxDate", recentDate2);
+$( "#from" ).datepicker("setDate", new Date(recentDate1.getFullYear(), recentDate1.getMonth(), recentDate1.getDate()));
+$( "#to" ).datepicker("option", "minDate", recentDate1);
+$( "#to" ).datepicker( "option", "maxDate", pubDate2 );
+$( "#to" ).datepicker("setDate", new Date(recentDate2.getFullYear(), recentDate2.getMonth(), recentDate2.getDate()));
 
 
 jQuery.fn.extend({
@@ -145,7 +143,6 @@ jQuery.fn.extend({
         this.val(arr);
         console.log("arr ",arr);
         allFilters[filterName] = arr;
-        //filterAllVals();
 
         // Gathering values of inputs & updating dropdown viz based on selections
         filterVals = [];
@@ -406,11 +403,6 @@ let draw = new ol.interaction.Draw({
 });
 drawMap.addInteraction(draw);
 
-//Get interactive areas
-var instanceResults = document.getElementById("instanceResults");
-var storyResults = document.getElementById("storyResults");
-var recentResults = document.getElementById("recentResults");
-
 
 function refineFeatures(feature){
     //console.log("Entering refineFeatures");
@@ -462,17 +454,7 @@ function loadSourceToExplore(wfs_url, loadType) {
             }
             xhr.onerror = onError;
             xhr.onloadend = function() {
-                console.log("Removing skeleton");
-                var getSkeleton = document.getElementsByClassName("skeleton");
-                while(getSkeleton.length>0){
-                    for (s=0;s<getSkeleton.length;s++){
-                        getSkeleton[s].classList.remove("skeleton");
-                    }
-                };
-                var hiddenTextItems = document.querySelectorAll(".hide-text");
-                hiddenTextItems.forEach(item => {
-                    item.classList.remove("hide-text");
-                });
+                removeSkeleton();
             }
             xhr.onload = function() {
                 console.log("XHR status: ",xhr.status);
@@ -496,27 +478,7 @@ function loadSourceToExplore(wfs_url, loadType) {
                             refinedFeature = refineFeatures(features[i]["A"]);
                             preloadF.push(refinedFeature);
                         }
-                        console.log("left refineFeatures")
-                        if (loadType == "recent") {
-                            const recentDate1 = new Date(preloadF[preloadF.length-1]["pub_date"]);
-                            allFilters["pubDateR1"] = recentDate1;
-                            const recentDate2 = new Date(preloadF[0]["pub_date"]);
-                            allFilters["pubDateR2"] = recentDate2;
-                            console.log("recentDate1: ",recentDate1,". recentDate2: ",recentDate2);
-                            $( "#from" ).datepicker("option", "minDate", pubDate1);
-                            $( "#from" ).datepicker("option","maxDate", recentDate2);
-                            $( "#from" ).datepicker("setDate", new Date(recentDate1.getFullYear(), recentDate1.getMonth(), recentDate1.getDate()));
-                            $( "#to" ).datepicker("option", "minDate", recentDate1);
-                            $( "#to" ).datepicker( "option", "maxDate", pubDate2 );
-                            $( "#to" ).datepicker("setDate", new Date(recentDate2.getFullYear(), recentDate2.getMonth(), recentDate2.getDate()));
-                            //document.getElementById("from").defaultValue = recentDate1.toDateString();
-                            //document.getElementById("from").value = recentDate1.toDateString();
-                            //document.getElementById("to").value = recentDate2.toDateString();
-                            //document.getElementById("to").defaultValue = recentDate2.toDateString();
-                            recentResults.innerHTML="<p>Monstrando as "+numRecent+" publicações mais recentes</p>";
-                            console.log("allFilters after loading of recents: ",allFilters);
-                        }
-                        
+                        console.log("left refineFeatures")                        
                     }
                 } else {
                     onError();
@@ -529,6 +491,8 @@ function loadSourceToExplore(wfs_url, loadType) {
     console.log("leaving loadSourceToExplore()");
     return tempSource;
 };
+
+
 
 var fromSelect = document.getElementById("from");
 var toSelect = document.getElementById("to");
@@ -544,7 +508,7 @@ $( function() {
         numberOfMonths: 1,
         minDate: pubDate1,
         maxDate: pubDate2,
-    }).on( "change", function() {
+    }).datepicker('setDate',recentDate1).on( "change", function() {
         to.datepicker( "option", "minDate", getDate( this ) );
         to.value = getDate ( allFilters["pubDateR2"] );
         from.value = getDate( this ).toDateString();
@@ -555,12 +519,13 @@ $( function() {
 
     to = $( "#to" ).datepicker({
         gotoCurrent: true,
+        defaultValue: recentDate2,
         altFormat: "D, d M y",
         changeMonth: true,
         numberOfMonths: 1,
         minDate: pubDate1,
         maxDate: pubDate2,
-    }).on( "change", function() {
+    }).datepicker('setDate',recentDate2).on( "change", function() {
         from.datepicker( "option", "maxDate", getDate( this ) );
         from.value = getDate(allFilters["pubDateR1"]);
         to.value = getDate( this );
@@ -647,7 +612,6 @@ $( function() {
     }
 
 });
-
 
 //Incorporating "Select all" for publish date and instance occurances
 const allPub = document.getElementById('allPub');
@@ -786,12 +750,28 @@ function addSkeletons(){
             card.childNodes[1].childNodes[c].classList.add("hide-text");
         }
     });
+};
 
-}
+function removeSkeleton(){
+    console.log("Entering removeSkeleton");
+    var getSkeleton = document.getElementsByClassName("skeleton");
+    while(getSkeleton.length>0){
+        for (s=0;s<getSkeleton.length;s++){
+            getSkeleton[s].classList.remove("skeleton");
+        }
+    };
+    var hiddenTextItems = document.querySelectorAll(".hide-text");
+    hiddenTextItems.forEach(item => {
+        item.classList.remove("hide-text");
+    });
+    console.log("Leaving removeSkeleton");
+};
 
 //Communication with Python backend for filtering
 var sIDs = [];
 var iIDs = [];
+const numAllStories = 100;
+const numAllInstances = 100;
 function filterAllVals(){
     console.log("Entering filterAllVals");
     document.getElementById("resultsArea").classList.add("skeleton");
@@ -828,15 +808,16 @@ function filterAllVals(){
             console.log(resp);
             sIDs = resp["sIDs"];
             iIDs = resp["iIDs"];
-            //console.log("stories preparse: ",resp["stories"]);
             stories = resp["stories"];
             instances = resp["instances"];
-            //Testing Cards
+
             refreshStoryCards(stories=stories);
+            document.getElementById("storyCount").innerHTML = '<p>notícias</p><p>'+stories.length+'/'+numAllStories+'</p>' ;
+
             refreshInstanceCards(instances=instances);
+            document.getElementById("instanceCount").innerHTML = '<p>instáncias</p><p>'+instances.length+'/'+numAllInstances+'</p>' ;
             
-            resultsArea.style.display="block";
-            if (iIDs.length > 0){
+            if (instances.length > 0){
                 iIDFilter = "i_id IN ("+iIDs+")";
                 cqlFilter = iIDFilter.replace(/%/gi,"%25").replace(/'/gi,"%27").replace(/ /gi,"%20");
                 urlFiltered = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
@@ -847,15 +828,12 @@ function filterAllVals(){
                 filteredSource = loadSourceToExplore(wfs_url=urlFiltered, loadType="filtered")
                 filteredLayer.setSource(filteredSource);// how do I define this?
                 map.addLayer(filteredLayer);
-                instanceResults.innerHTML=`<p>Instâncias: ${iIDs.length}: ${iIDs}</p>`;
-                storyResults.innerHTML=`<p>Histórias: ${sIDs.length}: ${sIDs}</p>`;
                 map.render();
             } else {
                 map.removeLayer(filteredLayer);
-                resultsArea.style.display="none";
-                //I USED TO NOTIFY OF NO RESULTS HERE. SHOULD THESE BE PREVIOUSLY DEFINED SO NO WFS CALL IS RETURNED IF NO STORIES OR INSTANCES RETURNED?
-                instanceResults.innerHTML=`<p>Sem lugares</p>`;
-                storyResults.innerHTML=`<p>Sem histórias</p>`;
+
+                
+                removeSkeleton();
             }
         })
     })
@@ -1147,15 +1125,24 @@ function renderDeets(cardD){
             subInstance(dOverlay = dOverlay, instance = cardD["instances_all"][subInst], lightLevel = "lowlight");
         };
     };
+
+    var dButtonA = document.createElement('div');
+    dButtonA.className = 'dO-buttonA';
+    dButtonA2 = document.createElement('div');
+    dButtonA2.className = 'dO-buttonA2';
+
     var dSource = document.createElement('a');
     dSource.href = cardD["web_link"];
     dSource.target = "_blank";
     var dButton = document.createElement('button');
-    dButton.className = "dO-button";
+    dButton.className = "button2";
     dButton.id = "dButton";
     dButton.innerHTML = "Ver fonte";
     dSource.appendChild(dButton);
-    dOverlay.appendChild(dSource);
+
+    dButtonA2.appendChild(dSource);
+    dButtonA.appendChild(dButtonA2);
+    dOverlay.appendChild(dButtonA);
 
     deetsOverlay.style.display = "block";
 
