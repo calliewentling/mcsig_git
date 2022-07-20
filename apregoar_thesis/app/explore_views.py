@@ -445,16 +445,9 @@ def explore():
         
         response["sIDs"] = s_ids 
         response["iIDs"] = i_ids
-
+        #Extracting all relatedd instances for each story
         stmt2 = select(Instances).where(Instances.s_id.in_(s_ids))
         results2 = session.execute(stmt2).all()
-
-        #print()
-        #print("storyJSON: ")
-        #print(storiesJSON)
-        #print("instanceJSON")
-        #print(instancesJSON)
-
         for result in results2:
             instanceP = processInstance(result.Instances)
             for story in storiesJSON:
@@ -464,7 +457,20 @@ def explore():
                     if result.Instances.i_id not in i_ids:
                         story["instances_no"].append(result.Instances.i_id)
         
-        
+        #Return current count of stories
+        stmt = select(func.count(Stories.s_id.distinct()).label("countStories"))
+        results = session.execute(stmt).all()
+        for result in results:
+            countStories = result.countStories
+        response["countStories"] = countStories
+
+
+        stmt = select(func.count(Instances.i_id.distinct()).label("countInstances"))
+        results = session.execute(stmt).all()
+        for result in results:
+            countInstances = result.countInstances
+        response["countInstances"] = countInstances
+
         """
         subq = (select(Instances.s_id, func.array_agg(Instances.i_id).label("iids")).where(Instances.i_id.in_(i_ids)).group_by(Instances.s_id).subquery())
         stmt3 = select(Instances, func.array_remove(subq.c.iids,Instances.i_id).label("iids")).join(subq, Instances.s_id == subq.c.s_id)

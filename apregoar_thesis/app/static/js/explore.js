@@ -221,6 +221,7 @@ var map = new ol.Map({
     overlays: [popupOverlay],
     target: 'map',
     view: view,
+    interactions: ol.interaction.defaults({mouseWheelZoom:false}),
 });
 map.addLayer(backDrop);
 
@@ -285,6 +286,11 @@ map.on('singleclick',function(evt){
     } else {
         closeDeets();
     }    
+});
+
+map.on('moveend',function(evt){
+    console.log("moveend triggered: ",evt);
+    map.render();
 });
 
 function updatePopup(instanceID){
@@ -770,12 +776,16 @@ function removeSkeleton(){
 //Communication with Python backend for filtering
 var sIDs = [];
 var iIDs = [];
-const numAllStories = 100;
-const numAllInstances = 100;
+let countAllStories;
+let countAllInstances;
 function filterAllVals(){
     console.log("Entering filterAllVals");
     document.getElementById("resultsArea").classList.add("skeleton");
     document.getElementById("map").classList.add("skeleton");
+    var storyCount = document.getElementById("storyCount");
+    storyCount.innerHTML = '<p>notícias</p>' ;
+    var instanceCount = document.getElementById("instanceCount");
+    instanceCount.innerHTML = '<p>instâncias</p>' ;
     addSkeletons();  
     currentLayers = map.getLayers();
     map.removeLayer(filteredLayer);
@@ -810,12 +820,14 @@ function filterAllVals(){
             iIDs = resp["iIDs"];
             stories = resp["stories"];
             instances = resp["instances"];
+            countAllStories = resp["countStories"];
+            countAllInstances = resp["countInstances"];
 
             refreshStoryCards(stories=stories);
-            document.getElementById("storyCount").innerHTML = '<p>notícias</p><p>'+stories.length+'/'+numAllStories+'</p>' ;
+            storyCount.innerHTML = '<p>notícias</p><p>'+stories.length+' / '+countAllStories+'</p>' ;
 
             refreshInstanceCards(instances=instances);
-            document.getElementById("instanceCount").innerHTML = '<p>instáncias</p><p>'+instances.length+'/'+numAllInstances+'</p>' ;
+            instanceCount.innerHTML = '<p>instáncias</p><p>'+instances.length+' / '+countAllInstances+'</p>' ;
             
             if (instances.length > 0){
                 iIDFilter = "i_id IN ("+iIDs+")";
@@ -1269,6 +1281,19 @@ function showFilters() {
     document.getElementById("filterOverlay").style.display="block";
     drawMap.updateSize();
     console.log("Leaving showFilters");
+};
+
+function saveFilters(){
+    console.log("Entering saveFilters");
+    console.log("allFilters: ",allFilters);
+    console.log("This function is incomplete");
+    console.log("Leaving saveFilters");
+};
+
+function saveResults(){
+    console.log("Entering saveFilters");
+    console.log("This function is incomplete");
+    console.log("Leaving saveResults");
 }
 
 let brightlights;

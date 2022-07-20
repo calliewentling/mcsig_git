@@ -69,6 +69,7 @@
     box-shadow: -10px 5px 20px var(--shadow-color);
     border-radius: 5px;
     padding: 10px;
+    cursor: pointer;
 }
 .map:-webkit-full-screen {
     height: 100%;
@@ -304,12 +305,26 @@ top: 3em;
         padding-left: 10px;
     }
 
+    /*BUTTON OPTIONS AREA*/
+    .inlineSection {
+        align-items: left;
+        justify-content: left;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding: 20px;
+    }
+
+    .inlineSection > * {
+        margin: 0 20px 0 0;
+        width: 200px;
+    }
+
     /* 
     Skeleton Loading 
     https://www.foolishdeveloper.com/2021/09/skeleton-screen-loading-animation.html
     */
     .resultsArea {
-        height: 300px;
+        height: 320px;
         width: 97%;
         position: center;
         margin: 10px;
@@ -336,7 +351,7 @@ top: 3em;
         transform-origin:  0 0px;
         transform: rotate(90deg);
         position: absolute;
-        width: 125px;
+        width: 130px;
         height: 50px;
         border: 1px solid #d9d9d9;
         border-radius: 5px;
@@ -350,7 +365,7 @@ top: 3em;
         background: #d9d9d9;
         overflow-x: auto;
         white-space: nowrap;
-        height: 140px;
+        height: 150px;
     }
 
     .story-card {
@@ -418,7 +433,7 @@ top: 3em;
         background: #d9d9d9;
         overflow-x: auto;
         white-space: nowrap;
-        height: 140px;
+        height: 150px;
     }
 
    
