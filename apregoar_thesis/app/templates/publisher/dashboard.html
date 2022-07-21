@@ -19,7 +19,7 @@
           welcomeU.innerHTML = `<h2>Welcome, ${username}</h2>`;
         </script>
         <div class="align-right">
-          <a href="/publisher/sign_out"><button type="button" class="btn btn-primary">Sign out</button></a>
+          <a href="{{ url_for('sign_outU', login_source='publisher')}}"><button type="button" class="btn btn-primary">Sign out</button></a>
         </div>
       </div> 
 

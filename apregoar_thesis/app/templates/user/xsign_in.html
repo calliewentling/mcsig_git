@@ -11,7 +11,7 @@
       <h1>Sign in</h1>
       <hr>
 
-      <form action="sign_in" method="POST">
+      <form action="/sign_in" method="POST">
 
         <div class="form-group">
           <label>Username</label>
@@ -24,14 +24,12 @@
         </div>
 
         <button type="submit" class="btn btn-primary">Sign in</button>
-        <a href="/publisher/sign_up"><button type="button" class="btn btn-primary">Sign Up</button></a>
 
         {% if feedback %}
         <p class="text-danger float-right">{{ feedback }}</p>
         {% endif %}
 
       </form>
-
 
     </div>
   </div>

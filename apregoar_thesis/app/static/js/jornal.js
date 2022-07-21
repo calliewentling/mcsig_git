@@ -1,7 +1,3 @@
-//// Initialize loader ////
-const spinner = document.getElementById("spinner");
-
-
 /*LOADING OL MAPS */
 const key = 'Jf5RHqVf6hGLR1BLCZRY';
 const attributions =
@@ -22,7 +18,7 @@ const closer = document.getElementById('popup-closer');
 const pageahead = document.getElementById('popup-pageahead');
 const pagebehind = document.getElementById('popup-pagebehind');
 const popupinstancecount = document.getElementById('popup-instance-count');
-const notpop = document.getElementById('info');
+
 
 /**
 * Create an overlay to anchor the popup to the map.
@@ -75,7 +71,6 @@ if (pageahead) {
         //featureCount.innerHTML = displayCount+'/'+popupInstances.length;
         instContent.innerHTML = popupInstances[nextF]["instanceBlock"];
         //highlightInstance(popupInstance=popupInstances[nextF].properties.i_id);
-        notpop.innerHTML = popupInstances[nextF]["instanceBlock"];
         currentF = nextF;
         return false;
     };
@@ -96,7 +91,6 @@ if (pagebehind) {
         popupinstancecount.innerHTML = displayCount+'/'+popupInstances.length;
         //featureCount.innerHTML = displayCount+'/'+popupInstances.length;
         instContent.innerHTML = popupInstances[nextF]["instanceBlock"];
-        notpop.innerHTML = popupInstances[nextF]["instanceBlock"];
         currentF = nextF;
         return false;
     };
@@ -111,6 +105,7 @@ var sID = geonoticia.s_id;
 var sTags = geonoticia.tags;
 mapStoryFilter = "s_id="+sID;
 //console.log("mapStoryFilter: ",mapStoryFilter);
+document.querySelector('h1').style.color = pubColor;
 var pub = geonoticia.publication;
 if (pub == "A Mensagem") {
     var pubColor = "#5AA0D5";
@@ -142,8 +137,21 @@ var map = new ol.Map({
     view: view,
 });
 
+var nearbyMap = new ol.Map({
+    layers: [
+        new ol.layer.Tile({
+            source: new ol.source.OSM()
+        })
+    ],
+    overlays: [overlay],
+    target: 'nearbyMap',
+    view: view,
+});
+
 // Style text of page
-document.querySelector('h1').style.color = pubColor;
+
+document.documentElement.style.setProperty('--pub-color',pubColor);
+
 
 
 /* Preparing highlight maps of selected instances */
@@ -154,7 +162,7 @@ const style = new ol.style.Style({
     }),
     stroke: new ol.style.Stroke({
         color: pubColor,
-        width: 1,
+        width: 3,
     }),
     text: new ol.style.Text({
         font: '12px Calibri,sans-serif',
@@ -204,7 +212,7 @@ var vSource = new ol.source.Vector({
                 if (noFeatures == false) {
                     layerExtent = vSource.getExtent();
                     //console.log("layerExtent: ",layerExtent);
-                    map.getView().fit(ol.extent.buffer(layerExtent, .01)); //What does this number mean??
+                    map.getView().fit(ol.extent.buffer(layerExtent, .001)); //What does this number mean??
                 }
                 var sourceFeatureInfo = vSource.getFeatures();
                 //console.log("sourceFeatureInfo: ",sourceFeatureInfo);
@@ -237,7 +245,7 @@ map.addLayer(vectorLayer);
 const highlightStyle = new ol.style.Style({
     stroke: new ol.style.Stroke({
         color: pubColor,
-        width: 2,
+        width: 3,
     }),
     fill: new ol.style.Fill({
         color: fillColor,
@@ -257,7 +265,7 @@ const highlightStyle = new ol.style.Style({
 const infoStyle = new ol.style.Style({
     stroke: new ol.style.Stroke({
         color: '#fff',
-        width: 2,
+        width: 3,
     }),
     fill: new ol.style.Fill({
         color: pubColor+'80',
@@ -310,12 +318,6 @@ let highlight;
 let getInfo;
 const displayFeatureInfo = function (pixel, popupFeatures, type) {
     if (popupFeatures.length>0) {
-        //console.log("number of popupfeatures returned: ",popupFeatures.length);
-        /* No longer necessary: now loading the number of features per story as max
-        if (popupFeatures.length == numStoryFeatures){
-            alert("Cuidade! Monstrado "+numStoryFeatures+" instâncias neste posiçião. Se calhar há mais. Utiliza os filtros para identificar todos as opções desejável.");
-        }
-        */
         popupInstances = [];
 
         for (let f=0; f < popupFeatures.length; f++) {
@@ -407,9 +409,7 @@ const displayFeatureInfo = function (pixel, popupFeatures, type) {
         featureFocus.getSource().addFeature(popupFeatures[currentF]);
         popupinstancecount.innerHTML = displayCount+'/'+popupInstances.length;
         //featureCount.innerHTML = displayCount+'/'+popupFeatures.length;
-        instContent.innerHTML = popupInstances[currentF]["instanceBlock"];
-        notpop.innerHTML = popupInstances[currentF]["instanceBlock"];
-        
+        instContent.innerHTML = popupInstances[currentF]["instanceBlock"];        
         /* Set Position */
         overlay.setPosition(coordinate);
     }else{ //If click doesn't hit a polygon
@@ -418,16 +418,14 @@ const displayFeatureInfo = function (pixel, popupFeatures, type) {
     
     var featureLength = popupFeatures.length;
     //console.log("Number of features: ",featureLength);
-    const info = document.getElementById('info');
+
     if (popupFeatures.length > 0){
         var infoFeature = [];
         for (var i=0; i<popupFeatures.length; ++i){
             infoFeature.push(popupFeatures[i].get('p_name'));
         }
-        info.innerHTML = infoFeature.join(', ') || '(unknown)';
-    } else {
-        info.innerHTML = 'No features selected';
-    }
+        
+    } 
     featureOverlay.getSource().clear();
     for (let i = 0; i<featureLength; i++) {
         featureOverlay.getSource().addFeature(popupFeatures[i]);
@@ -449,16 +447,6 @@ const highlightInstance = function (pixel) {
         highlight = feature;
     }
 };
-
-/*
-map.on('pointermove', function (evt) {
-    if (evt.dragging) {
-        return;
-    } 
-    const pixel = map.getEventPixel(evt.originalEvent);
-    highlightInstance(pixel);
-});
-*/
 
 let popupFeatures;
 let popupTags;
@@ -482,33 +470,6 @@ map.on('click', function (evt) {
 });
 
 
-
-
-
-// Creating a layer that clusters the overlapping values as an array
-/*
-var clusterSource = new ol.source.Cluster({
-    distance: 0,
-    source: vSource,
-    geometryFunction: function(feature) {
-        var geometry = feature.getGeometry();
-        var type = geometry.getType();
-        //console.log("type: ",type);
-        // Requires definition of geometry for polygon (for all feature types except points, which works out of the box)
-        if (type == 'MultiPolygon'){
-            //console.log("MultiPolygon geometry");
-            return geometry.getInteriorPoints();
-        } else {
-            console.log("not MultiPolygon geometry");
-        }
-    }
-})
-
-const clusterLayer = new ol.layer.Vector({
-    source: clusterSource,
-});
-map.addLayer(clusterLayer);
-*/
 
 ///// LOADING IFRAME ////
 var iframeH = document.getElementById("iframeH");
@@ -555,150 +516,42 @@ if (iframeH.attachEvent){
     };
 }
 
-let tagSource;
-let tagLayer;
-var storyTags = {};
-console.log("sTags: ",sTags);
-for (let i=0; i < sTags.length; i++){
-    tag = sTags[i]
-    console.log("tag: ",tag);
-    storyTags[tag] = false;
-};
-console.log("storyTags: ",storyTags);
-// Attributes and next steps
-function exploreMap(tag) {
-    console.log("tag selected: ",tag);
-    console.log("pub: ",pub);
-    if (tag == "nearby"){
-        console.log("Allow user to choose a radius to search within")
-    } else if (tag == "freguesia"){
-        console.log("Load all news happening in the same freguesia")
-    } else {
-        if (storyTags[tag] == true){
-            console.log("storyTag ",tag," is already loaded");
-            storyTags[tag] = false;
-            map.removeLayer(tagLayer);
-        }
-        else {
-            tagFilter = "publication='"+pub+"' and strToLowerCase(tags) like '%"+tag.toLowerCase()+"%'";
-            console.log("tagFilter: ",tagFilter);
-            cqlFilter = tagFilter.replace(/%/gi,"%25").replace(/'/gi,"%27").replace(/ /gi,"%20"); //Gloval
-            console.log("cqlFilter: ",cqlFilter);
-            //cql_filter=publication=%27A%20Mensagem%27&strToLowerCase(tags)=%27mobilidade%27&outputFormat=application/json&srsname=EPSG:4326
-            tagSource = new ol.source.Vector({
-                format: new ol.format.GeoJSON(),
-                loader: function (extent, resolution, projection, success, failure) {
-                    var proj = projection.getCode();
-                    url = 'http://localhost:8080/geoserver/wfs?service=wfs&'+
-                    'version=2.0.0&request=GetFeature&typeNames=apregoar:geonoticias&'+
-                    'cql_filter='+cqlFilter+'&'+
-                    'sortby=area+D&'+
-                    'outputFormat=application/json&srsname='+proj;
-                    console.log(url);
-                    var xhr = new XMLHttpRequest();
-                    xhr.open('GET',url);
-                    var onError = function() {
-                        console.log("Error in loading vector source (tags)");
-                        tagSource.removeLoadedExtent(extent);
-                        failure();
-                    }
-                    xhr.onerror = onError;
-                    xhr.onload = function() {
-                        if(xhr.status == 200){
-                            var tagFeatures = tagSource.getFormat().readFeatures(xhr.responseText);
-                            tagSource.addFeatures(tagFeatures);
-                            noFeatures = false;
-                            if (tagFeatures.length == 1){
-                                if (features[0]["A"]["geometry"] == null){
-                                    console.log("no instances here");
-                                    noFeatures = true;
-                                }
-                            }
-                            success(tagFeatures);
-                            if (noFeatures == false){
-                                layerExtent = tagSource.getExtent();
-                                map.getView().fit(ol.extent.buffer(layerExtent,0.1));
-                            }
-                            var sourceFeatureInfo = tagSource.getFeatures();
-                            numTagFeatures = sourceFeatureInfo.length;
-                            console.log("sourceFeatureInfo (",numTagFeatures,"): ",sourceFeatureInfo);
-                            console.log("Successful loading of tag source")
-                        } else {
-                            onError();
-                        }
-                    }
-                    xhr.send();
-                },
-            });
-            const tagLayer = new ol.layer.Vector({
-                source: tagSource,
-                /*style: function (feature) {
-                    tagStyle.getText().setText(feature.get('p_name'));
-                    return tagStyle;
-                }*/
-                style: tagStyle,
-            });
-            map.addLayer(tagLayer);
-            tagLayer.setZIndex(currentZIndex);
-            currentZIndex +=1;
-            vectorLayer.setZIndex(currentZIndex);
-            storyTags[tag] = true;
-            console.log("tagSource (",tagSource.length,"): ",tagSource);
-        }
-    }
-}
-currentZIndex = 1;
-const tagStyle = new ol.style.Style({
-    stroke: new ol.style.Stroke({
-        color: '#fff',
-        width: 1,
-    }),
-    fill: new ol.style.Fill({
-        color: pubColor+'40',
-    }),
-    /*text: new ol.style.Text({
-        font: '14px Calibri,sans-serif',
-        fill: new ol.style.Fill({
-            color: pubColor+'E6',
-        }),
-        stroke: new ol.style.Stroke({
-            color: '#fff',
-            width: 2,
-        }),
-    }),*/
-});
 
-// BUTTON CLICK TO EXPLORE TAGS
-/*
-if (goToTag){
-    fetch(`${window.origin}/jornal/explore`, {
-        method: "POST",
-        credentials: "include",
-        body: JSON.stringify(entry),
-        cache: "no-cache",
-        headers: new Headers({
-            "content-type": "application/json"
-        })
-    })
-    .then(function(response) {
-        if (response.status !== 200) {
-            window.alert("Error");
-            console.log(`Looks like there was a problem. Status code: ${response.status}`);
-            return;
-        }
-        response.json().then(function(data) {
-            console.log(data);
-            let maisUm = confirm("Parabéns! A instância foi guardada com sucesso. Quer associar mais uma instância?")
-            if (maisUm) {
-                location.reload();
-            } else {
-                window.location.href = "review";
-            }
-            spinner.setAttribute('hidden','');
-        });
-    })
-    .catch(function(error) {
-    console.log("Fetch error: " + error);
-    });
+
+currentZIndex = 1;
+
+let nearbyVisible = false;
+function seeNearby(){
+    console.log("sID: ",sID);
+    document.getElementById('buttonSeeAll').innerHTML = "Ver todas de <i>"+pub+"</i>";
+    document.getElementById('nearbyOverlay').style.display="block";
+    nearbyVisible = true;
+};
+
+function seeAllJornal() {
+    console.log("Not yet written");
 }
-*/
+
+/*
+
+document.addEventListener("click", (evt) => {
+    console.log("clicked");
+    if (nearbyVisible == true){
+        const nearbyOverlay = document.getElementById("nearbyOverlay");
+        let target = evt.target; // clicked element      
+        do {
+            if(target == nearbyOverlay) {
+                console.log("clicked inside")
+                return;
+            }
+            // Go up the DOM
+            target = target.parentNode;
+        } while (target);
+        // This is a click outside.
+        console.log("clicked outside"); 
+        nearbyVisible = false;     
+        nearbyOverlay.style.display="none";
+    } else {
+        console.log("no overlay to close");
+    }
+  });*/

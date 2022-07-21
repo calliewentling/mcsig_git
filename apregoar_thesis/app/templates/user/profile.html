@@ -5,28 +5,29 @@
 {% block main %}
 
 <div class="container">
-    <div class="row">
-        <div class="col">
+  <div class="row">
+    <div class="col">
 
-            <h1>Profile</h1>
-            <hr>
+      <h1>My Profile</h1>
+      <hr>
 
-            <div class="card">
-                <div class="card-body">
-                    {% if user %}
-                    <h5 class="card-title">{{ username }}</h5>
-                    <hr>
-                    <p><strong>{{ user["name"] }}</strong></p>
-                    <p style="color: blue">{{ user["email"] }}</p>
-                    <p class="text-muted">{{ user["bio"] }}</p>
-                    {% else %}
-                    <p>User <strong>{{ username }}</strong> not found.</p>
-                    {% endif %}
-                </div>
-            </div>
+      <div class="card">
+        <div class="card-body">
+          <h4>{{ user["username"] }}</h4>
+          <hr>
+
+          <p>Email: {{ user["email"] }}</p>
+          <p class="text-muted">Organization: {{ user["org"] }}</p>
 
         </div>
+      </div>
+      <a href="/publisher/dashboard"><button type="button" class="btn btn-primary">Publisher Dashboard</button></a>
+    
+
+      <a href="/user/sign_out"><button type="button" class="btn btn-primary">Sign out</button></a>
+
     </div>
+  </div>
 </div>
 
 {% endblock %}

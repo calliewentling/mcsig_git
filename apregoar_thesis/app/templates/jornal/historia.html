@@ -4,55 +4,16 @@
 
 {% block main %}
 
-<style>
-    
-    .split {
-        height: 100%;
-        width: 50%;
-        position: fixed;
-        z-index: 1;
-        overflow-x: hidden;
-        overflow-y: hidden;
-    }
-
-    .left {
-        left: 0;
-    }
-
-    .right {
-        right: 0;
-    }
-
-    .top {
-        top: 0;
-        height: 60%;
-        position: fixed;
-        /*overflow: hidden;*/
-    }
-
-    .bottom {
-        bottom: 0;
-        height: 40%;
-        position: fixed;
-        overflow: hidden;
-    }
-
-    #iframeH {
-        height: 100%;
-        width: 100%;
-    }
 
 
-</style>
-
-<div class="split left">
-    <iframe id ="iframeH" src="{{ geonoticia['web_link'] }}" onerror="badIFrame()" onload="goodIFrame()" style="top: 0;"></iframe>
+<div>
+    <iframe id ="iframeH" src="{{ geonoticia['web_link'] }}" onerror="badIFrame()" onload="goodIFrame()"></iframe>
     <div id="noArticle" style="display:none;">
         <h1 style="text-transform: capitalize;"> {{ geonoticia.title }} </h1>
         <h3> {{geonoticia.pub_date}} </h3>
     </div>
 </div>
-<div class="split right top">
+<div class="split left">
     <div id="jornalMap" style="display:block">
         <div class="wrapper">
             <div id="map" class="map"></div>
@@ -67,18 +28,56 @@
                     <a href="#" id="popup-pagebehind" class="ol-popup-pagebehind"></a>
                 </div>
             </div>
-            <div id="progress"></div>
         </div>
     </div>
-    <div id="info">
-        <i>Selecionar um (ou mais) instâncias para ver mais informação</i>
+    <div class = "split right" id="info">
+        <p><i>Selecionar um (ou mais) instâncias para ver mais informação</i></p>
+        <p>ou</p>
+        <button class="button" id="buttonNearby" onclick="seeNearby()">Ver histórias pertinhas</button>
     </div>
-    <div id="featureCount">
-        <p># Instances: {{ num_instances }} </p>
-    </div>
-    <hr>
 </div>
 
+<div id="nearbyOverlay" class="nearbyOverlay" style="display:none">
+    <div id="nearbyMap" class="map2"></div>
+    <div class="mapSelect">
+        <fieldset>
+            <div class="radioGroup">
+                <input type="radio" class="radio" id="sameFreg" name="sameArea" value="sameFreg">
+                <label for="sameFreg">A mesma freguesia</label>
+                <input type="radio" class="radio" id="sameCon" name="sameArea" value="sameCon">
+                <label for="sameCon">O mesmo conselho</label>
+                <input type="radio" class="radio" id="sameDist" name="sameArea" value="sameDist">
+                <label for="sameDist">O mesmo distrito</label>
+                <input type="radio" class="radio" id="inRadius" name="sameArea" value="inRadius">
+                <label for="inRadius">Dentro um rádio</label>
+            </div>
+        </fieldset>
+        <br>
+        <hr>
+        <br>
+        <fieldset>
+            <div class="radioGroup">
+                <input type="radio" class="radio" id="sameDay" name="sameTime" value="sameDay">
+                <label for="sameFreg">No mesmo dia</label>
+                <input type="radio" class="radio" id="sameWeek" name="sameTime" value="sameWeek">
+                <label for="sameCon">Na mesma semana</label>
+                <input type="radio" class="radio" id="sameMonth" name="sameTime" value="sameMonth">
+                <label for="sameDist">No mesmo mês</label>
+                <input type="radio" class="radio" id="sameYear" name="sameTime" value="sameYear">
+                <label for="sameDist">No mesmo mês</label>
+                <input type="radio" class="radio" id="inDays" name="sameArea" value="inDays">
+                <label for="inRadius">Dentro um rádio</label>
+            </div>
+        </fieldset>
+            
+        
+        <button class="button" id="buttonSeeAll" onclick="seeAllJornal()">ver todos</button>
+    </div>
+    
+    
+</div>
+
+<!--
 <div class="split right bottom">
     <h1>Tags </h1>
     {% for tag in geonoticia.tags %}
@@ -91,7 +90,7 @@
     <p>s_id: {{ geonoticia.s_id }}</p>    
 
 </div>
-    
+-->
 <script>
     var geonoticia  = JSON.parse(' {{ geonoticia | tojson | safe }} ');
     console.log("geonoticia: ",geonoticia);
@@ -105,13 +104,5 @@
 <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
 <script src="{{ url_for('static', filename='js/jornal.js') }}"></script>
 
-<!--
-<div id="jornalMap" style="display:block">
-    <div class="wrapper">
-        <div id="map" class="map"></div>
-        <div id="progress"></div>
-    </div>
-</div>
--->
 
 {% endblock %}

@@ -17,24 +17,12 @@
   <title>{% block title %}{% endblock title %}</title>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/css/ol.css" type="text/css">
-
-  <!-- codefixup.com/multiselect-dropdown-with-checkbox-->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/example-styles.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/demo-styles.css') }}">
-
-  <!-- maptiler -->
-  <!--<script src="https://cdn.maptiler.com/ol/v6.0.0/ol.js"></script>
-  <script src="https://cdn.maptiler.com/ol-mapbox-style/v5.0.2/olms.js"></script>
-  <link rel="stylesheet" href="https://cdn.maptiler.com/ol/v6.0.0/ol.css">
-  
-  <script src="https://unpkg.com/elm-pep"></script>-->
-
+   <!-- Import our custom stylesheet -->
+   <link rel = "stylesheet" href="{{ url_for('static', filename='css/jornal_style.css') }}">
 
 </head>
 
 <body style="background-color: #EEEEEE;">
-  <div hidden id="spinner"></div>
-
   <!-- Import OpenLayers JavaScript -->
   <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/build/ol.js"></script>
 

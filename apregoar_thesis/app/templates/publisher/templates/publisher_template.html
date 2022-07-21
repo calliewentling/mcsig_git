@@ -33,31 +33,41 @@
 <body>
 
   <nav class="navbar navbar-expand-lg navbar-light bg-light mb-3">
-    <a class="navbar-brand" href="#">Admin</a>
+    <a class="navbar-brand" href="/">Apregoar</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-
+  
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav">
         <li class="nav-item">
           <a class="nav-link" href="/publisher/dashboard">Dashboard</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/publisher/my_profile">Profile</a>
+          <a class="nav-link" href="/publisher/publication">Publicação</a>
         </li>
       </ul>
     </div>
-
+  
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ml-auto">
         <li class="nav-item">
-          <a class="nav-link" href="/">Return to site</a>
+          <a class="nav-link" href="{{ url_for('publisher_dashboard')}}">Jornais</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="">Geradores</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('explore') }}">Exploradores</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('render_profile') }}">Profile</a>
         </li>
       </ul>
     </div>
-
+  
   </nav>
+
   <div hidden id="spinner"></div>
 
   <div class="row">

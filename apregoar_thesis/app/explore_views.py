@@ -721,3 +721,6 @@ def explore():
     return render_template("explore/explore_map.html", tags = tags, sections = sections, authors = authors, publications = publications, t_types=t_types, p_types = p_types, e_names = e_names, pub_dates = pub_dates, i_range = i_range, pubDateRange = pub_date_range, allDates = dates)
     
 
+@app.route("/explore/ajuda", methods=["GET","POST"])
+def explore_help():
+    return render_template("explore/explore_help.html")

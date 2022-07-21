@@ -88,7 +88,7 @@ def before_request_func():
 #########################
 ###### User login
 #########################
-
+'''
 @app.route("/publisher/sign_up", methods=["GET","POST"])
 def sign_up():
     if request.method == "POST":
@@ -233,13 +233,7 @@ def sign_out():
     fsession.pop("org", None)
     print("fsession: ",fsession)
     return redirect(url_for("sign_in"))
-'''
-@app.route("/profile/<username>")
-def profile(username):
-    user = None
-    if username in users:
-        user = users[username]
-    return render_template("publisher/profile.html", username=username, user=user)
+
 '''
 #########################
 ###### Dashboard and Profile
@@ -300,11 +294,11 @@ def publisher_dashboard():
         print("No username found in fsession")
         feedback=f"Não há um user ativo."
         flash(feedback,"danger")
-        return redirect(url_for("sign_in"))
+        return redirect(url_for("sign_inU", login_source = "publisher"))
 
-@app.route("/publisher/profile")
+@app.route("/publisher/publication")
 def publisher_profile():
-    return render_template("publisher/my_profile.html")
+    return render_template("publisher/publication.html")
 
 #########################
 ###### New Story
@@ -313,9 +307,6 @@ def publisher_profile():
 @app.route("/publisher/addstory")
 def addstory():
     return render_template("publisher/create.html")
-
-
-
 
 @app.route("/publisher/<s_id>/review", methods=["GET","POST"])
 def review_e(s_id):

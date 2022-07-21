@@ -504,7 +504,6 @@ var fromSelect = document.getElementById("from");
 var toSelect = document.getElementById("to");
 // DATE RANGE PICKER + Other filters//
 $( function() {
-    //console.log("recentDates in datepicker load: ",recentDate1,"-",recentDate2);
     var dateFormat = "mm/dd/yy",
     //var dateFormat = "D M dd yyyy",
     from = $( "#from" ).datepicker({

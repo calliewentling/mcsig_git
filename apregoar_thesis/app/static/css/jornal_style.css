@@ -1,0 +1,124 @@
+:root {
+    --pub-color: black;
+    --fill-color: rgba(255,255,255,.6);
+    --stroke-color: rgba(255,255,255,1);
+    --shadow-color: rgba(0,0,0,.6);
+}
+
+.button {
+    background-color: var(--pub-color);
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 20px;
+    border-radius: 4px;
+    box-shadow: -10px 5px 20px var(--shadow-color); 
+}
+
+
+
+.split {
+    position: fixed;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+.left {
+    left: 0;
+}
+
+.right {
+    right: 0;
+    background: white;
+    height: 30%;
+    width: 27%;
+    margin: 10px;
+    padding: 10px;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    border-radius: 5px;
+    bottom: 0;
+}
+
+.map {
+    height: 30%;
+    width: 70%;
+    position: fixed;
+    border-radius: 5px;
+    cursor: pointer;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 10px;
+    background: white;
+    bottom: 0;
+}
+
+#iframeH {
+    height: 510px;
+    width: 100%;
+}
+
+.nearbyOverlay {
+    border-radius: 5px;
+    position: fixed;
+    width: 80%;
+    height: 80%;
+    top: 10%;
+    left: 10%;
+    font-size: 14px;
+    background-color: white;
+    box-shadow: -10px 5px 20px var(--shadow-color);
+    color: black;
+    overflow-y: auto;
+    padding: 10px;
+
+}
+
+.map2 {
+    height: 98%;
+    width: 70%;
+    left: 0;
+    position: absolute;
+    border-radius: 5px;
+    cursor: pointer;
+    border-radius: 5px;
+    padding: 10px;
+    background: white;
+}
+
+.mapSelect {
+    width: 30%;
+    right: 0;
+    overflow: hidden;
+    position: absolute;
+
+    
+}
+
+fieldset {
+    overflow: hidden;
+}
+
+.radioGroup {
+    float: left;
+    clear: left;
+}
+
+label {
+    float: left;
+    clear: none;
+    display: block;
+    padding: 0px 0 0px 15px;
+}
+
+input[type=radio],
+input.radio {
+    float: left;
+    clear: none;
+    margin:2px 0 0 2px;
+}
+
