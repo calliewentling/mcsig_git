@@ -1137,6 +1137,26 @@ function renderDeets(cardD){
         };
     };
 
+    //THIS IS THE MOCK SOURCE
+    var cButtonA = document.createElement('div');
+    cButtonA.className = 'dO-buttonA';
+    cButtonA2 = document.createElement('div');
+    cButtonA2.className = 'dO-buttonA2';
+
+    var contextSource = document.createElement('a');
+    contextSource.href = "/jornal/"+cardD["s_id"]+"/historia";
+    contextSource.target = "_blank";
+    var contextButton = document.createElement('button');
+    contextButton.className = "button2";
+    contextButton.id = "contextButton";
+    contextButton.innerHTML = "Ver fonte";
+    contextSource.appendChild(contextButton);
+
+    cButtonA2.appendChild(contextSource);
+    cButtonA.appendChild(cButtonA2);
+    dOverlay.appendChild(cButtonA);
+
+    //THIS IS THE ACTUAL SOURCE
     var dButtonA = document.createElement('div');
     dButtonA.className = 'dO-buttonA';
     dButtonA2 = document.createElement('div');
@@ -1146,14 +1166,15 @@ function renderDeets(cardD){
     dSource.href = cardD["web_link"];
     dSource.target = "_blank";
     var dButton = document.createElement('button');
-    dButton.className = "button2";
+    dButton.className = "button2 buttonHide";
     dButton.id = "dButton";
-    dButton.innerHTML = "Ver fonte";
+    dButton.innerHTML = "Ver fonte real";
     dSource.appendChild(dButton);
 
     dButtonA2.appendChild(dSource);
     dButtonA.appendChild(dButtonA2);
     dOverlay.appendChild(dButtonA);
+    
 
     deetsOverlay.style.display = "block";
 

@@ -8,101 +8,76 @@
 
 <div>
     <iframe id ="iframeH" src="{{ geonoticia['web_link'] }}" onerror="badIFrame()" onload="goodIFrame()"></iframe>
-    <div id="noArticle" style="display:none;">
-        <h1 style="text-transform: capitalize;"> {{ geonoticia.title }} </h1>
-        <h3> {{geonoticia.pub_date}} </h3>
+    <div id="noArticle" class="noticiaArea" style="display:none;">
+        <div class="noticiaPublication">{{ geonoticia.publication }}</div>
+        <br>
+        <div class="noticiaTitle" style="text-transform: capitalize;"> {{ geonoticia.title }} </div>
+        <div class="noticiaAuthor"> {{geonoticia.author}}</div>
+        <div class="noticiaPubDate"> {{geonoticia.pub_date}} </div>
+        <br>
+        <div class="noticiaSummary"> {{geonoticia.summary}} </div>
+        <br>
+        <a href="{{ geonoticia['web_link'] }}">
+            <button class="button2" >Ver Original</button>
+        </a>
+        
     </div>
 </div>
-<div class="split left">
-    <div id="jornalMap" style="display:block">
-        <div class="wrapper">
-            <div id="map" class="map"></div>
-            <div id="popup" class="ol-popup">
-                <a href="#" id="popup-closer" class="ol-popup-closer"></a>
-                <div id="popup-instances"></div>
-                <div id="popup-story" display="none"></div>
-                <br>
-                <div id="instanceScroll" style="position:absolute; left: 8px; bottom: 2px; right:8px;">
-                    <a href="#" id="popup-pageahead" class="ol-popup-pageahead"></a>
-                    <div id="popup-instance-count" style="text-align: center; font-size: 11px"></div>
-                    <a href="#" id="popup-pagebehind" class="ol-popup-pagebehind"></a>
+<div id="instanceArea">
+    <div class="split left">
+        <div id="jornalMap" style="display:block">
+            <div class="wrapper">
+                <div id="map" class="map"></div>
+                <div id="popup" class="ol-popup">
+                    <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+                    <div class="popupContent">
+                        <div id="popup-instances"></div>
+                        <div id="popup-story" display="none"></div>
+                    </div>
+                    <br>
+                    <div id="instanceScroll" style="position:absolute; left: 8px; bottom: 2px; right:8px;">
+                        <a href="#" id="popup-pageahead" class="ol-popup-pageahead"></a>
+                        <div id="popup-instance-count" style="text-align: center; font-size: 11px"></div>
+                        <a href="#" id="popup-pagebehind" class="ol-popup-pagebehind"></a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class = "split right" id="info">
-        <p><i>Selecionar um (ou mais) instâncias para ver mais informação</i></p>
-        <p>ou</p>
-        <button class="button" id="buttonNearby" onclick="seeNearby()">Ver histórias pertinhas</button>
+    <div class = "split right instanceInst" id="info">
+            <p class="instInstText">Ver mais a pé</p>
+        <div id="nearbyButtonArea" class="mapSelect"></div>
     </div>
 </div>
-
-<div id="nearbyOverlay" class="nearbyOverlay" style="display:none">
-    <div id="nearbyMap" class="map2"></div>
-    <div class="mapSelect">
-        <fieldset>
-            <div class="radioGroup">
-                <input type="radio" class="radio" id="sameFreg" name="sameArea" value="sameFreg">
-                <label for="sameFreg">A mesma freguesia</label>
-                <input type="radio" class="radio" id="sameCon" name="sameArea" value="sameCon">
-                <label for="sameCon">O mesmo conselho</label>
-                <input type="radio" class="radio" id="sameDist" name="sameArea" value="sameDist">
-                <label for="sameDist">O mesmo distrito</label>
-                <input type="radio" class="radio" id="inRadius" name="sameArea" value="inRadius">
-                <label for="inRadius">Dentro um rádio</label>
-            </div>
-        </fieldset>
-        <br>
-        <hr>
-        <br>
-        <fieldset>
-            <div class="radioGroup">
-                <input type="radio" class="radio" id="sameDay" name="sameTime" value="sameDay">
-                <label for="sameFreg">No mesmo dia</label>
-                <input type="radio" class="radio" id="sameWeek" name="sameTime" value="sameWeek">
-                <label for="sameCon">Na mesma semana</label>
-                <input type="radio" class="radio" id="sameMonth" name="sameTime" value="sameMonth">
-                <label for="sameDist">No mesmo mês</label>
-                <input type="radio" class="radio" id="sameYear" name="sameTime" value="sameYear">
-                <label for="sameDist">No mesmo mês</label>
-                <input type="radio" class="radio" id="inDays" name="sameArea" value="inDays">
-                <label for="inRadius">Dentro um rádio</label>
-            </div>
-        </fieldset>
-            
-        
-        <button class="button" id="buttonSeeAll" onclick="seeAllJornal()">ver todos</button>
-    </div>
-    
-    
+<div id="instanceAreaNo" class="noInstanceArea" style="display:none">
+    <button class="button" onclick="seeAllJornal()">Ver uma mapa das notícias</button>
 </div>
 
-<!--
-<div class="split right bottom">
-    <h1>Tags </h1>
-    {% for tag in geonoticia.tags %}
-        <button type="button" class="btn btn-primary" onclick="exploreMap(tag='{{ tag }}')">{{ tag }}</button>
-    {% endfor %}
-    
-    <i>Add tags and other relevant info here</i><br>
-    <i>Ver a distruibição das temas</i><br>
-    <i>Ver mais historias nesta área</i><br>
-    <p>s_id: {{ geonoticia.s_id }}</p>    
 
-</div>
--->
+<!-- JAVASCRIPT -->
 <script>
+    let nearbys;
+    var instancesExist = false;
     var geonoticia  = JSON.parse(' {{ geonoticia | tojson | safe }} ');
-    console.log("geonoticia: ",geonoticia);
     if (geonoticia.instances) {
-        console.log("geonoticias instance id: ", geonoticia.instances[0].i_id);
+        console.log("geoinstancias: ",geonoticia.instances);
+        //console.log("geonoticias instance id: ", geonoticia.instances[0].i_id);
     } else {
         console.log("No instances associated");
     }
-    
+    if ('{{ num_instances }}' == 0){
+        instancesExist = false;
+        
+    } else if ('{{ nearbys }}'.length == 0){
+        console.log("no nearbys");
+
+    } else {
+        nearbys = JSON.parse(' {{ nearbys | tojson | safe }} ');
+        console.log(nearbys);
+        instancesExist = true;
+    };
+    console.log("instancesExist: ",instancesExist);    
 </script>
 <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
 <script src="{{ url_for('static', filename='js/jornal.js') }}"></script>
-
-
 {% endblock %}

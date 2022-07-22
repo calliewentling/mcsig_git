@@ -40,6 +40,7 @@ top: 3em;
     bottom: 12px;
     left: -50px;
     min-width: 280px;
+    font-size: 12px; /*Added july 22 for jornal*/
 }
 .ol-popup:after, .ol-popup:before {
     top: 100%;

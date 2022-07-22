@@ -61,6 +61,11 @@
     font-weight: bold;
 }
 
+.buttonHide {
+    background-color: black;
+    color: grey;
+}
+
 .map {
     height: 400px;
     width: 97%;
@@ -689,8 +694,9 @@ top: 3em;
         padding: 5px;
         justify-content: center;
         align-items: center;
-
     }
+
+    
 
     .dO-buttonA2:hover {
         box-shadow: -10px 5px 20px var(--light-color);
