@@ -154,4 +154,6 @@ def historia(s_id):
             return render_template("jornal/historia.html", num_instances=0, instance=[], geonoticia=geonoticia, nearbys = [])
     return render_template("user/index.html", notice="A história não  existe")
 
-
+@app.route("/<publication>/mapa", methods=["GET","POST"])
+def pub_map(publication):
+    return render_template("jornal/jornal_map.html", publication=publication)
