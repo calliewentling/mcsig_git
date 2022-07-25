@@ -114,403 +114,407 @@ def processInstance(instanceResult):
 
     return instance_def
 
-@app.route("/explore/map", methods=["GET","POST"])
-def explore():
-    if request.method == "POST":
-        req = request.get_json()
+def process_explore(req):
+    sIDs = []
+    iIDs = []
+    print("received data: ",req)
+    response ={}
+    s_ids = []
+    i_ids = []
+    stories = {}
+    dupS = 0
+    dupI = 0
+    noInst = []
+    story_filtered = False
+    instance_filtered = False
+    is_filtered = False
+    #The default stmt is an inner join between Stories and Instancs, followed by if statements that will allow the filtering to stories with instances (unless otherwise specified). In the event that no isntance filters are applied, the stmt will change to a stmtLeft which includes an outer join, such that stories without instances will be included as well.
+    stmtBase = select(Stories, Instances).join(Stories.instancing).order_by(Stories.s_id,Instances.i_id)
+    stmtI = stmtBase
+    stmtLeft = select(Stories, Instances).join(Stories.instancing, isouter=True).order_by(Stories.s_id,Instances.i_id)
+
+    print()
+    print()
+    print("New request made")
+    if len(req["boundaryPolys"]) > 0:
+        instance_filtered = True
+        print("boundaryPolys exist")
+        features = json.loads(req["boundaryPolys"])
+        multiShape=[]
+        shapeP = None
+        #Prepare feature geometry
+        all_coords = features['coordinates']
+        for i in range(len(all_coords)):
+            shape_coords = all_coords[i]
+            #print(shape_coords)
+            shapeP = Polygon(shape_coords)
+            multiShape.append(shapeP)
+        multiP = MultiPolygon(multiShape)
+        new_geom = 'SRID=4326;'+multiP.wkt
+        #Spatial filtering
+        geomF = func.ST_MakeValid(func.ST_GeomFromEWKT(new_geom))
+        ugaz = (select(Instance_ugaz.i_id, func.ST_Union(func.ST_MakeValid(Ugazetteer.geom)).label('ugeom')).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id, isouter=True).group_by(Instance_ugaz.i_id).subquery()) #.where(Instance_ugaz.p_id != 607)
+        egaz = (select(Instance_egaz.i_id, func.ST_Union(func.ST_MakeValid(Egazetteer.geom)).label('egeom')).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id, isouter=True).group_by(Instance_egaz.i_id).subquery())
+        allgaz = (select(Instances.i_id, func.coalesce(func.ST_Union(egaz.c.egeom, ugaz.c.ugeom),func.ST_Collect(egaz.c.egeom, ugaz.c.ugeom)).label('geom')).join(egaz, Instances.i_id==egaz.c.i_id, isouter=True).join(ugaz,Instances.i_id==ugaz.c.i_id, isouter=True).subquery())
+        #allgaz = (select(Instances.i_id, func.ST_Union(func.ST_Union(egaz.c.egeom), func.ST_Union(ugaz.c.ugeom)).label('geom')).join(egaz, Instances.i_id == egaz.c.i_id, isouter=True).join(ugaz,Instances.i_id == ugaz.c.i_id, isouter=True).group_by(Instances.i_id,egaz.c.egeom,ugaz.c.ugeom).subquery())
+        
+        if req["boundaryDefinition"] == "containTotal":
+            print("containComplete")
+            subqArea = (select(allgaz.c.i_id).where(func.ST_Contains(func.ST_GeomFromEWKT(new_geom),allgaz.c.geom)).subquery())
+            #subqUArea = (select(Instance_ugaz.i_id).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(func.ST_Contains(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Ugazetteer.geom))).subquery())
+            #subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(func.ST_Contains(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Egazetteer.geom))).subquery())
+        elif req["boundaryDefinition"] == "intersects":
+            print("intersect")
+            subqArea = (select(allgaz.c.i_id).where(func.ST_Intersects(func.ST_GeomFromEWKT(new_geom),allgaz.c.geom)).subquery())
+            #subqUArea = (select(Instance_ugaz.i_id).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(func.ST_Intersects(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Ugazetteer.geom))).subquery())
+            #subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(func.ST_Intersects(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Egazetteer.geom))).subquery())
+        elif req["boundaryDefinition"] == "disjoint":
+            print("disjoint")
+            subqArea = (select(allgaz.c.i_id).where(func.ST_Disjoint(func.ST_GeomFromEWKT(new_geom),allgaz.c.geom)).subquery())
+            #subqUArea = (select(Instance_ugaz.i_id).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(func.ST_Disjoint(func.ST_GeomFromEWKT(new_geom),func.ST_Buffer(Ugazetteer.geom, 0))).subquery())
+            #subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(func.ST_Disjoint(func.ST_GeomFromEWKT(new_geom),func.ST_Buffer(Egazetteer.geom, 0))).subquery())
+        else:
+            if req["boundaryDefinition"] == "containPartial":
+                print("containPartial")
+            else:
+                print("no selection. defaulting to contains partial")
+            subqArea = (select(allgaz.c.i_id.label('i_id')).where(or_(func.ST_Contains(geomF,allgaz.c.geom),func.ST_Overlaps(geomF,allgaz.c.geom))).subquery())
+            #subqUArea = (select(Instance_ugaz.i_id).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(or_(func.ST_Contains(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Ugazetteer.geom)),func.ST_Overlaps(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Ugazetteer.geom)))).subquery())
+            #subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(or_(func.ST_Contains(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Egazetteer.geom)),func.ST_Overlaps(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Egazetteer.geom)))).subquery())
+        #subqArea = (union(select(subqUArea),select(subqEArea)).subquery())
+        stmtI = stmtI.join(subqArea,Instances.i_id == subqArea.c.i_id)
+        
+        """
+        #TESTING remove later
+        print("Begin test")
+        stmt = stmtI
+        results = session.execute(stmt)
         sIDs = []
         iIDs = []
-        print("received data: ",req)
-        response ={}
-        s_ids = []
-        i_ids = []
-        stories = {}
-        dupS = 0
-        dupI = 0
-        noInst = []
-        story_filtered = False
-        instance_filtered = False
-        is_filtered = False
-        #The default stmt is an inner join between Stories and Instancs, followed by if statements that will allow the filtering to stories with instances (unless otherwise specified). In the event that no isntance filters are applied, the stmt will change to a stmtLeft which includes an outer join, such that stories without instances will be included as well.
-        stmtBase = select(Stories, Instances).join(Stories.instancing).order_by(Stories.s_id,Instances.i_id)
-        stmtI = stmtBase
-        stmtLeft = select(Stories, Instances).join(Stories.instancing, isouter=True).order_by(Stories.s_id,Instances.i_id)
+        for result in results:
+            #print("SID: ",result.Instances.s_id," IID: ",result.Instances.i_id)
+            if result.Instances.s_id not in sIDs:
+                sIDs.append(result.Instances.s_id)
+            if result.Instances.i_id not in iIDs:
+                iIDs.append(result.Instances.i_id)
+        print("stories: ",len(sIDs)," instances: ",len(iIDs))
+        print("End test")
+        """
+        
 
-        print()
-        print()
-        print("New request made")
-        if len(req["boundaryPolys"]) > 0:
-            instance_filtered = True
-            print("boundaryPolys exist")
-            features = json.loads(req["boundaryPolys"])
-            multiShape=[]
-            shapeP = None
-            #Prepare feature geometry
-            all_coords = features['coordinates']
-            for i in range(len(all_coords)):
-                shape_coords = all_coords[i]
-                #print(shape_coords)
-                shapeP = Polygon(shape_coords)
-                multiShape.append(shapeP)
-            multiP = MultiPolygon(multiShape)
-            new_geom = 'SRID=4326;'+multiP.wkt
-            #Spatial filtering
-            geomF = func.ST_MakeValid(func.ST_GeomFromEWKT(new_geom))
-            ugaz = (select(Instance_ugaz.i_id, func.ST_Union(func.ST_MakeValid(Ugazetteer.geom)).label('ugeom')).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id, isouter=True).group_by(Instance_ugaz.i_id).subquery()) #.where(Instance_ugaz.p_id != 607)
-            egaz = (select(Instance_egaz.i_id, func.ST_Union(func.ST_MakeValid(Egazetteer.geom)).label('egeom')).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id, isouter=True).group_by(Instance_egaz.i_id).subquery())
-            allgaz = (select(Instances.i_id, func.coalesce(func.ST_Union(egaz.c.egeom, ugaz.c.ugeom),func.ST_Collect(egaz.c.egeom, ugaz.c.ugeom)).label('geom')).join(egaz, Instances.i_id==egaz.c.i_id, isouter=True).join(ugaz,Instances.i_id==ugaz.c.i_id, isouter=True).subquery())
-            #allgaz = (select(Instances.i_id, func.ST_Union(func.ST_Union(egaz.c.egeom), func.ST_Union(ugaz.c.ugeom)).label('geom')).join(egaz, Instances.i_id == egaz.c.i_id, isouter=True).join(ugaz,Instances.i_id == ugaz.c.i_id, isouter=True).group_by(Instances.i_id,egaz.c.egeom,ugaz.c.ugeom).subquery())
-            
-            if req["boundaryDefinition"] == "containTotal":
-                print("containComplete")
-                subqArea = (select(allgaz.c.i_id).where(func.ST_Contains(func.ST_GeomFromEWKT(new_geom),allgaz.c.geom)).subquery())
-                #subqUArea = (select(Instance_ugaz.i_id).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(func.ST_Contains(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Ugazetteer.geom))).subquery())
-                #subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(func.ST_Contains(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Egazetteer.geom))).subquery())
-            elif req["boundaryDefinition"] == "intersects":
-                print("intersect")
-                subqArea = (select(allgaz.c.i_id).where(func.ST_Intersects(func.ST_GeomFromEWKT(new_geom),allgaz.c.geom)).subquery())
-                #subqUArea = (select(Instance_ugaz.i_id).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(func.ST_Intersects(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Ugazetteer.geom))).subquery())
-                #subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(func.ST_Intersects(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Egazetteer.geom))).subquery())
-            elif req["boundaryDefinition"] == "disjoint":
-                print("disjoint")
-                subqArea = (select(allgaz.c.i_id).where(func.ST_Disjoint(func.ST_GeomFromEWKT(new_geom),allgaz.c.geom)).subquery())
-                #subqUArea = (select(Instance_ugaz.i_id).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(func.ST_Disjoint(func.ST_GeomFromEWKT(new_geom),func.ST_Buffer(Ugazetteer.geom, 0))).subquery())
-                #subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(func.ST_Disjoint(func.ST_GeomFromEWKT(new_geom),func.ST_Buffer(Egazetteer.geom, 0))).subquery())
-            else:
-                if req["boundaryDefinition"] == "containPartial":
-                    print("containPartial")
-                else:
-                    print("no selection. defaulting to contains partial")
-                subqArea = (select(allgaz.c.i_id.label('i_id')).where(or_(func.ST_Contains(geomF,allgaz.c.geom),func.ST_Overlaps(geomF,allgaz.c.geom))).subquery())
-                #subqUArea = (select(Instance_ugaz.i_id).join(Ugazetteer, Instance_ugaz.p_id == Ugazetteer.p_id).where(or_(func.ST_Contains(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Ugazetteer.geom)),func.ST_Overlaps(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Ugazetteer.geom)))).subquery())
-                #subqEArea = (select(Instance_egaz.i_id).join(Egazetteer, Instance_egaz.e_id == Egazetteer.e_id).where(or_(func.ST_Contains(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Egazetteer.geom)),func.ST_Overlaps(func.ST_GeomFromEWKT(new_geom),func.ST_makeValid(Egazetteer.geom)))).subquery())
-            #subqArea = (union(select(subqUArea),select(subqEArea)).subquery())
-            stmtI = stmtI.join(subqArea,Instances.i_id == subqArea.c.i_id)
-            
-            """
-            #TESTING remove later
-            print("Begin test")
-            stmt = stmtI
-            results = session.execute(stmt)
-            sIDs = []
-            iIDs = []
-            for result in results:
-                #print("SID: ",result.Instances.s_id," IID: ",result.Instances.i_id)
-                if result.Instances.s_id not in sIDs:
-                    sIDs.append(result.Instances.s_id)
-                if result.Instances.i_id not in iIDs:
-                    iIDs.append(result.Instances.i_id)
-            print("stories: ",len(sIDs)," instances: ",len(iIDs))
-            print("End test")
-            """
-            
-
-        if len(req["E_names"])>0:
-            instance_filtered = True
-            print(req["E_names"])
-            #Spatial Assoc previously associates all ugaz items to intersecting egaz values.
-            #Should I do the same for all egaz entries (associate them with other intersecting egaz entries?)
-            subqCustom1 = (select(Egazetteer).where(Egazetteer.name.in_(req["E_names"])).subquery())
-            subqCustom2 = (select(Spatial_assoc.e_id.label("e_id"),Instance_ugaz.i_id.label("i_id")).join_from(subqCustom1,Spatial_assoc, subqCustom1.c.e_id == Spatial_assoc.e_id).join(Instance_ugaz, Spatial_assoc.p_id == Instance_ugaz.p_id).subquery())
-            subqAdmin1 = (select(Egazetteer).where(Egazetteer.name.in_(req["E_names"])).subquery())
-            subqAdmin2 = (select(Instance_egaz.e_id.label("e_id"),Instance_egaz.i_id.label("i_id")).join_from(subqAdmin1,Instance_egaz, subqAdmin1.c.e_id == Instance_egaz.e_id).subquery())
-            print("subqCustom2: ",subqCustom2)
-            print("subqAdmin2: ",subqAdmin2)
-            subqU = (union(select(subqCustom2),select(subqAdmin2)).subquery())
-            stmtI = stmtI.join(subqU, Instances.i_id == subqU.c.i_id)     
-        
-        if len(req["T_types"])>0:
-            instance_filtered = True
-            print(req["T_types"])
-            stmtI = stmtI.where(Instances.t_type.in_(req["T_types"]))
-
-        if len(req["iDateR1"])>0:
-            instance_filtered = True
-            print(req["iDateR1"])
-            stmtI = stmtI.where(Instances.t_begin >= req["iDateR1"])
-        if len(req["iDateR2"])>0:
-            instance_filtered = True
-            print(req["iDateR2"])
-            stmtI = stmtI.where(Instances.t_end <= req["iDateR2"])      
-
-        #This is at the end of instance filters so that it takes all current instance filters into account 
-        ptype_filtered = False
-        if len(req["P_types"])>0:
-            ptype_filtered = True
-            instance_filtered = True
-            #Make a select subquery for each scenario. Union those relevant
-            subqBase = stmtI.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id).join(Instance_ugaz, Instances.i_id == Instance_ugaz.i_id)
-            p_type_mixed = False
-            p_type_sem = False
-            stmtP = stmtI.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id, isouter=True).join(Instance_ugaz,Instances.i_id==Instance_ugaz.i_id,isouter=True)
-            if "sem lugares" in req["P_types"]:
-                #subqNoInst = select(Stories, Instances).join(Stories.instancing, isouter=True).join(Instance_ugaz,Instances.i_id == Instance_ugaz.i_id,isouter=True).join(Instance_egaz,Instances.i_id ==Instance_egaz.i_id, isouter=True).order_by(Stories.s_id,Instances.i_id).where(Instances.i_id.is_(None))
-                subqNoInst = select(Stories, Instances).join(Stories.instancing, isouter=True).order_by(Stories.s_id,Instances.i_id).where(Instances.i_id.is_(None))
-                if "administrativo" in req["P_types"]:
-                    p_type_mixed = True
-                    if "personalizado" in req["P_types"]:
-                        print("sem definição, administrativo, personalizado")
-                        subqBase = stmtP.where(or_(Instance_egaz.e_id != None,Instance_ugaz.p_id !=None))
-                    else:
-                        print("Sem definição, administrativo")
-                        subqBase = stmtP.where(Instance_egaz.e_id != None)
-                elif "personalizado" in req["P_types"]:
-                    print("Sem definição, personalizado")
-                    p_type_mixed = True
-                    subqBase = stmtP.where(Instance_ugaz.p_id !=None)  
-                else:
-                    print("sem definição")
-                    instance_filtered = False
-                    p_type_sem = True
-            elif "administrativo" in req["P_types"]:
-                if "personalizado" in req["P_types"]:
-                    print("Administrativo, personalizado")
-                    stmtP = (stmtP.where(or_(Instance_egaz.e_id != None,Instance_ugaz.p_id !=None)).subquery())
-                else:
-                    print("Administrativo")
-                    stmtP = (stmtP.where(Instance_egaz.e_id != None).subquery())
-            else:
-                print("Personalizado")
-                stmtP = (stmtP.where(Instance_ugaz.p_id !=None).subquery())    
-
-        #If no """instance filters, defaultot story level filters (using the left join)
-        if instance_filtered is False:
-            print("No instance filters applied")
-        else:
-            print("Instance filters applied")
-            is_filtered = True
-            #stmtI = (stmtI.subquery())
-        
-        ### STORY LEVEL FILTERS ###
-        stmtS = stmtLeft
-        
-        if len(req["Tags"])>0:
-            story_filtered = True
-            print(req["Tags"])
-            subqT = (select(Tags).where(Tags.tag_name.in_(req["Tags"])).subquery())
-            stmtS = stmtS.join(Tagging, Stories.s_id == Tagging.story_id).join(subqT, Tagging.t_id == subqT.c.tag_id)
-            #print("STMT after Tags: ",stmtS)        
-        
-        if len(req["Sections"])>0:
-            story_filtered = True
-            print(req["Sections"])
-            subqS = (select(Sections).where(Sections.section_name.in_(req["Sections"])).subquery())
-            stmtS = stmtS.join(Sectioning, Stories.s_id == Sectioning.story_id).join(subqS, Sectioning.s_id == subqS.c.section_id)
-        
-        if len(req["Authors"])>0:
-            story_filtered = True
-            print(req["Authors"])
-            subqA = (select(Authors).where(Authors.author_name.in_(req["Authors"])).subquery())
-            stmtS = stmtS.join(Authoring, Stories.s_id == Authoring.story_id).join(subqA, Authoring.a_id == subqA.c.author_id)
-
-        if len(req["Publications"])>0:
-            story_filtered = True
-            print(req["Publications"]) 
-            subqP = (select(Publications).where(Publications.publication_name.in_(req["Publications"])).subquery())
-            stmtS = stmtS.join(Publicationing, Stories.s_id == Publicationing.story_id).join(subqP, Publicationing.p_id == subqP.c.publication_id)
-        
-        #Pubdate filters
-        story_filtered = True
-        stmtS = stmtS.where(Stories.pub_date.between(req["pubDateR1"],req["pubDateR2"][0:11]+"23:59:59.999Z"))
-        
-       #pNameSearch filter
-        search_filtered = False
-        if req["pNameSearch"] != "":
-            print("pNameSearch: ",req["pNameSearch"]) 
-            instance_filtered = True
-            story_filtered = True
-            search_filtered = True
+    if len(req["E_names"])>0:
+        instance_filtered = True
+        print(req["E_names"])
+        #Spatial Assoc previously associates all ugaz items to intersecting egaz values.
+        #Should I do the same for all egaz entries (associate them with other intersecting egaz entries?)
+        subqCustom1 = (select(Egazetteer).where(Egazetteer.name.in_(req["E_names"])).subquery())
+        subqCustom2 = (select(Spatial_assoc.e_id.label("e_id"),Instance_ugaz.i_id.label("i_id")).join_from(subqCustom1,Spatial_assoc, subqCustom1.c.e_id == Spatial_assoc.e_id).join(Instance_ugaz, Spatial_assoc.p_id == Instance_ugaz.p_id).subquery())
+        subqAdmin1 = (select(Egazetteer).where(Egazetteer.name.in_(req["E_names"])).subquery())
+        subqAdmin2 = (select(Instance_egaz.e_id.label("e_id"),Instance_egaz.i_id.label("i_id")).join_from(subqAdmin1,Instance_egaz, subqAdmin1.c.e_id == Instance_egaz.e_id).subquery())
+        print("subqCustom2: ",subqCustom2)
+        print("subqAdmin2: ",subqAdmin2)
+        subqU = (union(select(subqCustom2),select(subqAdmin2)).subquery())
+        stmtI = stmtI.join(subqU, Instances.i_id == subqU.c.i_id)     
     
-        #pType Filtering. Incorporates separate queries unioned for stories and instances (in a mixed context: sem definição and admin/custom)
-        if ptype_filtered is True:
-            is_filtered = True
-            if p_type_mixed == True:
-                subqUnion = (union(select(subqNoInst.c.s_id,subqNoInst.c.i_id),select(subqBase.c.s_id,subqBase.c.i_id)).subquery())
-                stmt = stmtS.join(subqUnion, (Stories.s_id == subqUnion.c.s_id) & (func.coalesce(Instances.i_id,0) == func.coalesce(subqUnion.c.i_id,0))) #MISSING STORIES WITHOUT INSTANCES; GETTING LOST IN THE JOIN                  
-            elif p_type_sem == True:
-                stmt = stmtS.where(Instances.i_id.is_(None))
-            else: #IF NOT MIXED; NOT SEM DEFINITION
-                stmt = stmtS.join(stmtP, Instances.i_id == stmtP.c.i_id)
-        elif story_filtered is True:
-            is_filtered = True
-            if instance_filtered is True:
-                stmtI = (stmtI.subquery())
-                stmt = stmtS.join(stmtI, Instances.i_id == stmtI.c.i_id)
+    if len(req["T_types"])>0:
+        instance_filtered = True
+        print(req["T_types"])
+        stmtI = stmtI.where(Instances.t_type.in_(req["T_types"]))
+
+    if len(req["iDateR1"])>0:
+        instance_filtered = True
+        print(req["iDateR1"])
+        stmtI = stmtI.where(Instances.t_begin >= req["iDateR1"])
+    if len(req["iDateR2"])>0:
+        instance_filtered = True
+        print(req["iDateR2"])
+        stmtI = stmtI.where(Instances.t_end <= req["iDateR2"])      
+
+    #This is at the end of instance filters so that it takes all current instance filters into account 
+    ptype_filtered = False
+    if len(req["P_types"])>0:
+        ptype_filtered = True
+        instance_filtered = True
+        #Make a select subquery for each scenario. Union those relevant
+        subqBase = stmtI.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id).join(Instance_ugaz, Instances.i_id == Instance_ugaz.i_id)
+        p_type_mixed = False
+        p_type_sem = False
+        stmtP = stmtI.join(Instance_egaz, Instances.i_id == Instance_egaz.i_id, isouter=True).join(Instance_ugaz,Instances.i_id==Instance_ugaz.i_id,isouter=True)
+        if "sem lugares" in req["P_types"]:
+            #subqNoInst = select(Stories, Instances).join(Stories.instancing, isouter=True).join(Instance_ugaz,Instances.i_id == Instance_ugaz.i_id,isouter=True).join(Instance_egaz,Instances.i_id ==Instance_egaz.i_id, isouter=True).order_by(Stories.s_id,Instances.i_id).where(Instances.i_id.is_(None))
+            subqNoInst = select(Stories, Instances).join(Stories.instancing, isouter=True).order_by(Stories.s_id,Instances.i_id).where(Instances.i_id.is_(None))
+            if "administrativo" in req["P_types"]:
+                p_type_mixed = True
+                if "personalizado" in req["P_types"]:
+                    print("sem definição, administrativo, personalizado")
+                    subqBase = stmtP.where(or_(Instance_egaz.e_id != None,Instance_ugaz.p_id !=None))
+                else:
+                    print("Sem definição, administrativo")
+                    subqBase = stmtP.where(Instance_egaz.e_id != None)
+            elif "personalizado" in req["P_types"]:
+                print("Sem definição, personalizado")
+                p_type_mixed = True
+                subqBase = stmtP.where(Instance_ugaz.p_id !=None)  
             else:
-                stmt = stmtS
-        elif instance_filtered is True:
-            is_filtered = True
-            stmt = stmtI
+                print("sem definição")
+                instance_filtered = False
+                p_type_sem = True
+        elif "administrativo" in req["P_types"]:
+            if "personalizado" in req["P_types"]:
+                print("Administrativo, personalizado")
+                stmtP = (stmtP.where(or_(Instance_egaz.e_id != None,Instance_ugaz.p_id !=None)).subquery())
+            else:
+                print("Administrativo")
+                stmtP = (stmtP.where(Instance_egaz.e_id != None).subquery())
+        else:
+            print("Personalizado")
+            stmtP = (stmtP.where(Instance_ugaz.p_id !=None).subquery())    
 
-        #pNameSearch filtering (part 2)
-        if search_filtered is True:
-            #Doing this after all other filtering
-            pNameSearch = "%{}%".format(req["pNameSearch"].lower())
-            subqEgaz = (select(Egazetteer).where(func.lower(Egazetteer.name).like(pNameSearch)).subquery())
-            subqEgaz2 = (select(Instance_egaz.i_id).join(subqEgaz,Instance_egaz.e_id==subqEgaz.c.e_id).subquery())
-            subqUgaz = (select(Ugazetteer).where(or_(func.lower(Ugazetteer.p_name).like(pNameSearch),func.lower(Ugazetteer.p_desc).like(pNameSearch))).subquery())
-            subqUgaz2= (select(Instance_ugaz.i_id).join(subqUgaz, Instance_ugaz.p_id == subqUgaz.c.p_id).subquery())
-            subqInst = (select(Instances.i_id).where(func.lower(Instances.p_name).like(pNameSearch)).subquery())
-            subqU = (union(select(subqEgaz2),select(subqUgaz2),select(subqInst)).subquery())
-            stmtSearchI = (stmtBase.join(subqU, Instances.i_id == subqU.c.i_id).subquery())
-            stmtSearchS = (stmtLeft.where(or_(func.lower(Stories.title).like(pNameSearch),func.lower(Stories.summary).like(pNameSearch))).subquery())
-            subqU = (union(select(stmtSearchI.c.s_id,stmtSearchI.c.i_id), select(stmtSearchS.c.s_id,stmtSearchS.c.i_id)).subquery())
-            stmt = stmt.join(subqU, (Stories.s_id == subqU.c.s_id) & (func.coalesce(Instances.i_id,0)==func.coalesce(subqU.c.i_id,0))) 
+    #If no """instance filters, defaultot story level filters (using the left join)
+    if instance_filtered is False:
+        print("No instance filters applied")
+    else:
+        print("Instance filters applied")
+        is_filtered = True
+        #stmtI = (stmtI.subquery())
+    
+    ### STORY LEVEL FILTERS ###
+    stmtS = stmtLeft
+    
+    if len(req["Tags"])>0:
+        story_filtered = True
+        print(req["Tags"])
+        subqT = (select(Tags).where(Tags.tag_name.in_(req["Tags"])).subquery())
+        stmtS = stmtS.join(Tagging, Stories.s_id == Tagging.story_id).join(subqT, Tagging.t_id == subqT.c.tag_id)
+        #print("STMT after Tags: ",stmtS)        
+    
+    if len(req["Sections"])>0:
+        story_filtered = True
+        print(req["Sections"])
+        subqS = (select(Sections).where(Sections.section_name.in_(req["Sections"])).subquery())
+        stmtS = stmtS.join(Sectioning, Stories.s_id == Sectioning.story_id).join(subqS, Sectioning.s_id == subqS.c.section_id)
+    
+    if len(req["Authors"])>0:
+        story_filtered = True
+        print(req["Authors"])
+        subqA = (select(Authors).where(Authors.author_name.in_(req["Authors"])).subquery())
+        stmtS = stmtS.join(Authoring, Stories.s_id == Authoring.story_id).join(subqA, Authoring.a_id == subqA.c.author_id)
 
-        #is_filtered = False #Remove after testing
-        #print("Remove: is_filtered=False line")
+    if len(req["Publications"])>0:
+        story_filtered = True
+        print(req["Publications"]) 
+        subqP = (select(Publications).where(Publications.publication_name.in_(req["Publications"])).subquery())
+        stmtS = stmtS.join(Publicationing, Stories.s_id == Publicationing.story_id).join(subqP, Publicationing.p_id == subqP.c.publication_id)
+    
+    #Pubdate filters
+    story_filtered = True
+    stmtS = stmtS.where(Stories.pub_date.between(req["pubDateR1"],req["pubDateR2"][0:11]+"23:59:59.999Z"))
+    
+    #pNameSearch filter
+    search_filtered = False
+    if req["pNameSearch"] != "":
+        print("pNameSearch: ",req["pNameSearch"]) 
+        instance_filtered = True
+        story_filtered = True
+        search_filtered = True
 
-        #If filters have been activated:
-        if is_filtered is True:
-            print("executing filtering statement")
-            results = session.execute(stmt)
-            # results = session.scalars(stmt).all()
-            count = 0
-            storiesJSON = []
-            instancesJSON = []
-            instanceStories = []
-            for result in results:
-                count +=1
-                story = None
-                #print ("Story: ",result.Stories)
-                if result.Stories.s_id not in s_ids:
-                    #print("SID: ",result.Stories.s_id)
-                    s_ids.append(result.Stories.s_id)
-                    story = {
+    #pType Filtering. Incorporates separate queries unioned for stories and instances (in a mixed context: sem definição and admin/custom)
+    if ptype_filtered is True:
+        is_filtered = True
+        if p_type_mixed == True:
+            subqUnion = (union(select(subqNoInst.c.s_id,subqNoInst.c.i_id),select(subqBase.c.s_id,subqBase.c.i_id)).subquery())
+            stmt = stmtS.join(subqUnion, (Stories.s_id == subqUnion.c.s_id) & (func.coalesce(Instances.i_id,0) == func.coalesce(subqUnion.c.i_id,0))) #MISSING STORIES WITHOUT INSTANCES; GETTING LOST IN THE JOIN                  
+        elif p_type_sem == True:
+            stmt = stmtS.where(Instances.i_id.is_(None))
+        else: #IF NOT MIXED; NOT SEM DEFINITION
+            stmt = stmtS.join(stmtP, Instances.i_id == stmtP.c.i_id)
+    elif story_filtered is True:
+        is_filtered = True
+        if instance_filtered is True:
+            stmtI = (stmtI.subquery())
+            stmt = stmtS.join(stmtI, Instances.i_id == stmtI.c.i_id)
+        else:
+            stmt = stmtS
+    elif instance_filtered is True:
+        is_filtered = True
+        stmt = stmtI
+
+    #pNameSearch filtering (part 2)
+    if search_filtered is True:
+        #Doing this after all other filtering
+        pNameSearch = "%{}%".format(req["pNameSearch"].lower())
+        subqEgaz = (select(Egazetteer).where(func.lower(Egazetteer.name).like(pNameSearch)).subquery())
+        subqEgaz2 = (select(Instance_egaz.i_id).join(subqEgaz,Instance_egaz.e_id==subqEgaz.c.e_id).subquery())
+        subqUgaz = (select(Ugazetteer).where(or_(func.lower(Ugazetteer.p_name).like(pNameSearch),func.lower(Ugazetteer.p_desc).like(pNameSearch))).subquery())
+        subqUgaz2= (select(Instance_ugaz.i_id).join(subqUgaz, Instance_ugaz.p_id == subqUgaz.c.p_id).subquery())
+        subqInst = (select(Instances.i_id).where(func.lower(Instances.p_name).like(pNameSearch)).subquery())
+        subqU = (union(select(subqEgaz2),select(subqUgaz2),select(subqInst)).subquery())
+        stmtSearchI = (stmtBase.join(subqU, Instances.i_id == subqU.c.i_id).subquery())
+        stmtSearchS = (stmtLeft.where(or_(func.lower(Stories.title).like(pNameSearch),func.lower(Stories.summary).like(pNameSearch))).subquery())
+        subqU = (union(select(stmtSearchI.c.s_id,stmtSearchI.c.i_id), select(stmtSearchS.c.s_id,stmtSearchS.c.i_id)).subquery())
+        stmt = stmt.join(subqU, (Stories.s_id == subqU.c.s_id) & (func.coalesce(Instances.i_id,0)==func.coalesce(subqU.c.i_id,0))) 
+
+    #is_filtered = False #Remove after testing
+    #print("Remove: is_filtered=False line")
+
+    #If filters have been activated:
+    if is_filtered is True:
+        print("executing filtering statement")
+        results = session.execute(stmt)
+        # results = session.scalars(stmt).all()
+        count = 0
+        storiesJSON = []
+        instancesJSON = []
+        instanceStories = []
+        for result in results:
+            count +=1
+            story = None
+            #print ("Story: ",result.Stories)
+            if result.Stories.s_id not in s_ids:
+                #print("SID: ",result.Stories.s_id)
+                s_ids.append(result.Stories.s_id)
+                story = {
+                    "s_id": result.Stories.s_id,
+                    "title": result.Stories.title,
+                    "pub_date": str(result.Stories.pub_date),
+                    "tags": result.Stories.tags,
+                    "section": result.Stories.section,
+                    "publication": result.Stories.publication,
+                    "author": result.Stories.author,
+                    "summary": result.Stories.summary,
+                    "web_link": result.Stories.web_link,
+                    "instances_yes": [],
+                    "instances_no": [],
+                    #"instances_all": [],
+                    "instances_all": {},
+                }
+                storiesJSON.append(story)
+            else:
+                dupS += 1
+            if result.Instances is not None:
+                #print("Instance: ",result.Instances)
+                if result.Instances.i_id not in i_ids:
+                    i_ids.append(result.Instances.i_id)
+                    #Do processing of instance begin and end to return str of t_begin and t_end
+                    t_begin = result.Instances.t_begin
+                    t_end = result.Instances.t_end
+                    ttype = result.Instances.t_type
+                    #print(ttype,": ",t_begin,"-",t_end)
+                    #print("t_begin type: ",type(t_begin))
+                    i_T = ""
+                    if ttype=="allday_p":
+                        i_D = "Temporada continual"
+                    else:
+                        if t_begin.date() == t_end.date():
+                            i_D = str(t_begin.date())
+                        else:
+                            i_D = str(t_begin.date())+" - "+str(t_end.date())
+                        if ttype == "allday_no":
+                            i_T = str(t_begin.time())+" - "+str(t_end.time())
+                    
+                    instance = {
                         "s_id": result.Stories.s_id,
                         "title": result.Stories.title,
                         "pub_date": str(result.Stories.pub_date),
                         "tags": result.Stories.tags,
                         "section": result.Stories.section,
+                        "summary": result.Stories.summary,
                         "publication": result.Stories.publication,
                         "author": result.Stories.author,
-                        "summary": result.Stories.summary,
                         "web_link": result.Stories.web_link,
-                        "instances_yes": [],
-                        "instances_no": [],
-                        #"instances_all": [],
-                        "instances_all": {},
+                        "i_id": result.Instances.i_id,
+                        "t_begin": str(result.Instances.t_end),
+                        "t_end": str(result.Instances.t_end),
+                        "t_type": result.Instances.t_type,
+                        "p_desc": result.Instances.p_desc,
+                        "t_desc": result.Instances.t_desc,
+                        "p_name": result.Instances.p_name,
+                        "i_D": i_D,
+                        "i_T": i_T,
                     }
-                    storiesJSON.append(story)
-                else:
-                    dupS += 1
-                if result.Instances is not None:
-                    #print("Instance: ",result.Instances)
-                    if result.Instances.i_id not in i_ids:
-                        i_ids.append(result.Instances.i_id)
-                        #Do processing of instance begin and end to return str of t_begin and t_end
-                        t_begin = result.Instances.t_begin
-                        t_end = result.Instances.t_end
-                        ttype = result.Instances.t_type
-                        #print(ttype,": ",t_begin,"-",t_end)
-                        #print("t_begin type: ",type(t_begin))
-                        i_T = ""
-                        if ttype=="allday_p":
-                            i_D = "Temporada continual"
-                        else:
-                            if t_begin.date() == t_end.date():
-                                i_D = str(t_begin.date())
-                            else:
-                                i_D = str(t_begin.date())+" - "+str(t_end.date())
-                            if ttype == "allday_no":
-                                i_T = str(t_begin.time())+" - "+str(t_end.time())
-                        
-                        instance = {
-                            "s_id": result.Stories.s_id,
-                            "title": result.Stories.title,
-                            "pub_date": str(result.Stories.pub_date),
-                            "tags": result.Stories.tags,
-                            "section": result.Stories.section,
-                            "summary": result.Stories.summary,
-                            "publication": result.Stories.publication,
-                            "author": result.Stories.author,
-                            "web_link": result.Stories.web_link,
-                            "i_id": result.Instances.i_id,
-                            "t_begin": str(result.Instances.t_end),
-                            "t_end": str(result.Instances.t_end),
-                            "t_type": result.Instances.t_type,
-                            "p_desc": result.Instances.p_desc,
-                            "t_desc": result.Instances.t_desc,
-                            "p_name": result.Instances.p_name,
-                            "i_D": i_D,
-                            "i_T": i_T,
-                        }
-                        instancesJSON.append(instance)
-                        for story in storiesJSON:
-                            if story['s_id'] == result.Stories.s_id:
-                                story["instances_yes"].append(result.Instances.i_id)
-                #else:
-                    #print("no instance")
-            print("Number of results: ",count,", # s_ids: ",len(s_ids),", # i_ids: ", len(i_ids), ", # stories: ", len(stories))
-        
-        response["sIDs"] = s_ids 
-        response["iIDs"] = i_ids
-        #Extracting all relatedd instances for each story
-        stmt2 = select(Instances).where(Instances.s_id.in_(s_ids))
-        results2 = session.execute(stmt2).all()
-        for result in results2:
-            instanceP = processInstance(result.Instances)
-            for story in storiesJSON:
-                if story["s_id"] == result.Instances.s_id:
-                    #story["instances_all"].append(result.Instances.i_id)
-                    story["instances_all"][result.Instances.i_id] = instanceP
-                    if result.Instances.i_id not in i_ids:
-                        story["instances_no"].append(result.Instances.i_id)
-        
-        #Return current count of stories
-        stmt = select(func.count(Stories.s_id.distinct()).label("countStories"))
-        results = session.execute(stmt).all()
-        for result in results:
-            countStories = result.countStories
-        response["countStories"] = countStories
+                    instancesJSON.append(instance)
+                    for story in storiesJSON:
+                        if story['s_id'] == result.Stories.s_id:
+                            story["instances_yes"].append(result.Instances.i_id)
+            #else:
+                #print("no instance")
+        print("Number of results: ",count,", # s_ids: ",len(s_ids),", # i_ids: ", len(i_ids), ", # stories: ", len(stories))
+    
+    response["sIDs"] = s_ids 
+    response["iIDs"] = i_ids
+    #Extracting all relatedd instances for each story
+    stmt2 = select(Instances).where(Instances.s_id.in_(s_ids))
+    results2 = session.execute(stmt2).all()
+    for result in results2:
+        instanceP = processInstance(result.Instances)
+        for story in storiesJSON:
+            if story["s_id"] == result.Instances.s_id:
+                #story["instances_all"].append(result.Instances.i_id)
+                story["instances_all"][result.Instances.i_id] = instanceP
+                if result.Instances.i_id not in i_ids:
+                    story["instances_no"].append(result.Instances.i_id)
+    
+    #Return current count of stories
+    stmt = select(func.count(Stories.s_id.distinct()).label("countStories"))
+    results = session.execute(stmt).all()
+    for result in results:
+        countStories = result.countStories
+    response["countStories"] = countStories
 
 
-        stmt = select(func.count(Instances.i_id.distinct()).label("countInstances"))
-        results = session.execute(stmt).all()
-        for result in results:
-            countInstances = result.countInstances
-        response["countInstances"] = countInstances
+    stmt = select(func.count(Instances.i_id.distinct()).label("countInstances"))
+    results = session.execute(stmt).all()
+    for result in results:
+        countInstances = result.countInstances
+    response["countInstances"] = countInstances
 
-        """
-        subq = (select(Instances.s_id, func.array_agg(Instances.i_id).label("iids")).where(Instances.i_id.in_(i_ids)).group_by(Instances.s_id).subquery())
-        stmt3 = select(Instances, func.array_remove(subq.c.iids,Instances.i_id).label("iids")).join(subq, Instances.s_id == subq.c.s_id)
-        results3 = session.execute(stmt3).all()
+    """
+    subq = (select(Instances.s_id, func.array_agg(Instances.i_id).label("iids")).where(Instances.i_id.in_(i_ids)).group_by(Instances.s_id).subquery())
+    stmt3 = select(Instances, func.array_remove(subq.c.iids,Instances.i_id).label("iids")).join(subq, Instances.s_id == subq.c.s_id)
+    results3 = session.execute(stmt3).all()
 
-        print("i_ids: ",i_ids)
-        for result in results3:
-            #print()
-            print(result.iids)
-            for instance in instancesJSON:
-                #print(result.Instances.i_id," ",instance["i_id"]," ",result.iids)
-                if instance["i_id"] == result.Instances.i_id:
-                    #print("instance in instanceJSON: ",instance)
-                    instance["instances_yes"]=[]
-                    instance["instances_no"]=[]
-                    instance["instances_all"] = result.iids
-                    #print("instances_all: ",instance["instances_all"])
-                    for i in instance["instances_all"]:
-                        #print("i: ",i)
-                        if i in i_ids:
-                            instance["instances_yes"].append(i)
-                        else:
-                            instance["instances_no"].append(i)
-                    break
-        """
+    print("i_ids: ",i_ids)
+    for result in results3:
+        #print()
+        print(result.iids)
         for instance in instancesJSON:
-            for story in storiesJSON:
-                if instance["s_id"] == story["s_id"]:
-                    instance["instances_all"] = story["instances_all"]
-                    instance["instances_yes"] = story["instances_yes"]
-                    instance["instances_no"] = story["instances_no"]
-                    break
-        
-        response["stories"] = storiesJSON
-        response["instances"] = instancesJSON
-        #print("response['instances']: ",response["instances"])
-        #print("Stories pre dumps: ",response["stories"])
-        response = json.dumps(response, ensure_ascii=False) #Should this be True (default), then decoded on the otherside in js? Safer...
-        #print("response: ",response)
-        print("complete")
+            #print(result.Instances.i_id," ",instance["i_id"]," ",result.iids)
+            if instance["i_id"] == result.Instances.i_id:
+                #print("instance in instanceJSON: ",instance)
+                instance["instances_yes"]=[]
+                instance["instances_no"]=[]
+                instance["instances_all"] = result.iids
+                #print("instances_all: ",instance["instances_all"])
+                for i in instance["instances_all"]:
+                    #print("i: ",i)
+                    if i in i_ids:
+                        instance["instances_yes"].append(i)
+                    else:
+                        instance["instances_no"].append(i)
+                break
+    """
+    for instance in instancesJSON:
+        for story in storiesJSON:
+            if instance["s_id"] == story["s_id"]:
+                instance["instances_all"] = story["instances_all"]
+                instance["instances_yes"] = story["instances_yes"]
+                instance["instances_no"] = story["instances_no"]
+                break
+    
+    response["stories"] = storiesJSON
+    response["instances"] = instancesJSON
+    #print("response['instances']: ",response["instances"])
+    #print("Stories pre dumps: ",response["stories"])
+    response = json.dumps(response, ensure_ascii=False) #Should this be True (default), then decoded on the otherside in js? Safer...
+    #print("response: ",response)
+    print("complete")
+    return response
+
+@app.route("/explore/map", methods=["GET","POST"])
+def explore():
+    if request.method == "POST":
+        req = request.get_json()
+        response = process_explore(req=req)
         return make_response(response,200)
 
 #####################################

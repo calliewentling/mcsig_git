@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Import the Bootstrap stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+  <!-- Import our custom stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/map_style.css') }}">
+
+
+  <title>{% block title %}{% endblock title %}</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/css/ol.css" type="text/css">
+   <!-- Import our custom stylesheet -->
+   <link rel = "stylesheet" href="{{ url_for('static', filename='css/jornal_style.css') }}">
+
+</head>
+
+<body style="background-color: #EEEEEE;">
+  <!-- Import OpenLayers JavaScript -->
+  <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.9.0/build/ol.js"></script>
+
+  <main>
+    {% block main %}
+    {% endblock main %}
+  </main>
+
+    <!-- Import jquery 3.3.1 slim min -->
+  <script src="{{ url_for('static', filename='js/jquery.slim.min.js') }}"></script>
+  <!-- Import Bootstrap bundle -->
+  <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+  
+  <!-- Import our custom JavaScript -->
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+  <!-- codefixup.com/multiselect-dropdown-with-checkbox-->
+  <script src="{{ url_for('static', filename='js/jquery-2.2.4.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/jquery.multi-select.js') }}"></script>
+  
+  <script src="https://cdn.polyfill.io/v3/polyfill.min.js?features=fetch,requestAnimationFrame,Element.prototype.classList,URL,TextDecoder,Number.isInteger"></script>
+  {% block script %}{% endblock %}
+  
+
+</body>
+
+</html>

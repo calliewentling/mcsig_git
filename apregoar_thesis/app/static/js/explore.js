@@ -988,6 +988,7 @@ function loadStoryDeets(card){
                     relations["instances_all"] = cardD["instances_all"];
                     relations["instances_no"] = cardD["instances_no"];
                     relations["instances_yes"] = cardD["instances_yes"];
+                    console.log("relations: ",relations);
                     updateMapHighlights(sourceID = sID, type = "sCard", relations = relations);
                     for (iH in cardD["instances_yes"]){ //highlight associated instances
                         iHigh = cardD["instances_yes"][iH];
@@ -1476,8 +1477,15 @@ function updateMapHighlights(sourceID, type, relations){
         brightlightLayer.setZIndex(4);
 
         if (type=="sCard"){
-            bhExtent = ol.extent.extend(brightlightLayer.getSource().getExtent(),highlightLayer.getSource().getExtent(),lowlightLayer.getSource().getExtent());
-            map.getView().fit(bhExtent);
+            try {
+                bhExtent = ol.extent.extend(brightlightLayer.getSource().getExtent(),highlightLayer.getSource().getExtent(),lowlightLayer.getSource().getExtent());
+                map.getView().fit(bhExtent);
+            } catch(error) {
+                console.log("error: ",error);
+                return;
+            }
+            
+            
         } else if (type=="map"){
             popupTitle.innerHTML = cardD["p_name"];
             popupContent.innerHTML = cardD["title"];            

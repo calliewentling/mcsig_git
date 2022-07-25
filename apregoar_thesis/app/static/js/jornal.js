@@ -507,12 +507,21 @@ if (instancesExist == true){
     if (nearbys.length > 0){
         //console.log("nearbys: ",nearbys);
         for (i=0;i<nearbys.length;i++){
-            var nearbyButton = document.createElement('button');
+            /*var nearbyButton = document.createElement('button');
             nearbyButton.className = "button2";
             nearbyButton.id = "nearby_"+nearbys[i]["e_id"];
             nearbyButton.innerHTML = nearbys[i]["name"]+" ("+nearbys[i]["count"]+")";
             nearbyButton.onclick = seeAllJornal;
-            nearbyButtonArea.appendChild(nearbyButton);
+            nearbyButtonArea.appendChild(nearbyButton);*/
+
+            var nearbyButton = document.createElement('button');
+            nearbyButton.className = "button2";
+            nearbyButton.innerHTML = nearbys[i]["name"]+" ("+nearbys[i]["count"]+")";
+            
+            var nearbyA = document.createElement('a');
+            nearbyA.href = "/"+pub+"/mapa/"+nearbys[i]["e_id"];
+            nearbyA.appendChild(nearbyButton);
+            nearbyButtonArea.appendChild(nearbyA);
         };
         /*var allButton = document.createElement('button');
         allButton.className = "button";
@@ -523,13 +532,33 @@ if (instancesExist == true){
     }
 } else {
     document.getElementById('instanceArea').style.display="none";
-    document.getElementById('instanceAreaNo').style.display="block";
+    var instanceAreaNo = document.getElementById('instanceAreaNo');
+
+    var aSeeAll = document.createElement('a');
+    aSeeAll.href = "/"+pub+"/mapa/0";
+    aSeeAll.target = "_self";
+    instanceAreaNo.appendChild(aSeeAll);
+
+    var buttonSeeAll = document.createElement('button');
+    buttonSeeAll.className = "button";
+    buttonSeeAll.innerHTML = "Ver uma mapa das notícias";
+    aSeeAll.appendChild(buttonSeeAll);
+
+    instanceAreaNo.style.display="block";
     iframeH.style.height = (viewHeight - 100)+"px";
     document.getElementById('noArticle').style.height = (viewHeight - 100)+"px";
 };
 
-function seeAllJornal(event) {
-    e_id = parseInt(event.target.id.substr(7));
-    console.log("e_id: ",e_id);
-    //Return here and continue
-};
+/*function seeAllJornal(event) {
+    console.log("Entering seeAllJornal");
+    if (typeof(event)=="string"){
+        if (event == "all"){
+            console.log("go directly to publisher page");
+        }
+    } else if (typeof(event) == "object"){
+        e_id = parseInt(event.target.id.substr(7));
+        console.log("e_id: ",e_id);
+    } else {
+        console.log("oops! ")
+    }
+};*/

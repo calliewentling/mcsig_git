@@ -30,6 +30,7 @@ import shapely.wkt
 from shapely.geometry import Polygon, MultiPolygon
 from flask import request, redirect, jsonify, make_response, render_template, session as fsession, redirect, url_for
 from app import engine, session, text
+from explore_views import process_explore
 from operator import itemgetter
 
 
@@ -154,6 +155,27 @@ def historia(s_id):
             return render_template("jornal/historia.html", num_instances=0, instance=[], geonoticia=geonoticia, nearbys = [])
     return render_template("user/index.html", notice="A história não  existe")
 
+#This an interim to capture the e_id passed from JS. It assigns the e_id as a session variable and passes it to a prettier URL that renders the jornal map
+@app.route("/<publication>/mapa/<e_id>", methods=["GET","POST"])
+def pub_map_specific(publication, e_id):
+    if request.method == "POST":
+        req = request.get_json()
+        response = process_explore(req=req)
+        return make_response(response,200)
+    else:
+        fsession["e_id"] = e_id
+        print("pub_map(publication,e_id)")
+        print("publication: ",publication)
+        print("e_id: ",e_id)
+    return redirect(url_for("pub_map",publication=publication))
+
 @app.route("/<publication>/mapa", methods=["GET","POST"])
 def pub_map(publication):
-    return render_template("jornal/jornal_map.html", publication=publication)
+    print("pub_map(publication)")
+    print("publication: ",publication)
+    e_id = fsession["e_id"]
+    if e_id == 0:    
+        print("e_id: none")
+    else:
+        print("e_id: ",e_id)
+    return render_template("jornal/jornal_map.html", publication=publication,e_id=e_id)
