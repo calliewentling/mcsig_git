@@ -523,208 +523,225 @@ def explore():
 
     else:
         #Getting values for user filtering
-        try:
-            with engine.connect() as conn:
-                SQL = text("SELECT s_id, i_id, pub_date, section, author, publication, t_begin, t_end, t_type, p_id, e_ids FROM apregoar.geonoticias")
-                result = conn.execute(SQL)
-        except: 
-            conn.close()
-            print("Error in distracting filters from database")
-        else:
-            sections = {}
-            authors = {}
-            publications = {}
-            t_begins = []
-            t_ends = []
-            t_types = {}
-            pub_dates = {}
-            i_dates = {}
-            p_types = {
-                "personalizado": {
-                    "s_ids": [],
-                    "total_s": 0,
-                    "i_ids": [],
-                    "total_i": 0,
-                },
-                "administrativo": {
-                    "s_ids": [],
-                    "total_s": 0,
-                    "i_ids": [],
-                    "total_i": 0,
-                },
-                "sem lugares": {
-                    "s_ids": [],
-                    "total_s": 0,
-                }
-            }
-            e_ids = {}
-            i_range = {
-                "i_start": datetime.datetime.now(),
-                "i_end": datetime.datetime.now()
-            }
-            print("Result: ",result)
-            for row in result:
-                t_types = cleanLists(list_in = [row["t_type"]], s_id = row["s_id"],i_id=row["i_id"],list_out = t_types)
-                pub_dates = cleanLists(list_in = [row["pub_date"]], s_id = row["s_id"],i_id=row["i_id"],list_out = pub_dates)
-                if not row["i_id"]:
-                    p_types["sem lugares"]["s_ids"].append(row["s_id"])
-                else: 
-                    if row["p_id"]:
-                        if row["s_id"] not in p_types["personalizado"]["s_ids"]:
-                            p_types["personalizado"]["s_ids"].append(row["s_id"])
-                        p_types["personalizado"]["i_ids"].append(row["i_id"])
-                    if row["e_ids"]:
-                        if row["s_id"] not in p_types["administrativo"]["s_ids"]:
-                            p_types["administrativo"]["s_ids"].append(row["s_id"])
-                        p_types["administrativo"]["i_ids"].append(row["i_id"])
-                    if row["t_begin"] is not None:
-                        if i_range["i_start"] > row["t_begin"]:
-                            i_range["i_start"] = row["t_begin"]
-                    if row["t_end"] is not None:
-                        if i_range["i_end"] < row["t_end"]:
-                            i_range["i_end"] = row["t_end"]
-            #Calculate all lengths of lists: 
-            p_types["sem lugares"]["total_s"]=len(p_types["sem lugares"]["s_ids"])
-            p_types["personalizado"]["total_s"] = len(p_types["personalizado"]["s_ids"])
-            p_types["personalizado"]["total_i"] = len(p_types["personalizado"]["i_ids"])
-            p_types["administrativo"]["total_s"] = len(p_types["administrativo"]["s_ids"])  
-            p_types["administrativo"]["total_i"] = len(p_types["administrativo"]["i_ids"])
-            print("i_range: ",i_range)
-                       
-            t_types = sorted(t_types.items())
-            pub_dates = sorted(pub_dates.items())
-            pub_date_range = {
-                "min": min(pub_dates)[0],
-                "max": max(pub_dates)[0]
-            }
-            print("pub_date_range: ",pub_date_range)
-            p_types = sorted(p_types.items())
-            e_names = {}
-            try:
-                with engine.connect() as conn:
-                    SQL2 = text("SELECT * FROM apregoar.egaz_filter")
-                    result2 = conn.execute(SQL2)
-            except: 
-                conn.close()
-                print("Error in distracting filters from database")
-            else:
-                for row in result2:
-                    e_names[row["e_name"].lower()] = {
-                        "total_i": row["total_count"],
-                        "e_id": row["e_id"]
-                    }
-                e_names = sorted(e_names.items())
-            tags = {}
-            try:
-                with engine.connect() as conn:
-                    SQL = text("SELECT t.t_id, tags.tag_name, count FROM (SELECT t_id, count(*) FROM apregoar.tagging GROUP BY t_id) t LEFT JOIN apregoar.tags on t.t_id = tags.tag_id ORDER BY tag_name")
-                    result = conn.execute(SQL)
-            except: 
-                conn.close()
-                print("Error in distracting filters from database")
-            else:
-                for row in result:
-                    tags[row["tag_name"]] = {
-                        "total_t": row["count"],
-                        "t_id": row["t_id"],
-                    }
-                print("tags: ",tags)
-                for tag in tags:
-                    print(tags[tag]["total_t"])
-                    break
-            sections = {}
-            try:
-                with engine.connect() as conn:
-                    SQL = text("SELECT s.s_id, sections.section_name, count FROM (SELECT s_id, count(*) FROM apregoar.sectioning GROUP BY s_id) s LEFT JOIN apregoar.sections on s.s_id = sections.section_id ORDER BY section_name")
-                    result = conn.execute(SQL)
-            except: 
-                conn.close()
-                print("Error in distracting filters from database")
-            else:
-                for row in result:
-                    sections[row["section_name"]] = {
-                        "total_s": row["count"],
-                        "s_id": row["s_id"],
-                    }
-            authors = {}
-            try:
-                with engine.connect() as conn:
-                    SQL = text("SELECT a.a_id, authors.author_name, count FROM (SELECT a_id, count(*) FROM apregoar.authoring GROUP BY a_id) a LEFT JOIN apregoar.authors on a.a_id = authors.author_id ORDER BY author_name")
-                    result = conn.execute(SQL)
-            except: 
-                conn.close()
-                print("Error in distracting filters from database")
-            else:
-                for row in result:
-                    authors[row["author_name"]] = {
-                        "total_a": row["count"],
-                        "a_id": row["a_id"],
-                    }
-            publications = {}
-            try:
-                with engine.connect() as conn:
-                    SQL = text("SELECT p.p_id, publications.publication_name, count FROM (SELECT p_id, count(*) FROM apregoar.publicationing GROUP BY p_id) p LEFT JOIN apregoar.publications on p.p_id = publications.publication_id ORDER BY publication_name")
-                    result = conn.execute(SQL)
-            except: 
-                conn.close()
-                print("Error in distracting filters from database")
-            else:
-                for row in result:
-                    publications[row["publication_name"]] = {
-                        "total_p": row["count"],
-                        "p_id": row["p_id"],
-                    }
-
-            dates = {}
-            #Get max and min pub date
-            try:
-                with engine.connect() as conn:
-                    SQL = text("SELECT MIN(pub_date) AS pubdate1, MAX(pub_date) as pubdate2 FROM apregoar.stories")
-                    result = conn.execute(SQL)
-            except:
-                conn.close()
-                print("Error in extracting timeframe info")
-            else:
-                print("Extracted max and min pubdates")
-                for row in result:
-                    dates["pubdate1"] = row["pubdate1"]
-                    dates["pubdate2"] = row["pubdate2"]
-            #Get max and min instance dates
-            try:
-                with engine.connect() as conn:
-                    SQL2 = text("SELECT MIN(t_begin) AS idate1, MAX(t_end) AS idate2 FROM apregoar.instances")
-                    result2 = conn.execute(SQL2)
-            except:
-                conn.close()
-                print("Error in extracting max and min instance dates")
-            else:
-                print("Extracted max and min instance dates")
-                for row in result2:
-                    dates["idate1"] = row["idate1"]
-                    dates["idate2"] = row["idate2"]
-
-            #Get range of last 100 pubdates
-            try:
-                with engine.connect() as conn:
-                    SQL3 = text("SELECT MIN(pub_date) AS R1, MAX(pub_date) AS R2 FROM (SELECT * FROM apregoar.stories ORDER BY pub_date DESC LIMIT 25) recentstories")
-                    result3 = conn.execute(SQL3)
-            except:
-                conn.close()
-                print("Error in extraxcting max and min recent values")
-            else:
-                print("Extracted max and min recent range dates")
-                for row in result3:
-                    #print("in row")
-                    #print(row)
-                    #print("row1",row[1])
-                    dates["pubdateR1"] = row[0]
-                    dates["pubdateR2"] = row[1]
-            print("dates: ",dates, type(dates["pubdateR1"]))
-            print("pub_date_range: ",pub_date_range,type(pub_date_range["min"]))
-            conn.close()
-    return render_template("explore/explore_map.html", tags = tags, sections = sections, authors = authors, publications = publications, t_types=t_types, p_types = p_types, e_names = e_names, pub_dates = pub_dates, i_range = i_range, pubDateRange = pub_date_range, allDates = dates)
+        allVals = prepare_explore()
+    return render_template("explore/explore_map.html", tags = allVals["tags"], sections = allVals["sections"], authors = allVals["authors"], publications = allVals["publications"], t_types=allVals["t_types"], p_types = allVals["p_types"], e_names = allVals["e_names"], pub_dates = allVals["pub_dates"], i_range = allVals["i_range"], pubDateRange = allVals["pub_date_range"], allDates = allVals["dates"])
     
 
 @app.route("/explore/ajuda", methods=["GET","POST"])
 def explore_help():
     return render_template("explore/explore_help.html")
+
+def prepare_explore():
+    try:
+        with engine.connect() as conn:
+            SQL = text("SELECT s_id, i_id, pub_date, section, author, publication, t_begin, t_end, t_type, p_id, e_ids FROM apregoar.geonoticias")
+            result = conn.execute(SQL)
+    except: 
+        conn.close()
+        print("Error in distracting filters from database")
+    else:
+        sections = {}
+        authors = {}
+        publications = {}
+        t_begins = []
+        t_ends = []
+        t_types = {}
+        pub_dates = {}
+        i_dates = {}
+        p_types = {
+            "personalizado": {
+                "s_ids": [],
+                "total_s": 0,
+                "i_ids": [],
+                "total_i": 0,
+            },
+            "administrativo": {
+                "s_ids": [],
+                "total_s": 0,
+                "i_ids": [],
+                "total_i": 0,
+            },
+            "sem lugares": {
+                "s_ids": [],
+                "total_s": 0,
+            }
+        }
+        e_ids = {}
+        i_range = {
+            "i_start": datetime.datetime.now(),
+            "i_end": datetime.datetime.now()
+        }
+        print("Result: ",result)
+        for row in result:
+            t_types = cleanLists(list_in = [row["t_type"]], s_id = row["s_id"],i_id=row["i_id"],list_out = t_types)
+            pub_dates = cleanLists(list_in = [row["pub_date"]], s_id = row["s_id"],i_id=row["i_id"],list_out = pub_dates)
+            if not row["i_id"]:
+                p_types["sem lugares"]["s_ids"].append(row["s_id"])
+            else: 
+                if row["p_id"]:
+                    if row["s_id"] not in p_types["personalizado"]["s_ids"]:
+                        p_types["personalizado"]["s_ids"].append(row["s_id"])
+                    p_types["personalizado"]["i_ids"].append(row["i_id"])
+                if row["e_ids"]:
+                    if row["s_id"] not in p_types["administrativo"]["s_ids"]:
+                        p_types["administrativo"]["s_ids"].append(row["s_id"])
+                    p_types["administrativo"]["i_ids"].append(row["i_id"])
+                if row["t_begin"] is not None:
+                    if i_range["i_start"] > row["t_begin"]:
+                        i_range["i_start"] = row["t_begin"]
+                if row["t_end"] is not None:
+                    if i_range["i_end"] < row["t_end"]:
+                        i_range["i_end"] = row["t_end"]
+        #Calculate all lengths of lists: 
+        p_types["sem lugares"]["total_s"]=len(p_types["sem lugares"]["s_ids"])
+        p_types["personalizado"]["total_s"] = len(p_types["personalizado"]["s_ids"])
+        p_types["personalizado"]["total_i"] = len(p_types["personalizado"]["i_ids"])
+        p_types["administrativo"]["total_s"] = len(p_types["administrativo"]["s_ids"])  
+        p_types["administrativo"]["total_i"] = len(p_types["administrativo"]["i_ids"])
+        print("i_range: ",i_range)
+                    
+        t_types = sorted(t_types.items())
+        pub_dates = sorted(pub_dates.items())
+        pub_date_range = {
+            "min": min(pub_dates)[0],
+            "max": max(pub_dates)[0]
+        }
+        print("pub_date_range: ",pub_date_range)
+        p_types = sorted(p_types.items())
+        e_names = {}
+        try:
+            with engine.connect() as conn:
+                SQL2 = text("SELECT * FROM apregoar.egaz_filter")
+                result2 = conn.execute(SQL2)
+        except: 
+            conn.close()
+            print("Error in distracting filters from database")
+        else:
+            for row in result2:
+                e_names[row["e_name"].lower()] = {
+                    "total_i": row["total_count"],
+                    "e_id": row["e_id"]
+                }
+            e_names = sorted(e_names.items())
+        tags = {}
+        try:
+            with engine.connect() as conn:
+                SQL = text("SELECT t.t_id, tags.tag_name, count FROM (SELECT t_id, count(*) FROM apregoar.tagging GROUP BY t_id) t LEFT JOIN apregoar.tags on t.t_id = tags.tag_id ORDER BY tag_name")
+                result = conn.execute(SQL)
+        except: 
+            conn.close()
+            print("Error in distracting filters from database")
+        else:
+            for row in result:
+                tags[row["tag_name"]] = {
+                    "total_t": row["count"],
+                    "t_id": row["t_id"],
+                }
+            print("tags: ",tags)
+            for tag in tags:
+                print(tags[tag]["total_t"])
+                break
+        sections = {}
+        try:
+            with engine.connect() as conn:
+                SQL = text("SELECT s.s_id, sections.section_name, count FROM (SELECT s_id, count(*) FROM apregoar.sectioning GROUP BY s_id) s LEFT JOIN apregoar.sections on s.s_id = sections.section_id ORDER BY section_name")
+                result = conn.execute(SQL)
+        except: 
+            conn.close()
+            print("Error in distracting filters from database")
+        else:
+            for row in result:
+                sections[row["section_name"]] = {
+                    "total_s": row["count"],
+                    "s_id": row["s_id"],
+                }
+        authors = {}
+        try:
+            with engine.connect() as conn:
+                SQL = text("SELECT a.a_id, authors.author_name, count FROM (SELECT a_id, count(*) FROM apregoar.authoring GROUP BY a_id) a LEFT JOIN apregoar.authors on a.a_id = authors.author_id ORDER BY author_name")
+                result = conn.execute(SQL)
+        except: 
+            conn.close()
+            print("Error in distracting filters from database")
+        else:
+            for row in result:
+                authors[row["author_name"]] = {
+                    "total_a": row["count"],
+                    "a_id": row["a_id"],
+                }
+        publications = {}
+        try:
+            with engine.connect() as conn:
+                SQL = text("SELECT p.p_id, publications.publication_name, count FROM (SELECT p_id, count(*) FROM apregoar.publicationing GROUP BY p_id) p LEFT JOIN apregoar.publications on p.p_id = publications.publication_id ORDER BY publication_name")
+                result = conn.execute(SQL)
+        except: 
+            conn.close()
+            print("Error in distracting filters from database")
+        else:
+            for row in result:
+                publications[row["publication_name"]] = {
+                    "total_p": row["count"],
+                    "p_id": row["p_id"],
+                }
+
+        dates = {}
+        #Get max and min pub date
+        try:
+            with engine.connect() as conn:
+                SQL = text("SELECT MIN(pub_date) AS pubdate1, MAX(pub_date) as pubdate2 FROM apregoar.stories")
+                result = conn.execute(SQL)
+        except:
+            conn.close()
+            print("Error in extracting timeframe info")
+        else:
+            print("Extracted max and min pubdates")
+            for row in result:
+                dates["pubdate1"] = row["pubdate1"]
+                dates["pubdate2"] = row["pubdate2"]
+        #Get max and min instance dates
+        try:
+            with engine.connect() as conn:
+                SQL2 = text("SELECT MIN(t_begin) AS idate1, MAX(t_end) AS idate2 FROM apregoar.instances")
+                result2 = conn.execute(SQL2)
+        except:
+            conn.close()
+            print("Error in extracting max and min instance dates")
+        else:
+            print("Extracted max and min instance dates")
+            for row in result2:
+                dates["idate1"] = row["idate1"]
+                dates["idate2"] = row["idate2"]
+
+        #Get range of last 100 pubdates
+        try:
+            with engine.connect() as conn:
+                SQL3 = text("SELECT MIN(pub_date) AS R1, MAX(pub_date) AS R2 FROM (SELECT * FROM apregoar.stories ORDER BY pub_date DESC LIMIT 25) recentstories")
+                result3 = conn.execute(SQL3)
+        except:
+            conn.close()
+            print("Error in extraxcting max and min recent values")
+        else:
+            print("Extracted max and min recent range dates")
+            for row in result3:
+                #print("in row")
+                #print(row)
+                #print("row1",row[1])
+                dates["pubdateR1"] = row[0]
+                dates["pubdateR2"] = row[1]
+        print("dates: ",dates, type(dates["pubdateR1"]))
+        print("pub_date_range: ",pub_date_range,type(pub_date_range["min"]))
+        conn.close()
+        allVals = {
+            "tags": tags,
+            "sections": sections,
+            "authors": authors,
+            "publications": publications,
+            "p_types": p_types,
+            "t_types": t_types,
+            "e_names": e_names,
+            "pub_dates": pub_dates,
+            "i_range": i_range, 
+            "pub_date_range": pub_date_range, 
+            "dates": dates
+        }
+        return allVals
