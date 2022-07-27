@@ -84,7 +84,8 @@ def historia(s_id):
                 "section": row["section"].replace('"','\\\"').replace("'","\\\'"),
                 "tags": list(row["tags"].replace('"','\\\"').replace("'","\\\'").split(",")),
                 "author": row["author"].replace('"','\\\"').replace("'","\\\'"),
-                "publication": row["publication"].replace('"','\\\"').replace("'","\\\'")
+                "publication": row["publication"].replace('"','\\\"').replace("'","\\\'"),
+                "publication_id": row["publication_id"],
             }
             if iExist == True: #ensure instances exist
                 geonoticia["instances"] = instances
@@ -93,112 +94,89 @@ def historia(s_id):
                 num_instances = len(instances)
                 print("num_instances: ",num_instances)
 
-                #Add a way to view related instances
-                try:
+                #Extract jornal info from database
+                try: 
                     with engine.connect() as conn:
-                        SQL = text("SELECT egazetteer.name, egazetteer.type, egazetteer.e_id, egaz_filter.total_count FROM (SELECT DISTINCT(COALESCE(instance_egaz.e_id,spatial_assoc.e_id)) AS e_id FROM apregoar.instances LEFT JOIN apregoar.instance_ugaz ON instances.i_id = instance_ugaz.i_id LEFT JOIN apregoar.spatial_assoc ON instance_ugaz.p_id = spatial_assoc.p_id LEFT JOIN apregoar.instance_egaz ON instances.i_id = instance_egaz.i_id WHERE s_id = :x) egaz_id LEFT JOIN apregoar.egazetteer ON egaz_id.e_id = egazetteer.e_id LEFT JOIN apregoar.egaz_filter ON egaz_id.e_id = egaz_filter.e_id")
-                        SQL = SQL.bindparams(x=s_id)
+                        SQL = text("SELECT * FROM apregoar.publications WHERE publication_id = :x")
+                        SQL = SQL.bindparams(x=geonoticia["publication_id"])
                         result = conn.execute(SQL)
-                        print("result: ",result)
                 except:
-                    print("problem with extraction of place")
+                    print("problem with extraction of publication information")
                     conn.close()
                 else:
-                    conn.close()
-                    nearbys = []
-                    p1 = []
-                    p2 = []
-                    p3 = []
-                    p4 = []
                     for row in result:
-                        ## New method
-                        
-                        
-                        nearby = {
-                            "name": row["name"].upper(),
-                            "type": row["type"],
-                            "e_id": row["e_id"],
-                            "count": row["total_count"],
-                            #"priority": priority,
+                        publication = {
+                            "p_name": row["publication_name"],
+                            "p_id": row["publication_id"],
+                            "p_colors": row["colors"],
+                            "p_sections": row["main_sections"],
                         }
-                        if row["type"] == "freguesia":
-                            nearby["priority"] = 1
-                            p1.append(nearby)
-                        elif row["type"] == "conselho":
-                            nearby["priority"] = 2
-                            p2.append(nearby)
-                        elif row["type"] == "concelho":
-                            nearby["priority"] = 2
-                            p2.append(nearby)
-                        elif row["type"] == "distrito":
-                            nearby["priority"] = 4
-                            p4.append(nearby)
-                        elif row["type"] == "":
-                            nearby["priority"] = 4
-                            p4.append(nearby)
-                        else:
-                            nearby["priority"] = 3
-                            p3.append(nearby)
-                    
-                    for n in p1:
-                        nearbys.append(n)
-                    for n in p2:
-                        nearbys.append(n)
-                    for n in p3:
-                        nearbys.append(n)
-                    for n in p4:
-                        nearbys.append(n)
-            
-                    print("nearbys: ",nearbys)
-                    return render_template("jornal/historia.html", num_instances=num_instances, instance=instance, geonoticia =geonoticia, nearbys = nearbys)   
-                return render_template("jornal/historia.html", num_instances=num_instances, instance=instance, geonoticia =geonoticia, nearbys = [])
-            return render_template("jornal/historia.html", num_instances=0, instance=[], geonoticia=geonoticia, nearbys = [])
+                    #Add a way to view related instances
+                    try:
+                        with engine.connect() as conn:
+                            SQL = text("SELECT egazetteer.name, egazetteer.type, egazetteer.e_id, egaz_filter.total_count FROM (SELECT DISTINCT(COALESCE(instance_egaz.e_id,spatial_assoc.e_id)) AS e_id FROM apregoar.instances LEFT JOIN apregoar.instance_ugaz ON instances.i_id = instance_ugaz.i_id LEFT JOIN apregoar.spatial_assoc ON instance_ugaz.p_id = spatial_assoc.p_id LEFT JOIN apregoar.instance_egaz ON instances.i_id = instance_egaz.i_id WHERE s_id = :x) egaz_id LEFT JOIN apregoar.egazetteer ON egaz_id.e_id = egazetteer.e_id LEFT JOIN apregoar.egaz_filter ON egaz_id.e_id = egaz_filter.e_id")
+                            SQL = SQL.bindparams(x=s_id)
+                            result = conn.execute(SQL)
+                            print("result: ",result)
+                    except:
+                        print("problem with extraction of place")
+                        conn.close()
+                    else:
+                        conn.close()
+                        nearbys = []
+                        p1 = []
+                        p2 = []
+                        p3 = []
+                        p4 = []
+                        for row in result:
+                            ## New method
+                            nearby = {
+                                "name": row["name"].upper(),
+                                "type": row["type"],
+                                "e_id": row["e_id"],
+                                "count": row["total_count"],
+                            }
+                            if row["type"] == "freguesia":
+                                nearby["priority"] = 1
+                                p1.append(nearby)
+                            elif row["type"] == "conselho":
+                                nearby["priority"] = 2
+                                p2.append(nearby)
+                            elif row["type"] == "concelho":
+                                nearby["priority"] = 2
+                                p2.append(nearby)
+                            elif row["type"] == "distrito":
+                                nearby["priority"] = 4
+                                p4.append(nearby)
+                            elif row["type"] == "":
+                                nearby["priority"] = 4
+                                p4.append(nearby)
+                            else:
+                                nearby["priority"] = 3
+                                p3.append(nearby)
+                        for n in p1:
+                            nearbys.append(n)
+                        for n in p2:
+                            nearbys.append(n)
+                        for n in p3:
+                            nearbys.append(n)
+                        for n in p4:
+                            nearbys.append(n)
+                
+                        print("nearbys: ",nearbys)
+                        print("publication: ",publication)
+                        return render_template("jornal/historia.html", num_instances=num_instances, instance=instance, geonoticia =geonoticia, nearbys = nearbys, publication = publication)   
+                    return render_template("jornal/historia.html", num_instances=num_instances, instance=instance, geonoticia =geonoticia, nearbys = [], publication = publication)
+            return render_template("jornal/historia.html", num_instances=0, instance=[], geonoticia=geonoticia, nearbys = [], publication = {})
     return render_template("user/index.html", notice="A história não  existe")
 
 #This an interim to capture the e_id passed from JS. It assigns the e_id as a session variable and passes it to a prettier URL that renders the jornal map
 @app.route("/<publication>/mapa/<e_id>", methods=["GET","POST"])
 def pub_map_specific(publication, e_id):
-    if request.method == "POST":
-        req = request.get_json()
-        #response = process_explore(req=req)
-        #return make_response(response,200)
-    else:
-        fsession["e_id"] = e_id
-        print("pub_map(publication,e_id)")
-        print("publication: ",publication)
-        print("e_id: ",e_id)
-        try:
-            with engine.connect() as conn:
-                SQL = text("SELECT publication_id, publication_name FROM apregoar.publications WHERE publication_name LIKE :x")
-                SQL = SQL.bindparams(x=publication.lower().replace("_"," "))
-                result = conn.execute(SQL)
-        except:
-            conn.close()
-            return redirect(url_for)
-        else:
-            for row in result:
-                fsession["p_name"] = row["publication_name"]                
-            return redirect(url_for("pub_map",publication=fsession["p_name"]))
-
-
-#Rely on existing explore.js to reduce dev.
-@app.route("/<publication>/mapa", methods=["GET","POST"])
-def pub_map(publication):
-    print("pub_map(publication)")
+    fsession["e_id"] = e_id
+    print("pub_map(publication,e_id)")
     print("publication: ",publication)
-    
-    try:
-        e_id = fsession["e_id"]
-        
-    except:
-        e_id = 0
-    else:
-        if e_id == 0:    
-            print("e_id: none")
-        else:
-            print("e_id: ",e_id)
-        fsession["e_id"] = 0
-    
+    print("e_id: ",e_id)
     try:
         with engine.connect() as conn:
             SQL = text("SELECT publication_id, publication_name FROM apregoar.publications WHERE publication_name LIKE :x")
@@ -206,16 +184,90 @@ def pub_map(publication):
             result = conn.execute(SQL)
     except:
         conn.close()
-        return render_template("explore/explore_map.html")
+        return redirect(url_for("explore"))
     else:
         for row in result:
-            p_id = row["publication_id"]
-            publication = {
-                "p_id": p_id,
-                "p_name": row["publication_name"],
-            }
-            jVals = prepare_exploreJ(p_id)
-            return render_template("jornal/jornal_map.html", publication = publication ,e_id=e_id, jVals = jVals)
+            fsession["p_name"] = row["publication_name"]                
+        return redirect(url_for("pub_map",publication=fsession["p_name"]))
+
+
+#Rely on existing explore.js to reduce dev.
+@app.route("/<publication>/mapa", methods=["GET","POST"])
+def pub_map(publication):
+    print("pub_map(publication)")
+    print("publication: ",publication)
+
+    if request.method == "POST":
+        req = request.get_json()
+        response = process_explore(req=req)
+        return make_response(response,200)
+    else:
+        #Determine if any e_id have been passed with the publication
+        try:
+            e_id = fsession["e_id"] 
+        except:
+            e_id = 0
+        else:
+            if e_id == 0:    
+                print("e_id: none")
+            else:
+                print("e_id: ",e_id)
+            fsession["e_id"] = 0
+        
+        try:
+            with engine.connect() as conn:
+                SQL = text("SELECT publication_id, publication_name, colors, main_sections FROM apregoar.publications WHERE publication_name LIKE :x")
+                SQL = SQL.bindparams(x=publication.lower().replace("_"," "))
+                result = conn.execute(SQL)
+        except:
+            conn.close()
+            return render_template("explore/explore_map.html")
+        else:
+            for row in result:
+                p_id = row["publication_id"]
+                p_sections = row["main_sections"]
+                
+                publication = {
+                    "p_id": p_id,
+                    "p_name": row["publication_name"],
+                    "p_colors": row["colors"],
+                }
+                jVals = prepare_exploreJ(p_id)
+                #Determining main sections for jornal
+                counter = 0
+                counterMax = 5
+                big_section = []
+                print("p_sections: ",p_sections, type(p_sections))
+                if len(p_sections) > 1:
+                    if len(p_sections) < counterMax:
+                        counterMax = len(p_sections)
+                    
+                    for section in p_sections:
+                        if section in jVals["sections"]:
+                            big_section.append(section)
+                            if (counter == counterMax):
+                                break
+                            counter += 1
+                    if counter < counterMax:
+                        for section in jVals["sections"]:
+                            if section not in big_section:
+                                big_section.append(section)
+                            if (counter == counterMax):
+                                break
+                            counter += 1
+                else:
+                    if len(jVals["sections"]) < counterMax:
+                        counterMax = len(jVals["sections"])
+                    for section in jVals["sections"]:
+                        big_section.append(section)
+                        if (counter == counterMax):
+                                break
+                        counter += 1
+                print("counterMax = ",counterMax,". counter: ",counter)
+                big_section2 = []
+                for i in big_section:
+                    big_section2.append(i.upper())
+                return render_template("jornal/jornal_map.html", publication = publication ,e_id=e_id, jVals = jVals,bigSections = big_section2)
     return render_template("explore/explore_map.html")
     
 
@@ -335,7 +387,7 @@ def prepare_exploreJ(p_id):
         sections = {}
         try:
             with engine.connect() as conn:
-                SQL = text("SELECT s.s_id, section_name, count FROM (SELECT sectioning.s_id, COUNT(*) AS count FROM apregoar.stories LEFT JOIN apregoar.publicationing ON stories.s_id = publicationing.story_id LEFT JOIN apregoar.sectioning ON stories.s_id = sectioning.story_id  WHERE p_id = :x GROUP BY sectioning.s_id) s LEFT JOIN apregoar.sections ON s.s_id = sections.section_id ORDER BY section_name")
+                SQL = text("SELECT s.s_id, section_name, count FROM (SELECT sectioning.s_id, COUNT(*) AS count FROM apregoar.stories LEFT JOIN apregoar.publicationing ON stories.s_id = publicationing.story_id LEFT JOIN apregoar.sectioning ON stories.s_id = sectioning.story_id  WHERE p_id = :x GROUP BY sectioning.s_id) s LEFT JOIN apregoar.sections ON s.s_id = sections.section_id ORDER BY count DESC")
                 SQL = SQL.bindparams(x = p_id)
                 result = conn.execute(SQL)
         except: 
