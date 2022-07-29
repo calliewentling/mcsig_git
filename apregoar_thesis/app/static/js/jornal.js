@@ -126,10 +126,11 @@ var map = new ol.Map({
 });
 
 /* Preparing highlight maps of selected instances */
-fillColor = 'rgba(255,255,255,0.6';
+fillColor = 'rgba(255,255,255,0.05)';
 const style = new ol.style.Style({
     fill: new ol.style.Fill({
         color: fillColor,
+        //opacity: .002,
     }),
     stroke: new ol.style.Stroke({
         color: pubColor,
@@ -155,6 +156,7 @@ const highlightStyle = new ol.style.Style({
     }),
     fill: new ol.style.Fill({
         color: fillColor,
+        opacity: .2,
     }),
     text: new ol.style.Text({
         font: '14px Calibri,sans-serif',
@@ -175,7 +177,7 @@ const infoStyle = new ol.style.Style({
     }),
     fill: new ol.style.Fill({
         color: pubColor+'80',
-        opacity: .6,
+        opacity: .2,
     }),
     text: new ol.style.Text({
         font: '14px Calibri,sans-serif',
@@ -499,6 +501,116 @@ else if (doc_source == "jornal_map"){
             return style;
         },
     });
+
+    //Initialize Sliders
+    //SLIDERS
+    
+
+
+    let containerSlider = document.getElementById("containerSlider");
+    var sliderOne = document.createElement("input");
+    sliderOne.id = "slider-1";
+    sliderOne.type = "range";
+    sliderOne.min = Date.parse(iDate1);
+    console.log("sliderOne.min: ",sliderOne.min)
+    sliderOne.max = Date.parse(iDate2);
+    sliderOne.value = Date.parse(iDate1);
+    sliderOne.oninput = slideOne;
+    containerSlider.appendChild(sliderOne);
+    var sliderTwo = document.createElement("input");
+    sliderTwo.id = "slider-2";
+    sliderTwo.type = "range";
+    sliderTwo.min = Date.parse(iDate1);
+    sliderTwo.max = Date.parse(iDate2);
+    sliderTwo.value = Date.parse(iDate2);
+    sliderTwo.oninput = slideTwo;
+    containerSlider.appendChild(sliderTwo);
+
+    
+    let displayValOne = document.getElementById("range1");
+    let displayValTwo = document.getElementById("range2");
+    let minGap = 0;
+    let sliderTrack = document.querySelector(".slider-track");
+
+    window.onload = function(){
+        slideOne();
+        slideTwo();
+    }
+    
+    //SLIDERS
+    function slideOne(){
+        console.log("Entering slideOne");
+        if(sliderTwo.value - sliderOne.value <= minGap){
+            sliderOne.value = Date.parse(sliderTwo.value - minGap);
+        }
+        var s1 = sliderOne.value/1000;
+        console.log("s1: ",s1);
+        var s11 = 
+        console.log("s11: ", s11);
+        displayValOne.textContent = new Date(sliderOne.value/1).toDateString();;
+
+        fillColor();
+        console.log("Leaving slideOne");
+    }
+    function slideTwo(){
+        console.log("Entering slideTwo");
+        if(parseInt(sliderTwo.value) - parseInt(sliderOne.value) <= minGap){
+            sliderTwo.value = Date.parse(parseInt(sliderOne.value) + minGap);
+        }
+        displayValTwo.textContent = new Date(sliderTwo.value/1).toDateString();;
+        fillColor();
+        console.log("Leaving slideTwo");
+    }
+    function fillColor(){
+        console.log("Entering fillColor");
+        percent1 = (parseInt(sliderOne.value-sliderOne.min) / parseInt(document.getElementById("slider-1").max-document.getElementById("slider-1").min)) * 100;
+        percent2 = (parseInt(sliderTwo.value-sliderOne.min) / parseInt(document.getElementById("slider-1").max-document.getElementById("slider-1").min)) * 100;
+        sliderTrack.style.background = `linear-gradient(to right, #dadae5 ${percent1}% , var(--pub-colorL) ${percent1}% , var(--pub-colorL) ${percent2}%, #dadae5 ${percent2}%)`;
+        console.log("Leaving fillColor");
+    }
+    function adjustRange(){
+        console.log("Entering adjustRange");
+        const iRecent = document.getElementById("ifromforever");
+        if (iRecent.checked){
+            const today = new Date();
+            const r1 = Date.parse(new Date(today.getFullYear()-1, today.getMonth(), today.getDate()));
+            const r2 = Date.parse(new Date(today.getFullYear()+1, today.getMonth(), today.getDate()));
+            
+            
+            if (r1 > Date.parse(iDate1)){
+                if (sliderOne.value < r1){
+                    sliderOne.value = r1;
+                }
+                sliderOne.min = r1;
+                sliderTwo.min = r1;
+            }
+            if (r2 < Date.parse(iDate2)){
+                if (sliderTwo.value > r2){
+                    sliderTwo.value = r2
+                }
+                sliderOne.max = r2;
+                sliderTwo.max = r2;
+            }
+            
+            
+
+            slideOne();
+            slideTwo();
+            
+
+        } else {
+            sliderOne.min = Date.parse(iDate1);
+            sliderOne.max = Date.parse(iDate2);
+            sliderTwo.min = Date.parse(iDate1);
+            sliderTwo.max = Date.parse(iDate2);
+
+            slideOne();
+            slideTwo();
+        }
+        console.log("Leaving adjustRange");
+    }
+
+
     filterAllVals();
     /*
     //This should be dynamically updatesa call to exploreFilters.
@@ -668,6 +780,7 @@ function filterAllVals(){
     console.log("Leaving filterAllVals");
 };
 
+//// SKELETON LOADING INDICATIONS
 function removeSkeleton(){
     console.log("Entering removeSkeleton");
     var getSkeleton = document.getElementsByClassName("skeleton");
@@ -682,3 +795,128 @@ function removeSkeleton(){
     });
     console.log("Leaving removeSkeleton");
 };
+
+
+/// MULTICHECKBOXES
+$(document).ready(function () {
+    $("#checksTags").CreateMultiCheckBox({ width: '230px', defaultText : 'Tags', height:'250px', multiName: "checkTags" });
+    $("#checksAuthors").CreateMultiCheckBox({ width: '230px', defaultText : 'Escritores', height:'250px', multiName: "checkAuthors"});
+});
+
+$(document).ready(function () {
+    $(document).on("click", ".MultiCheckBox", function () {
+        var detail = $(this).next();
+        detail.show();
+    });
+
+    $(document).on("click", ".MultiCheckBoxDetailHeader input", function (e) {
+        //This should be accessed to remove everything from selection;
+        e.stopPropagation();
+        var hc = $(this).prop("checked");
+        $(this).closest(".MultiCheckBoxDetail").find(".MultiCheckBoxDetailBody input").prop("checked", hc);
+        $(this).closest(".MultiCheckBoxDetail").next().UpdateSelect();
+    });
+
+    $(document).on("click", ".MultiCheckBoxDetailHeader", function (e) {
+        //console.log("This enters a check all scenario");
+        var inp = $(this).find("input");
+        var chk = inp.prop("checked");
+        inp.prop("checked", !chk);
+        $(this).closest(".MultiCheckBoxDetail").find(".MultiCheckBoxDetailBody input").prop("checked", !chk);
+        $(this).closest(".MultiCheckBoxDetail").next().UpdateSelect();
+    });
+
+    $(document).on("click", ".MultiCheckBoxDetail .cont input", function (e) {
+        e.stopPropagation();
+        $(this).closest(".MultiCheckBoxDetail").next().UpdateSelect();
+
+        var val = ($(".MultiCheckBoxDetailBody input:checked").length == $(".MultiCheckBoxDetailBody input").length)
+        $(".MultiCheckBoxDetailHeader input").prop("checked", val);
+    });
+
+    $(document).on("click", ".MultiCheckBoxDetail .cont", function (e) {
+        var inp = $(this).find("input");
+        var chk = inp.prop("checked");
+        inp.prop("checked", !chk);
+
+        var multiCheckBoxDetail = $(this).closest(".MultiCheckBoxDetail");
+        var multiCheckBoxDetailBody = $(this).closest(".MultiCheckBoxDetailBody");
+        multiCheckBoxDetail.next().UpdateSelect();
+        
+
+        var val = ($(".MultiCheckBoxDetailBody input:checked").length == $(".MultiCheckBoxDetailBody input").length)
+        $(".MultiCheckBoxDetailHeader input").prop("checked", val);
+        
+    });
+
+    $(document).mouseup(function (e) {
+        var container = $(".MultiCheckBoxDetail");
+        if (!container.is(e.target) && container.has(e.target).length === 0) {
+            container.hide();
+        }
+    });
+});
+var defaultMultiCheckBoxOption = { width: '220px', defaultText: "Selecionar", height: '200px' }
+jQuery.fn.extend({
+    CreateMultiCheckBox: function (options) {
+
+        var localOption = {};
+        localOption.width = (options != null && options.width != null && options.width != undefined) ? options.width : defaultMultiCheckBoxOption.width;
+        localOption.defaultText = (options != null && options.defaultText != null && options.defaultText != undefined) ? options.defaultText : defaultMultiCheckBoxOption.defaultText;
+        localOption.height = (options != null && options.height != null && options.height != undefined) ? options.height : defaultMultiCheckBoxOption.height;
+        this.hide();
+        this.attr("multiple", "multiple");
+        //console.log("this: ",this[0].id);
+        var divSel = $("<div class='MultiCheckBox' id='"+this[0].id+"Vals'>" + localOption.defaultText + "<span class='k-icon k-i-arrow-60-down'><svg aria-hidden='true' focusable='false' data-prefix='fas' data-icon='sort-down' role='img' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512' class='svg-inline--fa fa-sort-down fa-w-10 fa-2x'><path fill='currentColor' d='M41 288h238c21.4 0 32.1 25.9 17 41L177 448c-9.4 9.4-24.6 9.4-33.9 0L24 329c-15.1-15.1-4.4-41 17-41z' class=''></path></svg></span></div>").insertBefore(this);
+        divSel.css({ "width": localOption.width });
+
+        var detail = $("<div class='MultiCheckBoxDetail'><div class='MultiCheckBoxDetailHeader'><input type='checkbox' class='mulinput' value='-1982' /><div>Tudo</div></div><div class='MultiCheckBoxDetailBody'></div></div>").insertAfter(divSel);
+        detail.css({ "width": parseInt(options.width) + 10, "max-height": localOption.height });
+        var multiCheckBoxDetailBody = detail.find(".MultiCheckBoxDetailBody");
+
+        this.find("option").each(function () {
+            var val = $(this).attr("value");
+
+            if (val == undefined)
+                val = '';
+
+            multiCheckBoxDetailBody.append("<div class='cont'><div><input type='checkbox' class='mulinput' value='" + val + "' /></div><div>" + $(this).text() + "</div></div>");
+        });
+
+        multiCheckBoxDetailBody.css("max-height", (parseInt($(".MultiCheckBoxDetail").css("max-height")) - 28) + "px");
+
+    },
+    UpdateSelect: function () {
+        var arr = [];
+        var filterName = this[0].id.replace("checks","");
+        var filterMultiName = this[0].id+'Vals';
+        const filterMulti = document.getElementById(filterMultiName);
+
+        this.prev().find(".mulinput:checked").each(function () {
+            arr.push($(this).val());
+        });
+
+        this.val(arr);
+        console.log("arr ",arr);
+        allFilters[filterName] = arr;
+
+        // Gathering values of inputs & updating dropdown viz based on selections
+        filterVals = [];
+        /*this.prev().find(".mulinput:checked").each(function() {
+            filterVals.push($(this).attr("value"));
+        })*/
+        const attrFilters = document.getElementById("attrFilters");
+        if (arr.length < 1) {
+            filterVals = filterName;
+        } else if (arr.length > 3) {
+            filterVals = "("+arr.length+" "+ filterName.toLowerCase() +" selecionados)"
+        } else {
+            filterVals = arr
+        }
+        //attrFilters.innerHTML = filterVals;
+        filterMulti.innerHTML= filterVals+"<span class='k-icon k-i-arrow-60-down'><svg aria-hidden='true' focusable='false' data-prefix='fas' data-icon='sort-down' role='img' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512' class='svg-inline--fa fa-sort-down fa-w-10 fa-2x'><path fill='currentColor' d='M41 288h238c21.4 0 32.1 25.9 17 41L177 448c-9.4 9.4-24.6 9.4-33.9 0L24 329c-15.1-15.1-4.4-41 17-41z' class=''></path></svg></span>";
+    },
+});
+
+
+

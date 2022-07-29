@@ -205,52 +205,233 @@
 
 .centerArea{
     width: 100%;
-    height: 60%;
+    height: 450px;
     position: absolute;
+    padding: 20px;
 }
 
-
-.seeAuthors {
-    left: 0;
-    width: 20%;
-    padding: 10px;
-    display: inline-block;
+.seeFilters{
+    width: 25%;
     height: 100%;
     overflow-y: auto;
+    display: inline-block;
+}
+
+.seeAuthors, .seeTags {
+    left: 0;
+    width: 100%;
+    padding: 10px;
+}
+
+.filtrarB {
+    padding: 10px;
+    margin: 10px;
 }
 
 .mapArea {
     display: inline-block;
-    width: 50%;
+    width: 70%;
 }
 
 .mapAll {
-    height: 70%;
-    width: 85%;
-    position: fixed;
+    height: 450px;
+    width: 100%;
+    position: relative;
     border-radius: 5px;
     cursor: pointer;
     border-radius: 5px;
     padding: 10px;
     margin: 10px;
     background: white;
-    bottom: 100px;
-    right: 0px;
+    top: 0px;
 }
 
-.seeTags{
-    right: 0;
-    width: 20%;
-    padding: 10px;
-    display: inline-block;
-    overflow-y: auto;
-    height: 100%;
+
+
+/* MULTICHECK BOX */
+
+.MultiCheckBox {
+    border:1px solid var(--pub-color);
+    padding: 5px;
+    border-radius:5px;
+    cursor:pointer;
 }
+
+.MultiCheckBox .k-icon{ 
+    font-size: 15px;
+    float: right;
+    font-weight: bolder;
+    margin-top: -7px;
+    height: 10px;
+    width: 14px;
+    color:var(--pub-colorL);
+} 
+
+.MultiCheckBoxDetail {
+    display:none;
+    position:relative; /*cgw updated! Originally absolute (must scroll to find if filter is already scrolled). Fixed gets lost if scrolled. Sticky & static makes incur spaces to accommodate the list but its clear where it is and returns after*/
+    border:1px solid var(--pub-color);
+    background-color:#ffffff;
+    overflow-y:hidden;
+}
+
+.MultiCheckBoxDetailBody {
+    overflow-y:scroll;
+}
+
+    .MultiCheckBoxDetail .cont  {
+        clear:both;
+        overflow: hidden;
+        padding: 2px;
+    }
+
+    .MultiCheckBoxDetail .cont:hover  {
+        background-color:var(--pub-colorL);
+    }
+
+    .MultiCheckBoxDetailBody > div > div {
+        float:left; 
+    }
+
+.MultiCheckBoxDetail>div>div:nth-child(1) {
+
+}
+
+.MultiCheckBoxDetailHeader {
+    overflow:hidden;
+    position:relative;
+    height: 28px;
+    background-color:var(--pub-color);
+}
+
+    .MultiCheckBoxDetailHeader>input {
+        position: absolute;
+        top: 4px;
+        left: 3px;
+    }
+
+    .MultiCheckBoxDetailHeader>div {
+        position: absolute;
+        top: 5px;
+        left: 24px;
+        color:#fff;
+    }
 
 .timeArea {
-    bottom: 0;
-    display: absolute;
-    width: 85%;
+    bottom: 0px;
+    position: fixed;
+    width: 80%;
     height: 100px;
-}
+    align-items: center;
+    justify-content: center;
 
+}
+/* SLIDERS */
+.wrapperSlider{
+    position: fixed;
+    bottom: 0px;
+    width: 90%;
+    background-color: transparent;
+    padding:0 20px 20px;
+    border-radius: 10px;
+    margin-left: 5%;
+    margin-right: 5%;
+    align-items: center;
+    justify-content: center;
+}
+.containerSlider{
+    position: relative;
+    width: 100%;
+    height: 70px;
+    margin-top: 0px;
+}
+input[type="range"]{
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 100%;
+    outline: none;
+    position: absolute;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+    background-color: transparent;
+    pointer-events: none;
+}
+.slider-track{
+    width: 100%;
+    height: 5px;
+    position: absolute;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+    border-radius: 5px;
+}
+input[type="range"]::-webkit-slider-runnable-track{
+    -webkit-appearance: none;
+    height: 5px;
+}
+input[type="range"]::-moz-range-track{
+    -moz-appearance: none;
+    height: 5px;
+}
+input[type="range"]::-ms-track{
+    appearance: none;
+    height: 5px;
+}
+input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance: none;
+    height: 1.7em;
+    width: 1.7em;
+    background-color: var(--pub-color);
+    cursor: pointer;
+    margin-top: -9px;
+    pointer-events: auto;
+    border-radius: 50%;
+}
+input[type="range"]::-moz-range-thumb{
+    -webkit-appearance: none;
+    height: 1.7em;
+    width: 1.7em;
+    cursor: pointer;
+    border-radius: 50%;
+    background-color: var(--pub-color);
+    pointer-events: auto;
+}
+input[type="range"]::-ms-thumb{
+    appearance: none;
+    height: 1.7em;
+    width: 1.7em;
+    cursor: pointer;
+    border-radius: 50%;
+    background-color: var(--pub-color);
+    pointer-events: auto;
+}
+input[type="range"]:active::-webkit-slider-thumb{
+    background-color: #ffffff;
+    border: 3px solid var(--pub-color);
+}
+.valuesSlider{
+    background-color: var(--pub-color);
+    position: relative;
+    width: 32%;
+    margin: auto;
+    padding: 10px 0;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 14px;
+    color: #ffffff;
+}
+.valuesSlider:before{
+    content: "";
+    position: absolute;
+    height: 0;
+    width: 0;
+    border-top: 15px solid var(--pub-color);
+    border-left: 15px solid transparent;
+    border-right: 15px solid transparent;
+    margin: auto;
+    bottom: -14px;
+    left: 0;
+    right: 0;
+}

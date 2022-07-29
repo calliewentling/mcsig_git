@@ -3,6 +3,9 @@
 {% block title %}{{ publication.p_name }}{% endblock %}
 
 {% block main %}
+
+
+
 <div class="jTitle">
     <h1>{{ publication.p_name }}</h1>
 </div>
@@ -20,31 +23,56 @@
 
 
 <div class="centerArea">
-    <div class="seeAuthors">
-        {% for i in jVals.authors %}
-            {% set name = i %}
-            {% set count = jVals.authors[i]["total_a"] %}
-            <button value="{{ name }}">{{ name }} ({{ count }})</button>
-        {% endfor %}
+    <div class="bubbleFilters"></div>
+    <div class="seeFilters">
+        <div class="seeAuthors">
+            <select id="checksAuthors">
+                {% for i in jVals.authors %}
+                    {% set name = i %}
+                    {% set count = jVals.authors[i]["total_a"] %}
+                    <option value="{{ name }}">{{ name }} ({{ count }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="seeTags">
+            <select id="checksTags">
+                {% for i in jVals.tags %}
+                    {% set name = i %}
+                    {% set count = jVals.tags[i]["total_t"] %}
+                    <option value="{{ name }}">{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <br>
+        <div class="filterReady">
+            <button class="maisB filtrarB">Atualizar</button>
+        </div>
+        <div class="resultsArea"></div>
     </div>
-
     <div class="mapArea">
         <div id="map" class="mapAll"></div>
     </div>
-    
-    <div class="seeTags">
-        {% for i in jVals.tags %}
-            {% set name = i %}
-            {% set count = jVals.tags[i]["total_t"] %}
-            <button value="{{ name }}">{{ name }}</button>
-        {% endfor %}
-    </div>
-
 </div>
 
 <div id="timeAdjust" class="timeArea">
-    {{ jVals.dates.pubdate1}} - {{ jVals.dates.pubdate2}}
+    <div class="wrapperSlider">
+        <div class="valuesSlider">
+            <span id="range1">{{ jVals.dates.idate1}}</span>
+            <span> &dash; </span>
+            <span id="range2">{{ jVals.dates.idate2 }}</span>
+        </div>
+        <div id = "containerSlider" class="containerSlider">
+            <div class="slider-track"></div>
+            <!--
+            <input type="range" min="{{ jVals.dates.pubdate1}}" max="{{ jVals.dates.pubdate2}}" value="{{ jVals.dates.pubdate1}}" id="slider-1" oninput="slideOne()">
+            <input type="range" min="{{ jVals.dates.pubdate1}}" max="{{ jVals.dates.pubdate2}}" value="{{ jVals.dates.pubdate2}}" id="slider-2" oninput="slideTwo()">
+            -->
+        </div>
+        <input type="checkbox" id="ifromforever" name="ifromforever" value="ifromforever" oninput="adjustRange()">
+        <label for="ifromforever">Só inclui instâncias dentro um ano</label>
+    </div>
 </div>
+
 
 
 
@@ -56,6 +84,8 @@
     jVals = JSON.parse('{{ jVals | tojson | safe }}');
     const pubDate1 = new Date('{{ jVals.pub_date_range.min }}');
     const pubDate2 = new Date('{{ jVals.pub_date_range.max }}');
+    const iDate1 = new Date('{{ jVals.dates.idate1 }}');
+    const iDate2 = new Date('{{ jVals.dates.idate2 }}');
 </script>
 
 <script src="{{ url_for('static', filename='js/jornal.js') }}"></script>
