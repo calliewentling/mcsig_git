@@ -159,6 +159,16 @@
                     <div id="buttonZoomGeonames" style="display:none">
                         <button type="button" onclick="zoomGeonames()">Zoom</button>
                     </div>
+
+                    <div id="poiNominatim" style="display:block">
+                        <button type="button" class="btn btn-primary" onclick="searchNominatim()">OSM Gazetteer</button>
+                        <br>
+                        <select id='select_nominatim' name="selectNominatim" multiple style="display:none"></select>
+                    </div>
+                    <div id="buttonZoomNominatim" style="display:none">
+                        <button type="button" onclick="zoomNominatim()">Zoom</button>
+                    </div>
+
                     
                     <div style="display:none">
                         <p>Número dos polígonos:</p>
@@ -234,6 +244,7 @@
                         <br>
                         <select id='select_egaz_archive' name="selectEgazArchive" multiple style="display:none"></select>
                     </div>
+                    
                 </div>
                 <br><br>
                 <button type="button" class="btn btn-primary" onclick="initGaz()">Prever</button>

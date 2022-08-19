@@ -243,11 +243,13 @@ function toggleLocalization(){
     var eGazMap = document.getElementById("eGazMap");
     var toggleMode = document.getElementById("toggleMode");
     var poiGaz = document.getElementById("poiGaz");
+    var poiNominatim = document.getElementById("poiNominatim");
     //If the checkbox is checked, display the output text
     if (tswitch.checked == true){
         console.log("CREATE NEW UGAZ MODE");
         toggleMode.innerHTML = "Desenhar localização";
         poiGaz.style.display = "block";
+        poiNominatim.style.display = "block";
         //Draw new areas on the map
         const modifyDraw = new ol.interaction.Modify({
             source: drawSource,
@@ -279,6 +281,7 @@ function toggleLocalization(){
         console.log("UGAZ MODIFY MODE");
         toggleMode.innerHTML = "Ver localizações";
         poiGaz.style.display = "none";
+        poiNominatim.style.display = "none";
         //remove interactivity
         mapGaz.removeInteraction(drawDraw);
         mapGaz.removeInteraction(snapDraw); 
@@ -563,6 +566,141 @@ function zoomGeonames(){
     mapGaz.getView().fit(ol.extent.buffer(layerExtent, .01));
 }
 
+let libraryNominatim;
+
+//Calling RESTAPI of geonames to search gazetteer
+function searchNominatim() {
+    var selectNominatim = document.getElementById('select_nominatim');
+    var buttonZoomNominatim = document.getElementById("buttonZoomNominatim");
+    buttonZoomNominatim.style.display="none";
+    while (selectNominatim.hasChildNodes()) {
+        selectNominatim.removeChild(selectNominatim.firstChild);
+    }
+    selectNominatim.style.display="none";
+    var searchTerm = prompt("Pode especificar a pesquisa para Nominatim:");
+    encodedSearch = encodeURIComponent(searchTerm);
+    //var url = "http://api.geonames.org/search?q="+encodedSearch+"&east=-7.74577887999189&west=-9.517104891617194&north=39.83801908704823&south=38.40907442337447&type=json&isNameRequired=true&maxRows=20&username=cwentling";
+    var url = "https://nominatim.openstreetmap.org/search?q="+encodedSearch+"&format=jsonv2&countrycodes=pt&limit=50&viewbox=-7.74577887999189,39.83801908704823,-9.517104891617194,38.40907442337447&polygon_geojson=1"
+    console.log("URL: ",url);
+    fetch(url)
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('HTTP error! Status: ${ resonse.status }');
+            }
+            return response.json();
+        })
+        .then((response) => {
+            console.log("Response: ",response);
+            var nominatim = response;
+            const totalResults = nominatim.length;
+            console.log("totalResults: ",totalResults);
+            libraryNominatim = {};
+            
+            if (totalResults == 0) {
+                geonamesComment.innerHTML = "<i>Desculpa, pesquisa sem resultos</i>";
+                selectGeonames.style.display="none";
+            } else {
+                for (var i=0; i < nominatim.length; i++) {
+                    var option = document.createElement("option");
+                    option.textContent = nominatim[i]["display_name"];
+                    console.log("option text: ",option.textContent);
+                    option.value = JSON.stringify(nominatim[i]["geojson"]);
+                    nameN = nominatim[i]["display_name"];
+                    const geojson = JSON.stringify(nominatim[i]["geojson"]);
+                    console.log("geojson ",geojson);
+                    selectNominatim.appendChild(option);
+                    libraryNominatim[nameN] = geojson;
+                }
+                selectNominatim.style.display="block";
+                buttonZoomNominatim.style.display="block";
+            }
+            console.log("libraryNominatim: ", libraryNominatim);
+            
+        })
+}
+
+
+var sourceNominatimPoly = new ol.source.Vector();
+
+// Zooming to GeoNames results
+function zoomNominatim(){
+    console.log("Entering zoomNominatim");
+    var sourceNominatimPoint = new ol.source.Vector();
+    sourceNominatimPoly.clear();
+    var selectNominatim = document.getElementsByName("selectNominatim")[0];
+    for (var i=0; i<selectNominatim.length; i++){
+        if (selectNominatim[i].selected){
+            console.log("selectNominatim[i]: ",selectNominatim[i]);
+            console.log("selectNominatim[i]['value']: ",selectNominatim[i]['value']);
+            const geojson = JSON.parse(selectNominatim[i]['value']);
+            console.log("geojson: ",geojson); 
+            const coords = geojson["coordinates"];
+            console.log("coords:", coords);
+            const geomType = geojson["type"];
+            console.log("geomType ",geomType);
+            //let feature;
+            if (geomType =="Polygon"){
+                var feature = new ol.Feature({
+                    geometry: new ol.geom.Polygon(coords),
+                    name: selectNominatim["name"]
+                });
+                sourceNominatimPoly.addFeature(feature);
+                console.log("feature.getGeometry(): ",feature.getGeometry());
+            } else if (geomType == "Point"){
+                feature = new ol.Feature({
+                    geometry: new ol.geom.Point(coords),
+                    name: selectNominatim["name"]
+                })
+                sourceNominatimPoint.addFeature(feature);
+                console.log("feature.getGeometry(): ",feature.getGeometry());
+            } else {
+                console.log("No valid geomType");
+            }
+            
+            //console.log("feature geom: ",feature["geometry"]);
+            
+            //var pGeom = feature.getGeometry();
+            //console.log("pGeom: ",pGeom);
+            //var gFeatures = sourceNominatim.getFeatures();
+            //console.log("gFeatures: ",gFeatures);
+        }
+    }
+    var layerNominatimPoly = new ol.layer.Vector({
+        source: sourceNominatimPoly,
+        style: new ol.style.Style({
+            stroke: new ol.style.Stroke({
+                color: 'rgba(238,130,238,1)',
+                width: '2',
+            }),
+            fill: new ol.style.Fill({
+                color: 'rgba(238,130,238,.25)',
+            }),
+        }),
+    });
+    var layerNominatimPoint = new ol.layer.Vector({
+        source: sourceNominatimPoly,
+        style: new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 4,
+                fill: new ol.style.Fill({
+                    color: 'rgba(238,130,238,.24)',
+                }),
+                stroke: new ol.style.Stroke({
+                    width: '2',
+                    color: 'rgba(238,130,238,1)',
+                }),                
+            }),
+        }),
+    });
+    
+    //REUNITE
+    mapGaz.addLayer(layerNominatimPoly);
+    mapGaz.addLayer(layerNominatimPoint);
+    var layerExtent = ol.extent.extend(sourceNominatimPoly.getExtent(),sourceNominatimPoint.getExtent());
+    console.log("layerExtent: ",layerExtent);
+    mapGaz.getView().fit(ol.extent.buffer(layerExtent, .01));
+}
+
 
 // Adding fetch to search through all previous areas
 const selectPrev = document.getElementById("selectPrev");
@@ -764,8 +902,6 @@ const wmsLayerPOI = new ol.layer.Image({
 });
 mapGaz.addLayer(wmsLayerPOI);
 console.log("POI Layer added");
-
-
 
 
 function prepGaz(selectedGaz,selectedInt) {
