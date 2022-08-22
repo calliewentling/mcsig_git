@@ -153,6 +153,7 @@
                     <div id="poiGaz" style="display:block">
                         <button type="button" onclick="searchGeoNames()">GeoNames</button>
                         <br>
+                        
                         <select id='select_geonames' name="selectGeonames" multiple style="display:none"></select>
                         <div id="geonamesComment"></div>
                     </div>
@@ -163,7 +164,7 @@
                     <div id="poiNominatim" style="display:block">
                         <button type="button" class="btn btn-primary" onclick="searchNominatim()">OSM Gazetteer</button>
                         <br>
-                        <select id='select_nominatim' name="selectNominatim" multiple style="display:none"></select>
+                        <select id='guide_nominatim' name="guideNominatim" multiple style="display:none"></select> 
                     </div>
                     <div id="buttonZoomNominatim" style="display:none">
                         <button type="button" onclick="zoomNominatim()">Zoom</button>
@@ -244,8 +245,16 @@
                         <br>
                         <select id='select_egaz_archive' name="selectEgazArchive" multiple style="display:none"></select>
                     </div>
-                    
                 </div>
+                <div class="containerG grid">
+                    <div class = "itemG">
+                        <button type="button" class="btn btn-primary" onclick="searchNominatim()">OSM Gazetteer</button>
+                        <br>                
+                        <select id='select_nominatim' name="selectNominatim" multiple style="display:none"></select>
+                    </div>
+                </div>
+                    
+                    
                 <br><br>
                 <button type="button" class="btn btn-primary" onclick="initGaz()">Prever</button>
 

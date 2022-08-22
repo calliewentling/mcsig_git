@@ -380,8 +380,11 @@ def review_e(s_id):
                     print("Passed delete from instance_ugaz")
                     cur.execute("DELETE FROM apregoar.instance_egaz WHERE i_id = ANY (%s);", (delete_inst,))
                     print("Passed delete from instance_egaz")
+                    cur.execute("DELETE FROM apregoar.instance_ngaz WHERE i_id = ANY (%s);",(delete_inst,))
+                    print("Passed delete from instance_ngaz")        
                     cur.execute("DELETE FROM apregoar.instances WHERE i_id = ANY (%s);", (delete_inst,))
-                    print("Passed delete from instances")                      
+                    print("Passed delete from instances")   
+                               
         except psycopg2.Error as e:
             #If not submitted, attempt to create again
             print("e.pgerror:",e.pgerror)
@@ -1000,6 +1003,7 @@ def save_instance(s_id):
     t_desc = instance["tDesc"]
     e_ids = instance["eIds"]
     p_ids = instance["pIds"]
+    nominatims = instance["nominatims"]
 
     #Extract geometry in correct format from user input
     #UGaz
@@ -1140,6 +1144,66 @@ def save_instance(s_id):
                 else:
                     print("No new features created")
                     p_id = None
+
+                ### Setting up Nominatim table
+                if nominatims:
+                    print("nominatims: ",nominatims)
+                    for place in nominatims:
+                        osm_id = place["id"]
+                        name = place["name"]
+                        nomExists = False
+                        geojson = json.dumps(place["geojson"])
+                        print("type of geojson: ",type(geojson))
+                        all_coords= place["geojson"]["coordinates"]
+                        multiShape = []
+                        for i in range(len(all_coords)):
+                            shape_coords = all_coords[i]
+                            shapeP = Polygon(shape_coords)
+                            multiShape.append(shapeP)
+                        multiP= MultiPolygon(multiShape)
+                        
+                    
+                        cur.execute("""
+                            SELECT *
+                            FROM apregoar.ngazetteer
+                            WHERE osm_id = %(osm_id)s
+                            ;""",
+                            {'osm_id':osm_id}
+                        )
+                        records = cur.fetchall()
+                        for row in records:
+                            n_id = row[0]
+                            print("n_id: ",n_id)
+                            nomExists = True
+                        if nomExists == False:
+                            print("ngazetteer entry doesn't exists yet")
+                            cur.execute("""
+                                INSERT INTO apregoar.ngazetteer (n_name, geom, osm_id, geojson) 
+                                VALUES (%(n_name)s, ST_GeomFromEWKT(%(geom)s), %(osm_id)s, %(geojson)s)
+                                RETURNING n_id
+                                ;""",
+                                {'n_name':name, 'geom':'SRID=4326;'+multiP.wkt, 'osm_id':osm_id, 'geojson':geojson}
+                            )
+                            print("checkpoint")
+                            n_id = cur.fetchone()[0]
+                            print("n_id after new entry save: ", n_id)
+                            
+                        #Relate instance and new place
+                        cur.execute("""
+                            INSERT INTO apregoar.instance_ngaz (i_id, n_id)
+                            VALUES (%(i_id)s, %(n_id)s)
+                            RETURNING n_id, i_id
+                            ;""",
+                            {'i_id':i_id, 'n_id':n_id,}
+                        )
+                        results = cur.fetchone()[0]
+                        #for result in results:
+                        #    print("i_id, n_id",result["i_id"]+result["n_id"])
+                        print("Nominatim place successfully related to instance")
+
+                        
+                        
+
 
                 #Associate any existing administrative gazetteers
                 print("e_ids: ",e_ids)

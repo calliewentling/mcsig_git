@@ -128,7 +128,8 @@ wmsSourceStory.on('imageloaderror', function () {
 let layerExtent;
 function zoomGaz(vectorSource){
     console.log("layerExtent (in zoomGaz): ",vectorSource.getExtent());
-    var layerExtent = vectorSource.getExtent();
+    var layerExtent = ol.extent.extend(sourceNominatimPoly.getExtent(),vectorSource.getExtent());
+    //var layerExtent = vectorSource.getExtent();
     mapGaz.getView().fit(ol.extent.buffer(layerExtent, .01)); //What does this number mean??
     return layerExtent;
 }
@@ -571,12 +572,20 @@ let libraryNominatim;
 //Calling RESTAPI of geonames to search gazetteer
 function searchNominatim() {
     var selectNominatim = document.getElementById('select_nominatim');
-    var buttonZoomNominatim = document.getElementById("buttonZoomNominatim");
-    buttonZoomNominatim.style.display="none";
     while (selectNominatim.hasChildNodes()) {
         selectNominatim.removeChild(selectNominatim.firstChild);
     }
     selectNominatim.style.display="none";
+
+    var guideNominatim = document.getElementById('guide_nominatim');
+    while(guideNominatim.hasChildNodes()){
+        guideNominatim.removeChild(guideNominatim.firstChild);
+    }
+    guideNominatim.style.display="none";
+
+    var buttonZoomNominatim = document.getElementById("buttonZoomNominatim");
+    buttonZoomNominatim.style.display="none";
+
     var searchTerm = prompt("Pode especificar a pesquisa para Nominatim:");
     encodedSearch = encodeURIComponent(searchTerm);
     //var url = "http://api.geonames.org/search?q="+encodedSearch+"&east=-7.74577887999189&west=-9.517104891617194&north=39.83801908704823&south=38.40907442337447&type=json&isNameRequired=true&maxRows=20&username=cwentling";
@@ -594,7 +603,7 @@ function searchNominatim() {
             var nominatim = response;
             const totalResults = nominatim.length;
             console.log("totalResults: ",totalResults);
-            libraryNominatim = {};
+            //libraryNominatim = {};
             
             if (totalResults == 0) {
                 geonamesComment.innerHTML = "<i>Desculpa, pesquisa sem resultos</i>";
@@ -604,17 +613,33 @@ function searchNominatim() {
                     var option = document.createElement("option");
                     option.textContent = nominatim[i]["display_name"];
                     console.log("option text: ",option.textContent);
-                    option.value = JSON.stringify(nominatim[i]["geojson"]);
+                    var valueN = {
+                        "name": nominatim[i]["display_name"],
+                        "geojson" : nominatim[i]["geojson"],
+                        "id": nominatim[i]["osm_type"]+nominatim[i]["osm_id"] //If you need an ID that is consistent over multiple installations of Nominatim, then you should use the combination of osm_type+osm_id+class. https://nominatim.org/release-docs/latest/api/Output/#notes-on-field-values
+                    };
+                
+                    option.value = JSON.stringify(valueN);
                     nameN = nominatim[i]["display_name"];
                     const geojson = JSON.stringify(nominatim[i]["geojson"]);
                     console.log("geojson ",geojson);
-                    selectNominatim.appendChild(option);
-                    libraryNominatim[nameN] = geojson;
+                    //libraryNominatim[nameN] = geojson;
+                    if (nominatim[i]["geojson"]["type"]=="Polygon"){
+                        selectNominatim.appendChild(option);
+                    } else if (nominatim[i]["geojson"]["type"]=="Point"){
+                        guideNominatim.appendChild(option);
+                    }
+                    
                 }
-                selectNominatim.style.display="block";
+                if (selectNominatim.hasChildNodes()){
+                    selectNominatim.style.display="block";
+                }
+                
+                
+                guideNominatim.style.display="block";
                 buttonZoomNominatim.style.display="block";
             }
-            console.log("libraryNominatim: ", libraryNominatim);
+            //console.log("libraryNominatim: ", libraryNominatim);
             
         })
 }
@@ -626,43 +651,26 @@ var sourceNominatimPoly = new ol.source.Vector();
 function zoomNominatim(){
     console.log("Entering zoomNominatim");
     var sourceNominatimPoint = new ol.source.Vector();
-    sourceNominatimPoly.clear();
-    var selectNominatim = document.getElementsByName("selectNominatim")[0];
-    for (var i=0; i<selectNominatim.length; i++){
-        if (selectNominatim[i].selected){
-            console.log("selectNominatim[i]: ",selectNominatim[i]);
-            console.log("selectNominatim[i]['value']: ",selectNominatim[i]['value']);
-            const geojson = JSON.parse(selectNominatim[i]['value']);
+    var guideNominatim = document.getElementsByName("guideNominatim")[0];
+    for (var i=0; i<guideNominatim.length; i++){
+        if (guideNominatim[i].selected){
+            console.log("guideNominatim[i]: ",guideNominatim[i]);
+            console.log("guideNominatim[i]['value']: ",guideNominatim[i]['value']);
+            const valueN = JSON.parse(guideNominatim[i]['value']);
+            const geojson = valueN["geojson"];
             console.log("geojson: ",geojson); 
             const coords = geojson["coordinates"];
             console.log("coords:", coords);
             const geomType = geojson["type"];
             console.log("geomType ",geomType);
             //let feature;
-            if (geomType =="Polygon"){
-                var feature = new ol.Feature({
-                    geometry: new ol.geom.Polygon(coords),
-                    name: selectNominatim["name"]
-                });
-                sourceNominatimPoly.addFeature(feature);
-                console.log("feature.getGeometry(): ",feature.getGeometry());
-            } else if (geomType == "Point"){
-                feature = new ol.Feature({
-                    geometry: new ol.geom.Point(coords),
-                    name: selectNominatim["name"]
-                })
-                sourceNominatimPoint.addFeature(feature);
-                console.log("feature.getGeometry(): ",feature.getGeometry());
-            } else {
-                console.log("No valid geomType");
-            }
             
-            //console.log("feature geom: ",feature["geometry"]);
-            
-            //var pGeom = feature.getGeometry();
-            //console.log("pGeom: ",pGeom);
-            //var gFeatures = sourceNominatim.getFeatures();
-            //console.log("gFeatures: ",gFeatures);
+            feature = new ol.Feature({
+                geometry: new ol.geom.Point(coords),
+                name: guideNominatim["name"]
+            })
+            sourceNominatimPoint.addFeature(feature);
+            console.log("feature.getGeometry(): ",feature.getGeometry());
         }
     }
     var layerNominatimPoly = new ol.layer.Vector({
@@ -678,25 +686,21 @@ function zoomNominatim(){
         }),
     });
     var layerNominatimPoint = new ol.layer.Vector({
-        source: sourceNominatimPoly,
+        source: sourceNominatimPoint,
         style: new ol.style.Style({
             image: new ol.style.Circle({
-                radius: 4,
+                radius: 7,
                 fill: new ol.style.Fill({
-                    color: 'rgba(238,130,238,.24)',
+                    color: '#ff3333',
                 }),
-                stroke: new ol.style.Stroke({
-                    width: '2',
-                    color: 'rgba(238,130,238,1)',
-                }),                
             }),
         }),
     });
-    
     //REUNITE
-    mapGaz.addLayer(layerNominatimPoly);
+    //mapGaz.addLayer(layerNominatimPoly);
     mapGaz.addLayer(layerNominatimPoint);
-    var layerExtent = ol.extent.extend(sourceNominatimPoly.getExtent(),sourceNominatimPoint.getExtent());
+    var layerExtent = sourceNominatimPoint.getExtent()
+    //var layerExtent = ol.extent.extend(sourceNominatimPoly.getExtent(),sourceNominatimPoint.getExtent());
     console.log("layerExtent: ",layerExtent);
     mapGaz.getView().fit(ol.extent.buffer(layerExtent, .01));
 }
@@ -745,6 +749,11 @@ function searchGazPrev(gazetteer) {
         selectEgazArchive.removeChild(selectEgazArchive.firstChild);
     }
     selectEgazArchive.style.display="none";
+    var selectNominatim = document.getElementById('select_nominatim');
+    while (selectNominatim.hasChildNodes()){
+        selectNominatim.removeChild(selectNominatim.firstChild);
+    }
+    selectNominatim.style.display="none";
     var bodyContent = {}
     if (gazetteer == "gaz_prev"){
         var searchTerm = prompt("Pode especificar a pesquisa:");
@@ -835,6 +844,54 @@ function searchGazPrev(gazetteer) {
     .catch(function(error){
         console.log("Fetch error: "+error);
     });
+
+    //CHECK NOMINATIM
+    encodedSearch = encodeURIComponent(searchTerm);
+    var url = "https://nominatim.openstreetmap.org/search?q="+encodedSearch+"&format=jsonv2&countrycodes=pt&limit=50&viewbox=-7.74577887999189,39.83801908704823,-9.517104891617194,38.40907442337447&polygon_geojson=1"
+    console.log("URL: ",url);
+    fetch(url)
+        .then((response) => {
+            if (!response.ok) {
+                throw new Error('HTTP error! Status: ${ resonse.status }');
+            }
+            return response.json();
+        })
+        .then((response) => {
+            console.log("Response: ",response);
+            var nominatim = response;
+            const totalResults = nominatim.length;
+            console.log("totalResults: ",totalResults);
+            //libraryNominatim = {};
+            
+            if (totalResults == 0) {
+                geonamesComment.innerHTML = "<i>Desculpa, pesquisa sem resultos</i>";
+                selectGeonames.style.display="none";
+            } else {
+                for (var i=0; i < nominatim.length; i++) {
+                    var option = document.createElement("option");
+                    option.textContent = nominatim[i]["display_name"];
+                    console.log("option text: ",option.textContent);
+                    var valueN = {
+                        "name": nominatim[i]["display_name"],
+                        "geojson" : nominatim[i]["geojson"],
+                        "id": nominatim[i]["osm_type"]+nominatim[i]["osm_id"] //If you need an ID that is consistent over multiple installations of Nominatim, then you should use the combination of osm_type+osm_id+class. https://nominatim.org/release-docs/latest/api/Output/#notes-on-field-values
+                    };
+                
+                    option.value = JSON.stringify(valueN);
+                    nameN = nominatim[i]["display_name"];
+                    //libraryNominatim[nameN] = geojson;
+                    if (nominatim[i]["geojson"]["type"]=="Polygon"){
+                        selectNominatim.appendChild(option);
+                    } 
+                    
+                }
+                if (selectNominatim.hasChildNodes()){
+                    selectNominatim.style.display="block";
+                }
+            }
+            //console.log("libraryNominatim: ", libraryNominatim);
+            
+        })
 }
 
 function styleSelectGaz(gaz) {
@@ -967,16 +1024,66 @@ function initGaz(){
     result = prepGaz(selectedGaz = selectUgazAll, selectedInt = selectedIntU);
     selectedIntU = selectedInt;
     console.log("selectedIntU after Ugaz All: ",selectedIntU);
+
+    
+    // Preparing sítios Nominatim
+    var selectedIntN = [];
+    sourceNominatimPoly.clear();
+    mapGaz.removeLayer(layerNominatimPoly);
+    var selectNominatim = document.getElementById("select_nominatim");
+    console.log("selectNominatim: ",selectNominatim);
+    for (var i=0; i<selectNominatim.length; i++){
+        if (selectNominatim[i].selected){
+            console.log("selectNominatim[i]: ",selectNominatim[i]);
+            console.log("selectNominatim[i]['value']: ",selectNominatim[i]['value']);
+            const valueN = JSON.parse(selectNominatim[i]['value']);
+            const geojson = valueN["geojson"];
+            console.log("geojson: ",geojson); 
+            const coords = geojson["coordinates"];
+            console.log("coords:", coords);
+            const geomType = geojson["type"];
+            console.log("geomType ",geomType);
+            //let feature;
+            feature = new ol.Feature({
+                geometry: new ol.geom.Polygon(coords),
+                name: selectNominatim["name"]
+            })
+            selectedIntN.push(valueN);
+            sourceNominatimPoly.addFeature(feature);
+            console.log("feature.getGeometry(): ",feature.getGeometry());
+        }
+    }
+    layerNominatimPoly.setSource(sourceNominatimPoly) 
+    mapGaz.addLayer(layerNominatimPoly);
+    
+    
+    
     //Calcuate totals
-    gazL = selectedIntE.length + selectedIntU.length;
+    gazL = selectedIntE.length + selectedIntU.length + selectedIntN.length;
     tGaz = updateGazTotals(uGaz, gazL);
+    //
     results = vizGaz(selectedIntE,selectedIntU);
+    //zoomGaz()
+    zoomGaz(vectorSource=vectorSourceStories);
     results["tGaz"] = tGaz;
+    results["selectedIntN"] = selectedIntN;
     console.log(results);
     return results;
 }
+var layerNominatimPoly = new ol.layer.Vector({
+    source: sourceNominatimPoly,
+    style: new ol.style.Style({
+        stroke: new ol.style.Stroke({
+            color: 'rgba(238,130,238,1)',
+            width: '2',
+        }),
+        fill: new ol.style.Fill({
+            color: 'rgba(238,130,238,.25)',
+        }),
+    }),
+});
 
-function vizGaz(selectedIntE,selectedIntU){
+function vizGaz(selectedIntE,selectedIntU, selectedIntN){
 
     //Update Gaz Totals
     var vectorSource = vectorSourceStories;
@@ -1060,8 +1167,7 @@ function vizGaz(selectedIntE,selectedIntU){
 
     return {selectedIntE,selectedIntU}
 }
-
-
+//let layerNominatimPoly;
 
 
 //Update Gaz Totals
@@ -1211,6 +1317,7 @@ function submitInstance() {
     tGaz = results.tGaz;
     selectedIntE = results.selectedIntE;
     selectedIntU = results.selectedIntU;
+    var selectedIntN = results.selectedIntN;
 
     // Get form values for validation
     var pNamef = document.getElementById("pName");
@@ -1291,6 +1398,7 @@ function submitInstance() {
                 tDesc: tDescf.value,
                 eIds: selectedIntE,
                 pIds: selectedIntU,
+                nominatims: selectedIntN,
             },
             geometry: polyJson
         };
