@@ -712,7 +712,7 @@ def prepare_explore():
                 dates["idate1"] = row["idate1"]
                 dates["idate2"] = row["idate2"]
 
-        #Get range of last 100 pubdates
+        #Get range of last 25 pubdates
         try:
             with engine.connect() as conn:
                 SQL3 = text("SELECT MIN(pub_date) AS R1, MAX(pub_date) AS R2 FROM (SELECT * FROM apregoar.stories ORDER BY pub_date DESC LIMIT 25) recentstories")
